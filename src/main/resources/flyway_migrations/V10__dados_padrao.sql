@@ -12,6 +12,8 @@ INSERT INTO empresas (nome, dataCriacao)
 SELECT 'Balanças Gobitech', strftime('%s', 'now') * 1000
 WHERE NOT EXISTS (SELECT 1 FROM empresas WHERE id = 1);
 
-INSERT INTO conexao_balanca (tipo_conexao, dataCriacao)
-SELECT 'Serial', strftime('%s', 'now') * 1000
-WHERE NOT EXISTS (SELECT 1 FROM conexao_balanca WHERE id = 1);
+-- Sem seed de conexao_balanca: uma linha com tipo_conexao='Serial' mas porta_com/baud_rate
+-- nulos passava direto pelo LeitorBalancaFactory e estourava NullPointerException ao abrir
+-- a tela de Pesagem (ver DECISIONS.md). ConexaoBalancaService.salvarOuAtualizar() já cria a
+-- linha na primeira vez que o usuário salva configuração válida pela tela — não precisa de
+-- linha pré-existente.

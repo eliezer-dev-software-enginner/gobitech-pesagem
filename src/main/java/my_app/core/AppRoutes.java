@@ -10,7 +10,6 @@ import my_app.screens.infoUpdateScreen.InfoUpdateScreen;
 import my_app.screens.feedbackScreen.RelatarErroScreen;
 import my_app.screens.feedbackScreen.SugerirMelhoriaScreen;
 import my_app.screens.authScreen.AuthScreen;
-import my_app.screens.preferenciasScreen.PreferenciasScreen;
 import my_app.screens.clienteScreen.ClienteScreen;
 import my_app.screens.conexaoBalancaScreen.ConexaoBalancaScreen;
 import my_app.screens.empresaScreen.CadastroEmpresaScreen;
@@ -37,7 +36,6 @@ public class AppRoutes {
         LICENSA,
         RELATAR_ERRO,
         SUGERIR_MELHORIA,
-        PREFERENCIAS,
         INFO_UPDATE,
         ACESSO_BLOQUEADO
     }
@@ -53,7 +51,6 @@ public class AppRoutes {
 
 
     public Set<Router.Route> routes() {
-
         return Set.of(
                 new Router.Route(Screens.SPLASH.name(), ctx -> new SplashScreen(),
                         new RouteProps(MIN_WIDTH, MIN_HEIGHT, Main.BASE_TITLE, false)),
@@ -69,7 +66,6 @@ public class AppRoutes {
                 new Router.Route(Screens.LICENSA.name(), LicensaScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Gerar licença", false)),
                 new Router.Route(Screens.RELATAR_ERRO.name(), RelatarErroScreen::new, new RouteProps(MIN_WIDTH, MIN_HEIGHT, "Relatar erros", true)),
                 new Router.Route(Screens.SUGERIR_MELHORIA.name(), SugerirMelhoriaScreen::new, new RouteProps(MIN_WIDTH, MIN_HEIGHT, "Detalhes de melhoria ou funcionalidades a serem sugeridas", true)),
-                new Router.Route(Screens.PREFERENCIAS.name(), PreferenciasScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Alteração de preferências do comportamento do aplicativo", true)),
                 new Router.Route(Screens.INFO_UPDATE.name(), InfoUpdateScreen::new, new RouteProps(MAX_WIDTH, MAX_HEIGHT, "Atualizações do aplicativo", false)),
                 new Router.Route(Screens.ACESSO_BLOQUEADO.name(), ctx -> new AcessoBloqueadoScreen(),
                         new RouteProps(MIN_WIDTH, MIN_HEIGHT, "Acesso bloqueado", false))

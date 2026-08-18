@@ -41,11 +41,10 @@ public class AuthScreen implements ScreenComponent {
     public Component render() {
         return new Container(new ContainerProps().paddingAll(20).bgImage("/assets/bgAuth.jpg")).children(
                 new Row(new RowProps().fillWidth()).children(
-                        new Column().children(
-                                new Column(new ColumnProps().centerHorizontally()).children(
-                                        new Image("/assets/app_banner.png", new ImageProps().size(210)),
-                                        new Text("Seu sistema de pesagem de balança de caminhão completo", new TextProps().color("white").bold())
-                                )
+                        new Column(new ColumnProps().spacingOf(ThemeManager.theme().spacing().md()).centerHorizontally()
+                                .paddingTop(90)).children(
+                                new Image("/assets/app_banner.png", new ImageProps().size(210)),
+                                new Text("Seu sistema de pesagem de balança de caminhão completo", new TextProps().color("white").bold())
                         ),
                         new SpacerHorizontal().fill(),
                         new Card(

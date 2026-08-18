@@ -42,7 +42,7 @@ public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<Usuari
 
     @Override
     public Component render() {
-        return mainView(vm.focusState);
+        return mainView();
     }
 
     @Override
@@ -78,15 +78,14 @@ public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<Usuari
         simpleTable.fromData(vm.filteredList)
                 .header()
                 .columns()
-                .column("ID", UsuarioModel::getId)
+                .column("ID", UsuarioModel::getId, 60.0)
                 .column("Nome", UsuarioModel::getNome)
                 .column("Login", UsuarioModel::getLogin)
                 .column("Admin", it -> Boolean.TRUE.equals(it.getAdmin()) ? "Sim" : "Não")
                 .column("Data de criação", it -> DateUtils.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build()
-                .onChangeFocus(vm::handleFocusChange)
                 .onItemSelectChange(vm.usuarioSelecionado::set)
-                .onItemDoubleClick(it -> Components.ShowModal(itemDetails(it), this.screenContext, 350));
+                .onItemDoubleClick(it -> showItemDetailsComAcoes(it, this.screenContext, 350));
 
         return simpleTable;
     }

@@ -42,7 +42,7 @@ public class ProdutoScreen implements ScreenComponent, ContratoTelaCrudV3<Produt
 
     @Override
     public Component render() {
-        return mainView(vm.focusState);
+        return mainView();
     }
 
     @Override
@@ -54,7 +54,8 @@ public class ProdutoScreen implements ScreenComponent, ContratoTelaCrudV3<Produt
                         .c_child(new FlowRow(new FlowRowProps().spacingOf(10))
                                 .children(
                                         Components.InputColumn("Nome do produto", vm.nome, "Ex: Soja"),
-                                        Components.SelectColumn("Unidade", Data.unidadesDeMedidaList, vm.unidadeSelected, it -> it)
+                                        Components.SelectColumn("Unidade", Data.unidadesDeMedidaList, vm.unidadeSelected, it -> it),
+                                        Components.InputColumnDecimal("Desconto padrão (%)", vm.desconto, "0")
                                 )
                         )
                         .c_child(new SpacerVertical(10))
@@ -76,14 +77,14 @@ public class ProdutoScreen implements ScreenComponent, ContratoTelaCrudV3<Produt
         simpleTable.fromData(vm.filteredList)
                 .header()
                 .columns()
-                .column("ID", ProdutoModel::getId)
+                .column("ID", ProdutoModel::getId, 60.0)
                 .column("Nome", ProdutoModel::getNome)
                 .column("Unidade", ProdutoModel::getUnidade)
+                .column("Desconto (%)", it -> it.getDesconto() == null ? "0" : it.getDesconto().toPlainString())
                 .column("Data de criação", it -> DateUtils.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build()
-                .onChangeFocus(vm::handleFocusChange)
                 .onItemSelectChange(vm.produtoSelecionado::set)
-                .onItemDoubleClick(it -> Components.ShowModal(itemDetails(it), this.screenContext, 350));
+                .onItemDoubleClick(it -> showItemDetailsComAcoes(it, this.screenContext, 350));
 
         return simpleTable;
     }
@@ -95,6 +96,7 @@ public class ProdutoScreen implements ScreenComponent, ContratoTelaCrudV3<Produt
                 .c_child(Components.TextWithDetails("ID: ", model.getId()))
                 .c_child(Components.TextWithDetails("Nome: ", model.getNome()))
                 .c_child(Components.TextWithDetails("Unidade: ", model.getUnidade()))
+                .c_child(Components.TextWithDetails("Desconto padrão (%): ", model.getDesconto() == null ? "0" : model.getDesconto().toPlainString()))
                 .c_child(Components.TextWithDetails("Data de criação: ", DateUtils.localDateTimeToBrazilianDateTime(model.getDataCriacao())))
                 .c_child(Components.TextWithDetails("Observações: ", model.getObservacoes(), true));
     }

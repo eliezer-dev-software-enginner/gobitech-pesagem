@@ -109,7 +109,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
                     UI.runOnUi(() -> {
                         allDataList.updateIf(it -> it.getId().equals(model.getId()), it -> model);
                         Components.ShowPopup(ctx, "Usuário atualizado com sucesso");
-                        clearForm();
+                        voltarParaLista();
                         EventBus.getInstance().publish(EntityEvent.editado(model));
                     });
                 } else {
@@ -117,7 +117,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
                     UI.runOnUi(() -> {
                         allDataList.add(model);
                         Components.ShowPopup(ctx, "Usuário cadastrado com sucesso");
-                        clearForm();
+                        voltarParaLista();
                         EventBus.getInstance().publish(EntityEvent.criado(model));
                     });
                 }

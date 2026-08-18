@@ -5,6 +5,7 @@ import my_app.db.models.ProdutoModel;
 import my_app.db.repositories.ProdutoRepository;
 import net.sf.persism.Session;
 
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 
@@ -25,6 +26,7 @@ public class ProdutoService extends BaseService<ProdutoModel> {
     public ProdutoModel salvar(ProdutoModel model) throws SQLException {
         validar(model);
         if (model.getAtivo() == null) model.setAtivo(true);
+        if (model.getDesconto() == null) model.setDesconto(BigDecimal.ZERO);
         model.setDataCriacao(LocalDateTime.now());
         return repository.salvar(model);
     }
@@ -32,6 +34,7 @@ public class ProdutoService extends BaseService<ProdutoModel> {
     @Override
     public void atualizar(ProdutoModel model) throws SQLException {
         validar(model);
+        if (model.getDesconto() == null) model.setDesconto(BigDecimal.ZERO);
         repository.atualizar(model);
     }
 

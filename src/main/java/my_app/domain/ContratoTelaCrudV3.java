@@ -1,30 +1,37 @@
 package my_app.domain;
 
-import javafx.scene.control.ScrollPane;
-import javafx.util.Duration;
-import megalodonte.base.Animations;
+import javafx.stage.Stage;
 import megalodonte.base.UI;
 import megalodonte.base.components.Component;
-import megalodonte.base.state.State;
-import megalodonte.base.theme.ThemeInterface;
 import megalodonte.base.theme.ThemeManager;
 import megalodonte.components.Button;
+import megalodonte.components.Card;
 import megalodonte.components.SimpleTable;
+import megalodonte.components.SpacerHorizontal;
 import megalodonte.components.SpacerVertical;
 import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.Container;
 import megalodonte.components.layout_components.Row;
+import megalodonte.props.ButtonProps;
+import megalodonte.props.CardProps;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.ContainerProps;
 import megalodonte.props.RowProps;
+import megalodonte.router.v4.ScreenContext;
 import megalodonte.v2.Show;
-import my_app.db.models.ProdutoModel;
 import my_app.domain.components.Components;
-import my_app.utils.DateUtils;
-import org.kordamp.ikonli.entypo.Entypo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Lista e formulário são páginas mutuamente exclusivas — "Criar novo" navega pra dentro do
+ * formulário, "Voltar" (ou salvar com sucesso) navega de volta pra lista. Igual o app antigo
+ * (Table -> Form -> Table), em vez do formulário só recolher/expandir em cima da lista.
+ * <p>
+ * Editar/Excluir/Clonar não ficam mais numa barra fixa no topo da lista — moraram pro modal de
+ * detalhes (duplo-clique numa linha), também igual o app antigo (clique na linha abre o
+ * "Profile", que é de lá que se edita/exclui/clona).
+ */
 public interface ContratoTelaCrudV3<T> {
 
     Logger log = LoggerFactory.getLogger(ContratoTelaCrudV3.class);
@@ -54,67 +61,106 @@ public interface ContratoTelaCrudV3<T> {
         viewModel().modoEdicaoState().set(true);
     }
 
-    default Component commonCustomMenus(State<Boolean> focusState) {
-        return Components.commonCustomMenusv3(
-                focusState,
-                this::handleClickNew,
-                this::handleClickMenuEdit,
-                this::handleClickMenuDelete,
-                this::handleClickMenuClone
-        );
+    default void handleClickVoltar() {
+        viewModel().modoEdicaoState().set(false);
+        viewModel().voltarParaLista();
     }
 
     SimpleTable<T> table();
     Component form();
     Component itemDetails(T model);
 
-    default Component mainView(State<Boolean> focusState) {
-        return new Container(new ContainerProps().paddingAll(10).bgColor("#fff"))
-                .children(
-                        commonCustomMenus(focusState),
-                        new SpacerVertical(10),
-                        Components.ScrollPaneDefault(
-                                new Container(new ContainerProps().bgColor("#fff").fillHeight())
-                                        .children(
-                                                buttonExpandMinimizeWrapper(),
-                                                new SpacerVertical(ThemeManager.theme().spacing().md()),
-                                                Show.when(viewModel().formIsVisible, () -> form()
-                                                ).withTransition((c, entering) -> {
-                                                    if (entering) {
-                                                        var anim = Animations.pop(c, true, Duration.millis(100));
-                                                        anim.setOnFinished(e -> {
-                                                            var n = c.getNode().getParent();
-                                                            while (n != null) {
-                                                                if (n instanceof ScrollPane sp) {
-                                                                    sp.setVvalue(0);
-                                                                    break;
-                                                                }
-                                                                n = n.getParent();
-                                                            }
-                                                        });
-                                                        return anim;
-                                                    } else {
-                                                        return Animations.fadeScale(c, false, Duration.millis(250));
-                                                    }
-                                                }),
-                                                new SpacerVertical(30),
-                                                new Container(new ContainerProps().paddingLeft(20).paddingRight(20).fillHeight())
-                                                        .children(
-                                                                Components.searchInput(viewModel().searchState, "Pesquisar"),
-                                                                table()
-                                                        )
+    /**
+     * Conteúdo extra no topo da página de lista, antes da busca/tabela — ex.: o filtro
+     * avançado de {@code PesagemScreen}. Vazio por padrão.
+     */
+    default Component extraListContent() {
+        return new Column();
+    }
 
-                                        )
-                        )
+    default Component mainView() {
+        // .fillHeight() no Show é essencial: sem ele, o Show trava a própria altura em
+        // USE_PREF_SIZE (não estica, não encolhe) — a página de lista/formulário nunca é
+        // forçada a caber no espaço real disponível, então o ScrollPane lá dentro nunca é
+        // forçado a rolar de verdade; ele só cresce, e o conteúdo que não cabe na janela some
+        // sem jeito de rolar até ele (reportado: tabela cheia empurrando "Criar novo" pra fora).
+        return new Container(new ContainerProps().paddingAll(20).bgColor("#f3f4f6").fillHeight())
+                .children(
+                        Show.when(viewModel().formIsVisible, this::formPage, this::listPage).fillHeight()
                 );
     }
 
-    private Row buttonExpandMinimizeWrapper() {
-        return new Row(new RowProps().fillWidth().centerHorizontally()).children(
-                new Button(viewModel().formIsVisibleTextComputed)
-                        .onClick(() -> viewModel().handleToggleFormVisible())
-                        .icon(viewModel().createToggleIcon())
+    private Component listPage() {
+        return Components.ScrollPaneDefault(
+                new Column(new ColumnProps().fillWidth().spacingOf(15))
+                        .children(
+                                extraListContent(),
+                                new Card(
+                                        new Column(new ColumnProps().fillWidth().spacingOf(15))
+                                                .children(
+                                                        Components.searchInput(viewModel().searchState, "Pesquisar"),
+                                                        table()
+                                                ),
+                                        new CardProps().fillWidth().padding(20).bgColor("#ffffff")
+                                ),
+                                new Row(new RowProps().fillWidth())
+                                        .children(
+                                                new SpacerHorizontal().fill(),
+                                                new Button("+ Criar novo", new ButtonProps().height(34)
+                                                        .bgColor(ThemeManager.theme().colors().primary()).textColor("black"))
+                                                        .onClick(this::handleClickNew)
+                                        )
+                        )
         );
+    }
+
+    private Component formPage() {
+        return Components.ScrollPaneDefault(
+                new Column(new ColumnProps().fillWidth().spacingOf(15))
+                        .children(
+                                new Card(form(), new CardProps().fillWidth().padding(20).bgColor("#ffffff")),
+                                new Button("< Voltar", new ButtonProps().bgColor("#e5e7eb").textColor("#111"))
+                                        .onClick(this::handleClickVoltar),
+                                new SpacerVertical(10)
+                        )
+        );
+    }
+
+    /**
+     * Duplo-clique numa linha abre isso: os detalhes de {@code model} + Editar/Excluir/Clonar
+     * embaixo. Cada ação fecha o modal (é uma janela própria, ver {@code Components.ShowModal})
+     * antes de disparar — a edição de fato acontece na tela principal, atrás do modal.
+     */
+    default void showItemDetailsComAcoes(T model, ScreenContext ctx, int height) {
+        Stage[] modalStage = new Stage[1];
+        Runnable fechar = () -> {
+            if (modalStage[0] != null) modalStage[0].close();
+        };
+
+        Component conteudo = new Column(new ColumnProps().fillWidth().spacingOf(15))
+                .children(
+                        itemDetails(model),
+                        new Row(new RowProps().fillWidth().spacingOf(10))
+                                .children(
+                                        new Button("Editar", new ButtonProps().bgColor("#2563eb").textColor("white"))
+                                                .onClick(() -> {
+                                                    fechar.run();
+                                                    handleClickMenuEdit();
+                                                }),
+                                        new Button("Clonar", new ButtonProps().bgColor("#6b7280").textColor("white"))
+                                                .onClick(() -> {
+                                                    fechar.run();
+                                                    handleClickMenuClone();
+                                                }),
+                                        new Button("Excluir", new ButtonProps().bgColor("#ef4444").textColor("white"))
+                                                .onClick(() -> {
+                                                    fechar.run();
+                                                    handleClickMenuDelete();
+                                                })
+                                )
+                );
+
+        modalStage[0] = Components.ShowModal(conteudo, ctx, height);
     }
 
     default void populateFieldsFromModel() {

@@ -44,7 +44,12 @@ public class PesagemScreen implements ScreenComponent, ContratoTelaCrudV3<Pesage
 
     @Override
     public Component render() {
-        return mainView(vm.focusState);
+        return mainView();
+    }
+
+    @Override
+    public Component extraListContent() {
+        return filtroSection();
     }
 
     private Component filtroSection() {
@@ -68,7 +73,6 @@ public class PesagemScreen implements ScreenComponent, ContratoTelaCrudV3<Pesage
     @Override
     public Component form() {
         return new Column(new ColumnProps().spacingOf(15))
-                .c_child(filtroSection())
                 .c_child(new Card(
                         new Column(new ColumnProps().paddingAll(20))
                                 .c_child(Components.FormTitle("Registrar pesagem"))
@@ -143,7 +147,7 @@ public class PesagemScreen implements ScreenComponent, ContratoTelaCrudV3<Pesage
         simpleTable.fromData(vm.filteredList)
                 .header()
                 .columns()
-                .column("ID", PesagemModel::getId)
+                .column("ID", PesagemModel::getId, 60.0)
                 .column("Placa", PesagemModel::getPlaca)
                 .column("Motorista", PesagemModel::getMotoristaNome)
                 .column("Operação", PesagemModel::getOperacao)
@@ -152,9 +156,8 @@ public class PesagemScreen implements ScreenComponent, ContratoTelaCrudV3<Pesage
                 .column("Peso líquido (Kg)", it -> String.valueOf(it.getPesoFinal()))
                 .column("Data", it -> DateUtils.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build()
-                .onChangeFocus(vm::handleFocusChange)
                 .onItemSelectChange(vm.pesagemSelecionada::set)
-                .onItemDoubleClick(it -> Components.ShowModal(itemDetails(it), this.screenContext, 500));
+                .onItemDoubleClick(it -> showItemDetailsComAcoes(it, this.screenContext, 500));
 
         return simpleTable;
     }

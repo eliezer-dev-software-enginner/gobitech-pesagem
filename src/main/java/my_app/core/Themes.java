@@ -41,18 +41,21 @@ return new ThemeColors(
     public static final ThemeInterface LIGHT = new ThemeInterface() {
         @Override
         public ThemeColors colors() {
+            // Paleta do app original (pesagemFinal): dourado/mostarda como cor de ação
+            // (Login/Cadastrar/Salvar em toda tela), painel escuro na sidebar, fundo
+            // quase branco — ver UI.Login/UI.Sidebar do projeto legado.
             return new ThemeColors(
-                "#f8fafc",                    // background: Branco levemente azulado
-                "#ffffff",                    // surface: Branco puro para Cards e tabelas
-                "#2563eb",                    // primary: Mantém azul vibrante para botões
-                "#e2e8f0",                    // secondary: Cinza claro para elementos secundários
-                "#0f172a",                    // text primary: Azul quase preto para máximo contraste
-                "#94a3b8",                    // text secondary: Cinza médio para textos de apoio
-                "#1B2432",                   // border: Cinza suave para divisórias e bordas,
-                "#A9A9A9",
-                    "#dbeafe",                    // selection (primary with low opacity)
-                    "#93c5fd",                    // focusRing (lighter primary)
-                    "#e2e8f0"                     // hover
+                "#f7f7f7",                    // background
+                "#ffffff",                    // surface: Cards e tabelas
+                "#f0cb54",                    // primary: dourado dos botões de ação do app original
+                "#ffe79a",                    // secondary: amarelo claro (sidebar/painéis do app original)
+                "#000000",                    // text primary: preto, igual ao app original
+                "#5a5a5a",                    // text secondary
+                "#cccccc",                    // border: cinza neutro do app original
+                "#9ca3af",                    // placeholder
+                "#fbe8b8",                     // selection (tom claro do dourado)
+                "#e4c06a",                     // focusRing (tom médio do dourado)
+                "#ffe79a"                      // hover
 
             );
         }

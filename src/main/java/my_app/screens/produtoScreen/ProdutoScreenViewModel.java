@@ -12,6 +12,8 @@ import my_app.domain.Data;
 import my_app.domain.ViewModelScreenContract;
 import my_app.domain.components.Components;
 
+import java.math.BigDecimal;
+
 public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel> {
     private final ProdutoService produtoService;
 
@@ -20,6 +22,9 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
     final State<String> nome = new State<>("");
     final State<String> unidadeSelected = new State<>(Data.unidadesDeMedidaList.getFirst());
     final State<String> observacoes = new State<>("");
+
+    // Desconto padrão do produto — carregado no campo "Outros" da Pesagem ao selecioná-lo.
+    final State<String> desconto = new State<>("");
 
     public ProdutoScreenViewModel(ScreenContext ctx) {
         super(ctx);
@@ -38,6 +43,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
         nome.set(data.getNome());
         unidadeSelected.set(data.getUnidade() == null ? Data.unidadesDeMedidaList.getFirst() : data.getUnidade());
         observacoes.set(data.getObservacoes() == null ? "" : data.getObservacoes());
+        desconto.set(data.getDesconto() == null ? "" : data.getDesconto().toPlainString());
     }
 
     @Override
@@ -49,8 +55,17 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
         model.setNome(nome.get().trim());
         model.setUnidade(unidadeSelected.get());
         model.setObservacoes(observacoes.get());
+        model.setDesconto(parseDecimal(desconto.get()));
 
         return model;
+    }
+
+    private BigDecimal parseDecimal(String valor) {
+        try {
+            return valor == null || valor.isBlank() ? BigDecimal.ZERO : new BigDecimal(valor.trim().replace(",", "."));
+        } catch (NumberFormatException e) {
+            return BigDecimal.ZERO;
+        }
     }
 
     @Override
@@ -99,7 +114,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
                     UI.runOnUi(() -> {
                         allDataList.updateIf(it -> it.getId().equals(model.getId()), it -> model);
                         Components.ShowPopup(ctx, "Produto atualizado com sucesso");
-                        clearForm();
+                        voltarParaLista();
                         EventBus.getInstance().publish(EntityEvent.editado(model));
                     });
                 } else {
@@ -107,7 +122,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
                     UI.runOnUi(() -> {
                         allDataList.add(model);
                         Components.ShowPopup(ctx, "Produto cadastrado com sucesso");
-                        clearForm();
+                        voltarParaLista();
                         EventBus.getInstance().publish(EntityEvent.criado(model));
                     });
                 }
@@ -124,6 +139,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
         nome.set("");
         unidadeSelected.set(Data.unidadesDeMedidaList.getFirst());
         observacoes.set("");
+        desconto.set("");
     }
 
     @Override

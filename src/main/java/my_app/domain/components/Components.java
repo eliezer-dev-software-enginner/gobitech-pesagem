@@ -159,7 +159,7 @@ public class Components {
                         .fillWidth()
                         .height(31)
                         .fontSize(16)
-                        .textColor("white").bgColor("#10b981")
+                        .textColor("black").bgColor(ThemeManager.theme().colors().primary())
         ).onClick(onClick);
     }
 
@@ -167,6 +167,19 @@ public class Components {
         var scroll = new ScrollPane();
         scroll.setContent(child.getJavaFxNode());
         VBox.setVgrow(scroll, Priority.ALWAYS);
+        // Sem isso, quando o pai não é uma VBox (ex.: um HBox/Row — vgrow acima só vale pra
+        // pai VBox), o ScrollPane fica travado na própria altura preferida em vez de esticar
+        // até o espaço que o pai realmente oferece.
+        scroll.setMaxHeight(Double.MAX_VALUE);
+        // Sem isso, a altura MÍNIMA do ScrollPane é herdada do conteúdo (ex.: SimpleTable tem
+        // um piso de 200px de propósito — ver comentário lá — pra ele nunca encolher a ponto de
+        // nunca rolar). Esse mínimo, sem ser zerado aqui, sobe pela árvore de layout (contentArea
+        // -> Row -> janela) e força a Row inteira a crescer além da altura real da janela sempre
+        // que o conteúdo em foco for alto (tabela cheia + formulário), cortando qualquer coisa
+        // que esteja do lado — inclusive a Sidebar, mesmo ela não tendo mudado nada. Zerando o
+        // mínimo, o ScrollPane nunca dita tamanho pro pai: só aceita o que for dado e rola por
+        // dentro quando não é o suficiente — que é o comportamento que se espera de um scroll.
+        scroll.setMinHeight(0);
         scroll.setFitToWidth(true);
         scroll.setFitToHeight(true);
         scroll.setStyle("-fx-background-color: transparent;-fx-border-color: transparent;");
@@ -249,7 +262,7 @@ public class Components {
         stage.show();
     }
 
-    public static void ShowModal(Component ui, ScreenContext context, int height) {
+    public static Stage ShowModal(Component ui, ScreenContext context, int height) {
         Stage stage = new Stage();
 
         Scroll scroll = new Scroll(ui);
@@ -265,10 +278,11 @@ public class Components {
         });
 
         stage.show();
+        return stage;
     }
 
-    public static void ShowModal(Component ui, ScreenContext context) {
-        ShowModal(ui, context, 500);
+    public static Stage ShowModal(Component ui, ScreenContext context) {
+        return ShowModal(ui, context, 500);
     }
 
     public static void ShowAlertAdvice(String bodyMessage, RunnableThrowing handleSuccessEvent) {
@@ -296,7 +310,7 @@ public class Components {
                         .c_child(new Image(imagemState, new ImageProps().size(120)))
                         .c_child(new SpacerVertical().fill())
                         .c_child(new Button("Inserir imagem",
-                                new ButtonProps().fontSize(ThemeManager.theme().typography().small()).bgColor("#A6B1E1"))
+                                new ButtonProps().fontSize(ThemeManager.theme().typography().small()).bgColor(ThemeManager.theme().colors().secondary()))
                                 .onClick(handleChangeImage)
                         ),
                 new CardProps().height(300).padding(20)
@@ -355,7 +369,7 @@ public class Components {
     }
 
     static final ButtonProps propsBtnCadastro = new ButtonProps().fillWidth().height(31)
-            .fontSize(ThemeManager.theme().typography().small()).textColor("white").bgColor("#2563eb");
+            .fontSize(ThemeManager.theme().typography().small()).textColor("black").bgColor(ThemeManager.theme().colors().primary());
 
     public static Component ButtonCadastro(String textState, Runnable handleAdd) {
         return new Button(textState, propsBtnCadastro
@@ -466,6 +480,16 @@ public class Components {
         return new Column(new ColumnProps())
                 .c_child(new Text(label, new TextProps().fontSize(ThemeManager.theme().typography().body()).bold()))
                 .c_child(new Text(value, new TextProps().fontSize(ThemeManager.theme().typography().body())));
+    }
+
+    /** Card de KPI do dashboard: rótulo pequeno em cima, número grande embaixo. */
+    public static Component StatCard(String label, ReadableState<String> valueState) {
+        return new Card(
+                new Column(new ColumnProps().spacingOf(8))
+                        .c_child(new Text(label, new TextProps().fontSize(ThemeManager.theme().typography().body()).textColor(ThemeManager.theme().colors().textSecondary())))
+                        .c_child(new Text(valueState, new TextProps().fontSize(ThemeManager.theme().typography().title()).bold())),
+                new CardProps().padding(20).width(220).bgColor("#ffffff")
+        );
     }
 
     public static Row displayOperationsRow(TotaisState totais) {
@@ -863,7 +887,8 @@ public class Components {
     public static Component InputWithButtonRow(String label, String placeholder, String btnTitle, State<String> inputState, Runnable onClick) {
         return new Row(new RowProps().bottomVertically())
                 .r_child(Components.InputColumn(label, inputState, placeholder))
-                .r_child(new Button(btnTitle, new ButtonProps().height(32).textColor("#FFF")
+                .r_child(new Button(btnTitle, new ButtonProps().height(32).textColor("black")
+                                .bgColor(ThemeManager.theme().colors().primary())
                                 .borderRadius(ThemeManager.theme().border().radiusSm()).borderWidth(ThemeManager.theme().border().width()).borderColor(ThemeManager.theme().colors().primary())
                         )
                                 .onClick(onClick)

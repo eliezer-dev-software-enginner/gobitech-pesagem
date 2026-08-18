@@ -1,5 +1,15 @@
 # TODO
 
+## Concluído (desconto do produto + fix de edição não refletindo — 2026-08-18)
+- [x] `ProdutoModel.desconto` (novo campo, previsto no DER original) — migration `V12`,
+      formulário de Produto, tabela, modal de detalhes
+- [x] `PesagemViewModel`: seleção de produto carrega o desconto padrão dele no campo "Outros"
+- [x] Bug real corrigido no framework (`megalodonte-reactivity`): `ListState.set()` comparava
+      listas por conteúdo em vez de identidade, cancelando notificação quando `updateIf()` mutava
+      e devolvia a mesma referência — edição de Cliente/Produto/Usuário/Pesagem não refletia na
+      lista até trocar de seção. Ver `DECISIONS.md`.
+- [x] `./gradlew test`: **155/155, BUILD SUCCESSFUL**
+
 ## Concluído (login/senha sempre criptografados — 2026-08-18)
 - [x] Bug real corrigido: `UsuarioService.autenticar()` tentava decriptar texto puro (nunca
       funcionava — 4/12 testes de `UsuarioServiceTest` já falhavam antes desse fix)

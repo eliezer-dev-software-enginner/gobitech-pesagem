@@ -5,6 +5,7 @@ import lombok.Setter;
 import net.sf.persism.annotations.Column;
 import net.sf.persism.annotations.Table;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Setter
@@ -18,6 +19,10 @@ public class ProdutoModel {
     private String nome;
     private String unidade;
     private String observacoes;
+
+    // Desconto padrão do produto (previsto no DER original, nunca implementado) — carregado
+    // no campo "Outros" da Pesagem ao selecionar o produto, editável por pesagem.
+    private BigDecimal desconto;
 
     private Boolean ativo;
 

@@ -126,7 +126,7 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
                     UI.runOnUi(() -> {
                         allDataList.updateIf(it -> it.getId().equals(model.getId()), it -> model);
                         Components.ShowPopup(ctx, "Cliente atualizado com sucesso");
-                        clearForm();
+                        voltarParaLista();
                         EventBus.getInstance().publish(EntityEvent.editado(model));
                     });
                 } else {
@@ -134,7 +134,7 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
                     UI.runOnUi(() -> {
                         allDataList.add(model);
                         Components.ShowPopup(ctx, "Cliente cadastrado com sucesso");
-                        clearForm();
+                        voltarParaLista();
                         EventBus.getInstance().publish(EntityEvent.criado(model));
                     });
                 }

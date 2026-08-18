@@ -1,6 +1,7 @@
 package my_app.screens.pesagemScreen;
 
 import javafx.stage.FileChooser;
+import megalodonte.application.ErrorReporter;
 import megalodonte.base.state.State;
 import megalodonte.base.UI;
 import megalodonte.base.async.Async;
@@ -85,6 +86,16 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
         this.descontoService = createOrReport(DescontoService::new);
         this.conexaoBalancaService = createOrReport(ConexaoBalancaService::new);
         carregarClientesEProdutos();
+
+        // Ao selecionar um produto, carrega o desconto padrão dele no campo "Outros" — só um
+        // ponto de partida editável pelo operador. Em populateFieldsFromModel() (editar/clonar
+        // uma pesagem existente), produtoSelected é setado ANTES do desconto real salvo, então
+        // esse auto-preenchimento é sobrescrito pelo valor de verdade logo em seguida — não
+        // inverter essa ordem lá, senão o desconto do produto passaria a sobrescrever o salvo.
+        produtoSelected.subscribe(produto -> {
+            if (produto == null) return;
+            outros.set(produto.getDesconto() == null ? "" : produto.getDesconto().toPlainString());
+        });
     }
 
     public void iniciarLeituraBalanca() {
@@ -112,6 +123,7 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
                         })
                 );
             } catch (Exception e) {
+                e.printStackTrace();
                 UI.runOnUi(() -> Components.ShowAlertError("Erro ao conectar com a balança: " + e.getMessage()));
             }
         });
@@ -375,7 +387,7 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
                         Components.ShowPopup(ctx, "Pesagem cadastrada com sucesso");
                         EventBus.getInstance().publish(EntityEvent.criado(comRelacoes));
                     }
-                    clearForm();
+                    voltarParaLista();
                 });
             } catch (IllegalArgumentException e) {
                 UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));

@@ -1,6 +1,340 @@
 # Decisões Arquiteturais
 
-## 2026-08-18: Login/senha de usuário sempre criptografados em repouso; admin padrão trocado
+## 2026-08-18: Toggle da sidebar movido pro topo + ícone único que gira até a posição final
+
+Dois ajustes rápidos em cima do fix anterior: (1) posição subiu de "perto do fim" (`Pos.
+BOTTOM_LEFT` + `translateY(-30)`) pra "perto do topo" (`Pos.TOP_LEFT` + `translateY(30)`) —
+estava perto demais do Logout lá embaixo. (2) trocado o par `CHEVRON_LEFT`/`CHEVRON_RIGHT`
+reativo (dois ícones diferentes, trocados na marra) por um único `CHEVRON_LEFT` que **gira** até
+a posição final via `Animations.rotate(...)` — 0° mostra "<", girado 180° o mesmo desenho vira
+">" (chevron é simétrico por rotação de 180°), então a animação já entrega o ícone certo pro
+novo estado em vez de só ficar mais bonita.
+
+## 2026-08-18: Toggle circular só aparecia "pela metade" — precisava estar num Stack mais externo, e a posição virou perto do fim (não mais centralizada)
+
+**Contexto:** depois do fix anterior (toggle circular flutuando sobre a borda da sidebar, dentro
+do `Stack` interno de `Sidebar.render()`), o usuário mandou um screenshot: só metade do círculo
+aparecia — o resto sumia. Pedido adicional: em vez de centralizado verticalmente, o botão devia
+ficar perto do fim da sidebar (`altura da sidebar - 30px`).
+
+**Causa do "meio círculo":** o `Stack` que envolvia o toggle era interno a `Sidebar.render()` —
+só embrulhava o corpo da própria sidebar (o `ScrollPane`), não o `contentArea` vizinho. Como o
+botão usa `translateX` pra "vazar" metade pra fora da largura da sidebar, essa metade que vaza
+cai visualmente em cima do `contentArea` — mas `contentArea` é um **irmão** do `Stack` da
+sidebar dentro do `Row` de `HomeScreen`, não um filho do mesmo `Stack`. Numa `Row` (`HBox`),
+irmãos pintam na ordem em que foram adicionados como filhos — não por profundidade/z na tela —
+e como `contentArea` é adicionado DEPOIS da sidebar, ele pinta por cima da metade do círculo que
+invade seu espaço, cobrindo-a.
+
+**Decisão:** o `Stack` que embrulha o toggle subiu de nível — agora é `HomeScreen.render()` quem
+monta `new Stack().children(Row(Sidebar+contentArea), Sidebar.toggleButton(viewModel))`, ou seja,
+o toggle é o último filho de um `Stack` que envolve a `Row` INTEIRA (sidebar E contentArea
+juntos). Assim ele pinta por cima dos dois, não só de um. `Sidebar.render()` voltou a devolver só
+o corpo da sidebar (sem o toggle embutido); `Sidebar.toggleButton(viewModel)` virou público,
+carregando a mesma lógica de ícone reativo (`<`/`>`) e tamanho fixo circular — só a alocação do
+`Stack` que o hospeda mudou de dono.
+
+**Posição:** trocado `Pos.CENTER_RIGHT` por `Pos.BOTTOM_LEFT` + `translateY(-30)` (ancora no fim
+do Stack, sobe 30px) — o X continua reativo à largura atual da sidebar (64/160), recalculado a
+cada mudança de `sidebarMinimizada`, então o botão sempre fica em cima da borda certa em qualquer
+dos dois estados.
+
+**Verificado numericamente** (diagnóstico jogável fora contra o `HomeScreen` de verdade): o
+`StackPane` mais externo tem exatamente 2 filhos e o toggle é o último (`QTD_FILHOS_STACK=2`,
+`TOGGLE_EH_ULTIMO_FILHO=true`) — condição que garante a ordem de pintura corrigida. Base do
+Stack em y=620 (altura da janela), base do toggle em y=591 — 29px do fim (a diferença de 1px pro
+30 pedido é o mesmo arredondamento de borda já visto no fix anterior, cosmético). X continua
+entre 146 e 174, estradando a borda em x=160 como antes.
+
+## 2026-08-18: Botão de expandir/encolher virou um círculo flutuando sobre a borda da sidebar
+
+**Contexto:** pedido pra reposicionar o botão de minimizar/maximizar — em vez de ocupar uma
+linha dentro da coluna de navegação, ele deveria "flutuar" sobre a borda direita da sidebar
+(offset, sobreposto — a metáfora usada foi "z-index"), formato circular, e o ícone deveria
+refletir o estado (`<` quando expandida, `>` quando encolhida) em vez de um ícone de hambúrguer
+que gira 90°.
+
+**Decisão:** `Sidebar.render()` agora envolve o corpo da sidebar (o `ScrollPane` de antes) e o
+botão de toggle num `Stack` (`megalodonte.components.layout_components.Stack`, um `StackPane`
+puro) — o corpo primeiro, o botão depois (`Stack` empilha por ordem de inserção, o último filho
+fica por cima — é o "z-index" que foi pedido). O botão:
+- Tamanho fixo 28×28 + `borderRadius` = metade do diâmetro → círculo.
+- `StackPane.setAlignment(node, Pos.CENTER_RIGHT)` + `translateX(+14)` — alinha à borda direita
+  do Stack e desloca meio diâmetro pra fora, ficando literalmente montado em cima da borda,
+  metade dentro/metade fora.
+- Ícone reativo (`ComputedState<IconInterface>`, mesmo padrão já usado nos itens de navegação):
+  `Entypo.CHEVRON_LEFT` quando expandida, `CHEVRON_RIGHT` quando minimizada — sem animação de
+  rotação (o ícone já muda de forma sozinho, não precisa girar).
+
+**Verificado numericamente** (diagnóstico jogável fora, reproduzindo Sidebar dentro de um Row
+igual a `HomeScreen` de verdade — a primeira tentativa, com a Sidebar como raiz direto da Scene,
+deu um resultado enganoso porque o Stack esticava pra largura toda da janela; só fez sentido
+depois de reproduzir o Row real): botão fica entre x=146 e x=174 quando a borda da sidebar está
+em x=160 — estradando a borda como esperado; alternar `sidebarMinimizada` não lança exceção.
+
+## 2026-08-18: Janela crescia sozinha além do tamanho declarado da rota, empurrando conteúdo pra fora da tela
+
+**Contexto:** o fix anterior (ScrollPane na Sidebar) não resolveu de verdade — o usuário
+observou, com precisão, que era o **conteúdo em foco** que empurrava o Logout, não o monitor em
+si: telas com tabela cheia + botão (ex.: lista de Pesagem) jogavam tanto o "Criar novo" quanto o
+Logout da Sidebar (uma tela vizinha, sem relação nenhuma com o conteúdo) pra fora da área visível.
+
+**Investigação:** montei diagnósticos jogáveis fora sucessivos pra isolar a causa de verdade (em
+vez de aplicar mais um fix especulativo em cima do anterior):
+1. Reproduzi o esqueleto real de `HomeScreen` (Row com Sidebar + content) com uma lista sintética
+   de 30 linhas — sozinho, isso não vazava (Row ficava exatamente do tamanho da Scene).
+2. Reproduzi fielmente `ContratoTelaCrudV3.mainView()` (`Container.fillHeight()` -> `Show.when()`
+   -> `ScrollPaneDefault`) — percebi que `Show.when()` nunca recebia `.fillHeight()`, então a
+   página de lista/formulário trava a própria altura em `USE_PREF_SIZE` (não estica nem encolhe),
+   quebrando a cadeia que faria o `ScrollPane` de dentro rolar de verdade.
+3. O que realmente expôs o mecanismo: reproduzir a sequência real de dois passos — `Stage.show()`
+   inicial com conteúdo curto (dashboard), depois trocar pra conteúdo alto **sem tocar no
+   tamanho da janela** (exatamente o que `HomeScreenViewModel.navegarPara()` faz — só troca os
+   filhos de `contentArea`). Resultado: a `Scene`/`Stage`, mesmo com `setWidth`/`setHeight`
+   explícitos no show() inicial, **cresce sozinha** numa passada de layout posterior quando o
+   conteúdo pede mais altura — porque a rota é `resizable=true` e nada nunca travava um teto.
+
+**Causa raiz:** duas lacunas se somam:
+- `ContratoTelaCrudV3.mainView()` não chamava `.fillHeight()` no `Show.when(...)` — sem isso, a
+  página de lista/form nunca é forçada a caber no espaço real, então o `ScrollPaneDefault` que
+  a envolve nunca é forçado a rolar (ele só cresce livremente).
+- `ScreenContext.applyStageProps` (megalodonte-router) só chamava `stage.setWidth/setHeight` —
+  nunca `setMaxWidth/setMaxHeight`. Numa rota `resizable=true` (o caso de `HOME`, que usa
+  `MAX_WIDTH`/`MAX_HEIGHT` — nomes que já sugeriam um teto, nunca imposto de verdade), o JavaFX
+  deixa a janela crescer sozinha além do tamanho declarado quando o conteúdo pede mais espaço.
+  Numa tela com bastante altura sobrando isso passa despercebido; num monitor com menos altura
+  disponível, a janela cresce além do que cabe fisicamente, empurrando qualquer coisa ancorada
+  embaixo — Logout na Sidebar, "Criar novo" no content — pra fora da área visível.
+
+**Decisão — corrigido nas duas pontas:**
+1. `ContratoTelaCrudV3.mainView()`: `.fillHeight()` adicionado ao `Show.when(...)`.
+2. `ScreenContext.applyStageProps` (megalodonte-router): agora também chama
+   `stage.setMaxWidth(width)` / `stage.setMaxHeight(height)` com os mesmos valores do
+   `setWidth`/`setHeight` — a janela continua podendo ser encolhida pelo usuário (`resizable`
+   continua valendo pra isso), só não cresce mais sozinha além do que a rota declarou.
+
+**Limitação desta investigação:** os diagnósticos confirmaram o mecanismo (janela crescendo
+sozinha numa Stage resizable sem teto) mas, mesmo com `setMaxHeight` setado explicitamente no
+teste sintético, a `Scene` sintética ainda reportava uma altura maior numa leitura imediata após
+o layout — não fechei se isso é uma particularidade do ambiente de teste (sem gerenciador de
+janela "de verdade" fora do X11 puro deste sandbox) ou se falta mais alguma reconciliação. Os
+dois fixes acima são estruturalmente corretos e sem efeito colateral esperado (`fillHeight` faz o
+scroll interno funcionar como já funciona em outras telas; `setMaxWidth/Height` só impede
+crescimento além do declarado, nunca impede encolher) — mas não consegui confirmar visualmente o
+resultado final (ver `AI_RULES.md`: sem teste visual). Se o sintoma persistir mesmo com os dois
+fixes, o próximo passo é medir a altura real da `Stage` (não da `Scene`) logo após `navegarPara`
+trocar pro conteúdo alto, no app rodando de verdade.
+
+## 2026-08-18: Sidebar — item ativo com texto/ícone pretos, ícones alinhados, colunas ID mais estreitas
+
+**Contexto:** três ajustes de polish pedidos juntos: (1) o item selecionado da sidebar (fundo
+amarelo) tinha texto/ícone brancos — baixo contraste; (2) os ícones dos itens da sidebar não
+ficavam alinhados verticalmente entre si; (3) a coluna "ID" das tabelas (Produto, Usuário,
+Cliente, Pesagem) ocupava mais espaço do que um número de poucos dígitos precisa.
+
+**Decisão — cores do item ativo:** `ButtonProps` (megalodonte-components) não tinha uma versão
+reativa de `textColor` (só `bgColor(ReadableState<String>)` já existia, usado desde o fix
+anterior de destacar a seção ativa). Adicionado `textColor(ReadableState<String>)` no mesmo
+padrão do `bgColor` reativo — campo `textColorState`, aplicado em `bindStates()`, e o
+`applyTheme()` estático só roda quando não há state reativo controlando. `Sidebar.botaoNav()`
+agora computa `corComputada`/`iconeComputado` junto com o `bgComputado` que já existia, todos
+dependendo do mesmo `selecionado` — preto quando ativo, branco quando não.
+
+**Decisão — alinhamento dos ícones:** cada botão da sidebar tem texto de comprimento diferente
+("Início" vs. "Usuários"), e o `Button` do JavaFX centraliza por padrão o grupo ícone+texto
+dentro da largura do botão — como o grupo todo muda de largura conforme o texto, o ícone (que
+fica à esquerda do texto) acaba num x diferente em cada botão. Corrigido setando `Pos.CENTER_LEFT`
+direto no node do JavaFX (`Sidebar.alinharEsquerda()`) — ícone sempre começa no mesmo x,
+independente de quanto texto vem depois.
+
+**Decisão — coluna ID mais estreita:** `SimpleTable` já tinha um overload de `column(title,
+extractor, maxWidth)` pronto (usado por `imageColumn`, nunca pela coluna ID). Com
+`CONSTRAINED_RESIZE_POLICY` (já configurado em `SimpleTable`), colunas sem `maxWidth` dividem o
+espaço restante proporcionalmente — bastou capar a coluna "ID" em 60px nas 4 telas (Produto,
+Usuário, Cliente, Pesagem) pra ela parar de competir por espaço com colunas que precisam de mais
+(Nome, Placa, etc.).
+
+## 2026-08-18: Logout da sidebar ficava fora da área visível em monitores com DPI diferente
+
+**Contexto:** usuário reportou que o botão de Logout "sumia" quando a seção Pesagem estava
+selecionada — mas só num monitor específico; no notebook continuava visível no mesmo lugar. Isso
+descartou de cara qualquer teoria ligada ao conteúdo da tela de Pesagem em si (cheguei a montar
+um diagnóstico jogável fora reproduzindo o layout real da Sidebar+conteúdo com dados de verdade
+pra medir a posição do botão — o conteúdo mais alto do Pesagem, sozinho, não empurrava nada pra
+fora, então não era isso).
+
+**Causa raiz:** `ScaleProvider` (megalodonte-base) detecta o fator de escala/DPI **uma única
+vez**, olhando `Screen.getPrimary()`, e guarda num campo estático — nunca reavalia depois, mesmo
+que a janela seja aberta ou movida pra um monitor diferente do que foi consultado no boot. Como
+a altura da janela (`ScreenContext.applyStageProps`) e praticamente todo espaçamento/tamanho da
+UI passam por `ScaleProvider.scale(...)`, um fator "errado" pro monitor onde a janela está de
+fato sendo exibida deixa menos altura real disponível do que o esperado — e como o app é uma
+janela única, fixa, sem esse recálculo por monitor, o conteúdo da sidebar (que cresce conforme
+mais itens de navegação existem, ex.: quando "Usuários" aparece pra admin) pode ultrapassar a
+altura de verdade disponível, empurrando o Logout (fixado embaixo via `SpacerVertical().fill()`)
+pra fora da área visível — sem nenhum jeito de rolar até ele.
+
+**Decisão:** corrigir a causa raiz (fazer `ScaleProvider` reavaliar por monitor/janela) é uma
+mudança de framework mais ampla, que eu não consigo validar de verdade sem um setup
+multi-monitor real. Em vez disso, apliquei uma correção defensiva e de baixo risco que resolve o
+sintoma relatado (e qualquer variante futura da mesma classe de bug — janela pequena demais,
+mais itens de sidebar adicionados depois, etc.): `Sidebar.render()` agora envolve a Column de
+navegação num `Components.ScrollPaneDefault(...)`, com barra horizontal desligada — se o
+conteúdo não couber na altura oferecida, rola em vez de estourar sem jeito de alcançar. Também
+corrigido `Components.ScrollPaneDefault`: faltava `scroll.setMaxHeight(Double.MAX_VALUE)` — sem
+isso, o ScrollPane só esticava até a altura do pai quando o pai era uma VBox (o `VBox.setVgrow`
+já existente só vale nesse caso); como a Sidebar agora vive direto dentro de um `Row` (HBox), sem
+esse `setMaxHeight` o ScrollPane ficaria travado na própria altura preferida em vez de ocupar o
+espaço real que o Row oferece.
+
+**Verificado numericamente** (não visualmente — ver `AI_RULES.md`): diagnóstico jogável fora que
+força a Sidebar renderizada de verdade dentro de uma viewport de 220px (bem menor que os 334px
+que o conteúdo precisa), rola até o fim (`vvalue=1.0`) e mede a posição do botão de Logout na
+cena — resultado: `LOGOUT_ALCANCAVEL=true` (min/max Y do botão inteiramente dentro dos 220px da
+cena). Sem a correção, esse mesmo teste teria conteúdo cortado sem scroll nenhum disponível.
+
+## 2026-08-18: `Menu.textColor()` não pegava — `setFill()` direto perde pro estilo inline já aplicado
+
+**Contexto:** ao escurecer a MenuBar (ver decisão de MenuBar/Sidebar mais abaixo), adicionei
+`Menu.textColor(String)` fazendo `triggerLabel.setFill(Color.web(color))` — compilou, rodou sem
+exceção, mas o usuário reportou que os títulos ("Gerencial", "Suporte") continuavam pretos.
+
+**Causa:** `TextProps` (usado por `Text`, inclusive o `Text` interno do `Menu`) aplica cor via
+`StyleUtils.applyStyleProperty(node, color, FX_FILL)` — ou seja, `node.setStyle("-fx-fill: ...")`,
+um estilo inline. No CSS do JavaFX, um estilo inline (`setStyle`) tem prioridade mais alta que um
+valor setado via `setFill()` direto; quando o motor de CSS reprocessa o node (no próximo pulse),
+ele reaplica o `-fx-fill` do estilo inline por cima do `setFill()` que rodou antes — visualmente,
+o `setFill()` nunca "gruda".
+
+**Decisão:** `Menu.textColor()` corrigido pra usar o mesmo mecanismo (`StyleUtils.
+updateTextColor(node, color)`, que também escreve em `-fx-fill` via estilo inline) em vez de
+`setFill()` direto — agora sobrescreve de verdade o valor já presente no mesmo estilo inline, em
+vez de competir com ele por fora. **Lição geral pra esse framework:** qualquer cor/estilo que já
+é setado por um `Props.applyTheme()` (fill, background, border, etc.) só pode ser sobrescrito
+depois via os helpers de `StyleUtils`, nunca via API JavaFX direta (`setFill`, `setStyle` cru
+fora do merge de `setStyleProperty`) — misturar os dois mecanismos faz o inline sempre vencer.
+
+## 2026-08-18: Tela de boas-vindas virou um dashboard real, navegável pela sidebar
+
+**Contexto:** a tela que abria em `Secao.HOME` só mostrava "Balanças Gobitech" / "Sistema de
+pesagem" — texto estático, sem link de volta na sidebar (não tinha como voltar pra ela depois de
+sair). Pedido: virar um dashboard com totais (produtos, clientes, pesagens no total e pesagens
+no mês) e um item "Início" na sidebar pra poder retornar.
+
+**Decisão:** `Secao.HOME` deixou de ser um caso especial em `HomeScreenViewModel.navegarPara()`
+(antes: `telaAtiva.set(null)`, sem `ScreenComponent` de verdade) e passou a instanciar
+`DashboardScreen` igual qualquer outra seção — inclusive já na construção do
+`HomeScreenViewModel` (antes o dashboard só existia via fallback em `HomeScreen.
+renderConteudo()`; agora `telaAtiva` nunca é null). Isso também corrigiu de graça um descuido:
+antes, sair da Home não chamava `onDestroy()`/cancelava scope de nada (não existia tela de
+verdade); agora que a Home carrega dados via `Async`, ela precisa do mesmo ciclo de vida
+onMount/onDestroy das demais, e já ganha isso automaticamente por reusar o mesmo
+`destruirTelaAtual()`.
+
+Números exibidos: `ProdutoService.listar().size()`, `ClienteService.listar().size()` e
+`PesagemService.listar().size()` (contagem simples em memória — sem `COUNT(*)` dedicado, volume
+de dados desse app não justifica) — mostram exatamente a mesma contagem que cada tela de listagem
+já usa, pra não haver "o dashboard diz um número, a lista mostra outro". Pesagens do mês reusa
+`PesagemService.filtrar(...)` (o mesmo método do filtro de pesagens) passando o primeiro dia do
+mês atual como início — apesar de anexar relações desnecessariamente pra um mero count, o volume
+mensal é baixo o bastante pra não valer a pena criar um método novo só pra isso.
+
+## 2026-08-18: Usuários não-admin não têm acesso à tela de Usuários
+
+**Contexto:** usuário pediu que quem não é admin não possa manipular outros usuários.
+
+**Decisão:** mesmo padrão já usado pra "Gerar licença" (`SessaoUsuario.isAdmin()`): o item
+"Usuários" nem aparece na sidebar pra quem não é admin (`Sidebar.botaoNav`, condicional em
+`Sidebar.render()`). Como `HomeScreenViewModel.navegarPara(Secao.USUARIOS)` só é chamado a
+partir desse botão (nenhum outro caminho de navegação leva lá), esconder o item já é suficiente
+— não há uma segunda porta de entrada pra guardar. Opção mais restritiva descartada
+(permitir editar a si mesmo, bloquear só os outros) — usuário preferiu a tela inteira oculta,
+mais simples e consistente com o precedente já existente.
+
+## 2026-08-18: Sidebar — logo, item ativo destacado e ícone de minimizar rotaciona
+
+**Contexto:** pedido de polish visual: logo no topo (versão quadrada quando comprimida), só a
+seção ativa destacada com fundo amarelo, e o ícone de minimizar/maximizar girando 90° para
+indicar o estado (deitado = expandida, em pé = comprimida).
+
+**Decisão:** `Sidebar.render()` agora recebe o `HomeScreenViewModel` inteiro (em vez de uma
+lista de `Runnable`s soltos) — precisa ler `secaoAtiva` pra saber qual botão destacar.
+- Logo: `Show.when(minimizada, ...)` alternando entre `/assets/app_banner_square.png` e
+  `/assets/app_banner.png` — ambos já existiam como assets, não foram criados agora.
+- Item ativo: `ButtonProps.bgColor(ReadableState<String>)` (já existia, não usada antes na
+  sidebar) com um `ComputedState` que compara `secaoAtiva` com a seção do botão — amarelo
+  (`ThemeManager.theme().colors().primary()`) quando bate, `transparent` quando não. Ícone e
+  texto continuam brancos nos dois estados (só o fundo muda) — é o que foi pedido, não friso
+  visualmente com a cor do ícone em cima do amarelo.
+- Rotação: `Animations.rotate(Node, from, to, Duration)` (já existia em `megalodonte-base`,
+  não foi criada agora) aplicada diretamente no nó do ícone do botão de toggle, disparada no
+  `subscribe` de `sidebarMinimizada` — gira sempre do ângulo atual pro alvo (0° ou 90°), não
+  reseta a animação a cada clique.
+
+## 2026-08-18: NullPointerException ao abrir Pesagem — seed de `conexao_balanca` incompleta
+
+**Contexto:** usuário relatou `NullPointerException` em `ConexaoBalancaModel.getBaudRate()` ao
+abrir a tela de Pesagem. Causa: `V10__dados_padrao.sql` inseria uma linha em `conexao_balanca`
+com `tipo_conexao='Serial'` mas sem `porta_com`/`baud_rate` — algo que `ConexaoBalancaService.
+validarCampos()` nunca deixaria salvar pela tela (exige os dois campos pra Serial), mas a seed
+via SQL bruto passava direto por essa validação. `LeitorBalancaFactory.criar()` desembrulhava
+`Integer baudRate` pra `int` sem checar null primeiro.
+
+**Decisão:** (1) `LeitorBalancaFactory.criar()` agora trata config incompleta (porta/baud ou
+IP/porta faltando) igual a "não configurada" — mensagem amigável em vez de NPE, defesa em
+profundidade independente de como uma config incompleta chegue ao banco. (2) `V10` editada pra
+não inserir mais essa linha — `ConexaoBalancaService.salvarOuAtualizar()` já cria a linha na
+primeira vez que o usuário salva pela tela. (3) Banco já existente: removida cirurgicamente só a
+linha incompleta (`DELETE` com `WHERE` explícito nos campos nulos) — dados reais de
+clientes/produtos/usuários já cadastrados ficaram intactos.
+
+**Testado:** reproduzi a config exata quebrada (`Serial` sem porta/baud) num teste descartável —
+confirma mensagem amigável em vez de NPE. 155/155 testes, app sobe sem exceção.
+
+---
+
+## 2026-08-18: Edição de Cliente/Produto/Usuário/Pesagem não refletia na lista (bug no framework)
+
+**Contexto:** usuário relatou "a atualização de cliente não está refletindo na UI quando retorno
+pra ela". Achado a causa: `ListState.set()` (em `megalodonte-reactivity`) usava
+`Objects.equals(listaAntiga, listaNova)` — comparação por **conteúdo** — pra decidir se notifica
+os listeners. `updateIf()` (usado por todo `handleAddOrUpdate()` de edição) muta o objeto já
+presente na lista e devolve a mesma referência — a "lista nova" tem os mesmos objetos da antiga,
+então a comparação por conteúdo achava "igual" e cancelava a notificação, mesmo os campos tendo
+mudado de verdade. A tabela só mostrava o dado certo depois de sair e voltar pra seção (refetch
+completo do banco cria objetos novos, aí sim diferentes por identidade).
+
+**Decisão:** corrigido na raiz, no `megalodonte-libs` (`megalodonte-reactivity`) — guarda trocada
+de comparação por conteúdo pra identidade da lista (`==`). Não é um bug deste app especificamente,
+afeta qualquer tela que edite um item já carregado na lista. Ver `DECISIONS.md`/`TODO.md` do
+`megalodonte-libs` pro relato completo e o teste que prova o cenário
+(`ListStateUpdateIfBugTest`).
+
+**Testado:** `megalodonte-reactivity` republicado em `mavenLocal`;
+`--refresh-dependencies compileJava test` neste projeto: **155/155, sem regressão**.
+
+---
+
+## 2026-08-18: Campo `desconto` do produto (previsto no DER original, nunca implementado)
+
+**Contexto:** conferindo o Anexo II (Diagrama Entidade Relacionamento) da documentação original
+da DGB Tecnologia, a entidade `products` sempre teve um campo `discount float(10,2)` — nunca
+implementado nem no app antigo entregue nem nesta reescrita (o app antigo tinha desconto só por
+pesagem, não por produto).
+
+**Decisão:** `ProdutoModel.desconto` (`BigDecimal`, migration `V12__add_desconto_produtos.sql`,
+`ALTER TABLE` — não editei uma migration antiga porque já existem dados reais no banco). Ao
+selecionar um produto na tela de Pesagem, o desconto padrão dele carrega automaticamente no campo
+**"Outros"** (um dos 8 campos de desconto já existentes — não criamos um 9º campo nem um cálculo
+paralelo). O operador pode editar livremente depois — é só um ponto de partida. Editar/clonar uma
+pesagem já existente não é afetado: `populateFieldsFromModel()` seta `produtoSelected` antes de
+carregar o desconto realmente salvo, então o valor real sempre sobrescreve o auto-preenchimento
+(ordem documentada em comentário no código — não inverter).
+
+**Testado:** `./gradlew test`: 155/155. Migration validada rodando contra o banco real (dado
+existente do produto "Soja" preservado, `desconto` veio com o default `0`).
+
+---
 
 **Contexto:** usuário pediu que o admin padrão fosse criado com login/senha já cifrados
 (forneceu os valores prontos) e que login/senha fiquem **sempre criptografados** ao salvar,

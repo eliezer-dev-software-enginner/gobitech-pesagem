@@ -15,30 +15,11 @@ public class Data {
 
     public static final List<String> tiposPagamentoList = List.of("A VISTA", "CRÉDITO", "DÉBITO", "PIX", "A PRAZO");
 
-    /**
-     * Unidades de medida suportadas:
-     * <ul>
-     *   <li>{@code UN} — unidade</li>
-     *   <li>{@code KG} — quilograma</li>
-     *   <li>{@code g} — grama</li>
-     *   <li>{@code ml} — mililitro</li>
-     *   <li>{@code L} — litro</li>
-     *   <li>{@code CX} — caixa</li>
-     *   <li>{@code PCT} — pacote</li>
-     *   <li>{@code DZ} — dúzia</li>
-     *   <li>{@code PAR} — par</li>
-     *   <li>{@code M} — metro</li>
-     *   <li>{@code M2} — metro quadrado</li>
-     *   <li>{@code M3} — metro cúbico</li>
-     *   <li>{@code FD} — fardo</li>
-     *   <li>{@code GF} — garrafa</li>
-     *   <li>{@code RL} — rolo</li>
-     *   <li>{@code SC} — saco/saca</li>
-     *   <li>{@code KIT} — kit</li>
-     * </ul>
-     */
+    // Mesmas 3 opções do combobox "Unidade*" do app original (UI.Product.ProductForm) —
+    // faz sentido pro domínio de pesagem de caminhão (produtos a granel), diferente da
+    // lista genérica de varejo (UN/CX/PCT/DZ/...) que veio do plics-sw.
     public static final List<String> unidadesDeMedidaList = List.of(
-            "UN", "KG", "g", "ml", "L", "CX", "PCT", "DZ", "PAR", "M", "M2", "M3", "FD", "GF", "RL", "SC", "KIT"
+            "Quilos", "Toneladas", "Gramas"
     );
     public static final List<String> tiposPessoaList = List.of("Física", "Jurídica");
 

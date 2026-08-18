@@ -41,7 +41,7 @@ public class ClienteScreen implements ScreenComponent, ContratoTelaCrudV3<Client
 
     @Override
     public Component render() {
-        return mainView(vm.focusState);
+        return mainView();
     }
 
     @Override
@@ -79,16 +79,15 @@ public class ClienteScreen implements ScreenComponent, ContratoTelaCrudV3<Client
         simpleTable.fromData(vm.filteredList)
                 .header()
                 .columns()
-                .column("ID", ClienteModel::getId)
+                .column("ID", ClienteModel::getId, 60.0)
                 .column("Loja", ClienteModel::getLoja)
                 .column("Razão social", ClienteModel::getRazaoSocial)
                 .column("CPF/CNPJ", ClienteModel::getCpfCnpj)
                 .column("Telefone", ClienteModel::getTelefone)
                 .column("Data de criação", it -> DateUtils.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build()
-                .onChangeFocus(vm::handleFocusChange)
                 .onItemSelectChange(vm.clienteSelecionado::set)
-                .onItemDoubleClick(it -> Components.ShowModal(itemDetails(it), this.screenContext, 400));
+                .onItemDoubleClick(it -> showItemDetailsComAcoes(it, this.screenContext, 400));
 
         return simpleTable;
     }
