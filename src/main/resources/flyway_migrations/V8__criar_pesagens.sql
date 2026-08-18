@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS pesagens (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    motorista_nome TEXT NOT NULL,
+    motorista_documento TEXT,
+    placa TEXT NOT NULL,
+    operacao TEXT NOT NULL,
+    nota_fiscal TEXT,
+    observacoes TEXT,
+    peso_veiculo REAL NOT NULL,
+    peso_total REAL NOT NULL,
+    peso_final REAL NOT NULL,
+    foto_frente_1 TEXT,
+    foto_frente_2 TEXT,
+    foto_costas_1 TEXT,
+    foto_costas_2 TEXT,
+    cliente_id INTEGER NOT NULL,
+    produto_id INTEGER NOT NULL,
+    desconto_id INTEGER,
+    dataCriacao TIMESTAMP NOT NULL,
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id),
+    FOREIGN KEY (produto_id) REFERENCES produtos(id),
+    FOREIGN KEY (desconto_id) REFERENCES descontos(id)
+)

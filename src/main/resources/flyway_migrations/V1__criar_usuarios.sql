@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS usuarios (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    login TEXT NOT NULL UNIQUE,
+    senha TEXT NOT NULL,
+    nome TEXT NOT NULL,
+    ativo BIT NOT NULL DEFAULT 1,
+    admin BIT NOT NULL DEFAULT 0,
+    telefone TEXT,
+    dataCriacao TIMESTAMP NOT NULL
+)

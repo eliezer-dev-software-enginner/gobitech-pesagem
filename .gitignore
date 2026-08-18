@@ -1,0 +1,87 @@
+.gradle
+build/
+__pycache__/
+.venv/
+plics-sw-new-version-for-test/
+
+# Gerado por scripts/create-flatpak.py / flatpak-builder — reproduzível, não versiona
+flatpak/app-image/
+flatpak/_build/
+flatpak/.flatpak-builder/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+.kotlin
+
+### IntelliJ IDEA ###
+.idea/modules.xml
+.idea/jarRepositories.xml
+.idea/compiler.xml
+.idea/libraries/
+.idea/workspace.xml
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### Mac OS ###
+.DS_Store
+
+
+java_fx_modules
+build.gradle-funcionando_gera_fatjar.kts-draft
+*.txt
+*.db
+
+### Log files ###
+*.log
+
+### Configurações de segurança ###
+# Arquivos de configuração com dados sensíveis
+app.properties
+*.properties
+!.gradle.properties
+
+### Diretório de configuração local ###
+.erp-local/
+
+### Chaves e certificados ###
+*.key
+*.pem
+*.crt
+*.p12
+*.jks
+
+### Utilitários temporários de criptografia ###
+Generate*.java
+EncryptTokens.java
+
+criptografando-dados-sensiveis.png
+docs/PROMT.md
+temp
+dist
+/scripts/__pycache__

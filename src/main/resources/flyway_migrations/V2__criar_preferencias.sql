@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS preferencias (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    primeiro_acesso INTEGER NOT NULL DEFAULT 1,
+    dataCriacao TIMESTAMP NOT NULL
+)

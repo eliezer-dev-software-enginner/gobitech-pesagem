@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS descontos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    avariados REAL NOT NULL DEFAULT 0,
+    ardidos REAL NOT NULL DEFAULT 0,
+    quebra_ardidos REAL NOT NULL DEFAULT 0,
+    impurezas REAL NOT NULL DEFAULT 0,
+    quebra_impurezas REAL NOT NULL DEFAULT 0,
+    umidade REAL NOT NULL DEFAULT 0,
+    quebra_umidade REAL NOT NULL DEFAULT 0,
+    outros REAL NOT NULL DEFAULT 0,
+    dataCriacao TIMESTAMP NOT NULL
+)

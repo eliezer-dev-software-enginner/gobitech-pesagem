@@ -1,0 +1,435 @@
+package my_app.screens.pesagemScreen;
+
+import javafx.stage.FileChooser;
+import megalodonte.base.state.State;
+import megalodonte.base.UI;
+import megalodonte.base.async.Async;
+import megalodonte.router.v4.ScreenContext;
+import megalodonte.v2.ListState;
+import my_app.db.models.ClienteModel;
+import my_app.db.models.DescontoModel;
+import my_app.db.models.PesagemModel;
+import my_app.db.models.ProdutoModel;
+import my_app.db.services.ClienteService;
+import my_app.db.services.ConexaoBalancaService;
+import my_app.db.services.DescontoService;
+import my_app.db.services.PesagemService;
+import my_app.db.services.ProdutoService;
+import my_app.core.events.EntityEvent;
+import my_app.core.events.EventBus;
+import my_app.domain.ViewModelScreenContract;
+import my_app.domain.components.Components;
+import my_app.infra.balanca.LeitorBalanca;
+import my_app.infra.balanca.LeitorBalancaFactory;
+import my_app.infra.balanca.PesagemCalculo;
+
+import java.io.File;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
+    private final ScreenContext ctx2;
+    private final PesagemService pesagemService;
+    private final ClienteService clienteService;
+    private final ProdutoService produtoService;
+    private final DescontoService descontoService;
+    private final ConexaoBalancaService conexaoBalancaService;
+
+    private LeitorBalanca leitorBalanca;
+    final State<String> pesoAoVivo = State.of("—");
+    final State<Boolean> lendoBalanca = State.of(false);
+
+    final State<PesagemModel> pesagemSelecionada = State.of(null);
+
+    final State<String> motoristaNome = new State<>("");
+    final State<String> motoristaDocumento = new State<>("");
+    final State<String> placa = new State<>("");
+    final State<String> notaFiscal = new State<>("");
+    final State<String> observacoes = new State<>("");
+
+    final State<String> pesoVeiculo = new State<>("");
+    final State<String> pesoTotal = new State<>("");
+    final State<String> pesoFinal = new State<>("");
+
+    final ListState<ClienteModel> clientesState = ListState.ofEmpty();
+    final ListState<ProdutoModel> produtosState = ListState.ofEmpty();
+    final State<ClienteModel> clienteSelected = State.of(null);
+    final State<ProdutoModel> produtoSelected = State.of(null);
+
+    final State<String> avariados = new State<>("");
+    final State<String> ardidos = new State<>("");
+    final State<String> quebraArdidos = new State<>("");
+    final State<String> impurezas = new State<>("");
+    final State<String> quebraImpurezas = new State<>("");
+    final State<String> umidade = new State<>("");
+    final State<String> quebraUmidade = new State<>("");
+    final State<String> outros = new State<>("");
+
+    final State<String> fotoFrente1 = State.of(null);
+    final State<String> fotoFrente2 = State.of(null);
+    final State<String> fotoCostas1 = State.of(null);
+    final State<String> fotoCostas2 = State.of(null);
+
+    // filtro
+    final State<String> filtroPlaca = new State<>("");
+    final State<String> filtroMotorista = new State<>("");
+    final State<LocalDate> filtroDataInicio = State.of(null);
+    final State<LocalDate> filtroDataFim = State.of(null);
+
+    public PesagemViewModel(ScreenContext ctx) {
+        super(ctx);
+        this.ctx2 = ctx;
+        this.pesagemService = createOrReport(PesagemService::new);
+        this.clienteService = createOrReport(ClienteService::new);
+        this.produtoService = createOrReport(ProdutoService::new);
+        this.descontoService = createOrReport(DescontoService::new);
+        this.conexaoBalancaService = createOrReport(ConexaoBalancaService::new);
+        carregarClientesEProdutos();
+    }
+
+    public void iniciarLeituraBalanca() {
+        ctx2.scope().run(() -> {
+            try {
+                var config = conexaoBalancaService.buscarUnico();
+                var leitor = LeitorBalancaFactory.criar(config);
+                leitorBalanca = leitor;
+
+                // se a tela já foi destruída (navegação pra outro lugar) enquanto
+                // buscarUnico()/criar() ainda rodavam, o Router já cancelou ctx2.scope() —
+                // onCancel fecha o leitor na hora, e o isCancelled() logo abaixo evita abrir
+                // a porta/socket à toa depois disso.
+                ctx2.scope().onCancel(leitor::parar);
+                if (ctx2.scope().isCancelled()) return;
+
+                leitor.iniciar(
+                        peso -> UI.runOnUi(() -> {
+                            pesoAoVivo.set(peso.toPlainString());
+                            lendoBalanca.set(true);
+                        }),
+                        erro -> UI.runOnUi(() -> {
+                            lendoBalanca.set(false);
+                            Components.ShowAlertError(erro);
+                        })
+                );
+            } catch (Exception e) {
+                UI.runOnUi(() -> Components.ShowAlertError("Erro ao conectar com a balança: " + e.getMessage()));
+            }
+        });
+    }
+
+    public void pararLeituraBalanca() {
+        if (leitorBalanca != null) leitorBalanca.parar();
+        lendoBalanca.set(false);
+    }
+
+    public void capturarTara() {
+        if (!lendoBalanca.get()) {
+            Components.ShowAlertError("Balança não está conectada");
+            return;
+        }
+        pesoVeiculo.set(pesoAoVivo.get());
+    }
+
+    public void capturarPesoBruto() {
+        if (!lendoBalanca.get()) {
+            Components.ShowAlertError("Balança não está conectada");
+            return;
+        }
+        pesoTotal.set(pesoAoVivo.get());
+    }
+
+    /**
+     * Delega pra {@link PesagemCalculo#calcularPesoLiquido}, que tem a fórmula de verdade e
+     * é testável isoladamente (essa ViewModel não pode ser instanciada num teste JUnit puro).
+     */
+    public void calcularPesoLiquido() {
+        var bruto = parseDecimal(pesoTotal.get());
+        var tara = parseDecimal(pesoVeiculo.get());
+
+        var percentualDesconto = parseDecimal(avariados.get())
+                .add(parseDecimal(ardidos.get()))
+                .add(parseDecimal(quebraArdidos.get()))
+                .add(parseDecimal(impurezas.get()))
+                .add(parseDecimal(quebraImpurezas.get()))
+                .add(parseDecimal(umidade.get()))
+                .add(parseDecimal(quebraUmidade.get()))
+                .add(parseDecimal(outros.get()));
+
+        var liquidoFinal = PesagemCalculo.calcularPesoLiquido(bruto, tara, percentualDesconto);
+
+        pesoFinal.set(liquidoFinal.toPlainString());
+    }
+
+    private void carregarClientesEProdutos() {
+        Async.Run(() -> {
+            try {
+                var clientes = clienteService.listar();
+                var produtos = produtoService.listar();
+                UI.runOnUi(() -> {
+                    clientesState.set(clientes);
+                    produtosState.set(produtos);
+                });
+            } catch (Exception e) {
+                UI.runOnUi(() -> Components.ShowAlertError("Erro ao carregar clientes/produtos: " + e.getMessage()));
+            }
+        });
+    }
+
+    @Override
+    protected boolean matchesSearch(PesagemModel model, String query) {
+        return contains(model.getPlaca(), query) || contains(model.getMotoristaNome(), query);
+    }
+
+    private boolean contains(String field, String query) {
+        return field != null && field.toLowerCase().contains(query);
+    }
+
+    @Override
+    public void populateFieldsFromModel() {
+        final var data = pesagemSelecionada.get();
+        if (data == null) return;
+
+        motoristaNome.set(data.getMotoristaNome());
+        motoristaDocumento.set(data.getMotoristaDocumento() == null ? "" : data.getMotoristaDocumento());
+        placa.set(data.getPlaca());
+        notaFiscal.set(data.getNotaFiscal() == null ? "" : data.getNotaFiscal());
+        observacoes.set(data.getObservacoes() == null ? "" : data.getObservacoes());
+
+        pesoVeiculo.set(data.getPesoVeiculo() == null ? "" : data.getPesoVeiculo().toPlainString());
+        pesoTotal.set(data.getPesoTotal() == null ? "" : data.getPesoTotal().toPlainString());
+        pesoFinal.set(data.getPesoFinal() == null ? "" : data.getPesoFinal().toPlainString());
+
+        fotoFrente1.set(data.getFotoFrente1());
+        fotoFrente2.set(data.getFotoFrente2());
+        fotoCostas1.set(data.getFotoCostas1());
+        fotoCostas2.set(data.getFotoCostas2());
+
+        clientesState.get().stream().filter(c -> c.getId().equals(data.getClienteId())).findFirst()
+                .ifPresent(clienteSelected::set);
+        produtosState.get().stream().filter(p -> p.getId().equals(data.getProdutoId())).findFirst()
+                .ifPresent(produtoSelected::set);
+
+        var desconto = data.getDesconto();
+        if (desconto != null) {
+            avariados.set(str(desconto.getAvariados()));
+            ardidos.set(str(desconto.getArdidos()));
+            quebraArdidos.set(str(desconto.getQuebraArdidos()));
+            impurezas.set(str(desconto.getImpurezas()));
+            quebraImpurezas.set(str(desconto.getQuebraImpurezas()));
+            umidade.set(str(desconto.getUmidade()));
+            quebraUmidade.set(str(desconto.getQuebraUmidade()));
+            outros.set(str(desconto.getOutros()));
+        }
+    }
+
+    private String str(BigDecimal valor) {
+        return valor == null ? "" : valor.toPlainString();
+    }
+
+    private BigDecimal parseDecimal(String valor) {
+        try {
+            return valor == null || valor.isBlank() ? BigDecimal.ZERO : new BigDecimal(valor.trim().replace(",", "."));
+        } catch (NumberFormatException e) {
+            return BigDecimal.ZERO;
+        }
+    }
+
+    @Override
+    public PesagemModel populateModelFromFields() {
+        var model = modoEdicao.get() && pesagemSelecionada.get() != null
+                ? pesagemSelecionada.get()
+                : new PesagemModel();
+
+        model.setMotoristaNome(motoristaNome.get().trim());
+        model.setMotoristaDocumento(motoristaDocumento.get().trim());
+        model.setPlaca(placa.get().trim());
+        model.setNotaFiscal(notaFiscal.get().trim());
+        model.setObservacoes(observacoes.get());
+
+        model.setPesoVeiculo(parseDecimal(pesoVeiculo.get()));
+        model.setPesoTotal(parseDecimal(pesoTotal.get()));
+        model.setPesoFinal(parseDecimal(pesoFinal.get()));
+
+        model.setFotoFrente1(fotoFrente1.get());
+        model.setFotoFrente2(fotoFrente2.get());
+        model.setFotoCostas1(fotoCostas1.get());
+        model.setFotoCostas2(fotoCostas2.get());
+
+        if (clienteSelected.get() != null) model.setClienteId(clienteSelected.get().getId());
+        if (produtoSelected.get() != null) model.setProdutoId(produtoSelected.get().getId());
+
+        return model;
+    }
+
+    private DescontoModel montarDesconto() {
+        var d = new DescontoModel();
+        d.setAvariados(parseDecimal(avariados.get()));
+        d.setArdidos(parseDecimal(ardidos.get()));
+        d.setQuebraArdidos(parseDecimal(quebraArdidos.get()));
+        d.setImpurezas(parseDecimal(impurezas.get()));
+        d.setQuebraImpurezas(parseDecimal(quebraImpurezas.get()));
+        d.setUmidade(parseDecimal(umidade.get()));
+        d.setQuebraUmidade(parseDecimal(quebraUmidade.get()));
+        d.setOutros(parseDecimal(outros.get()));
+        return d;
+    }
+
+    public void escolherFoto(State<String> destino) {
+        var fileChooser = new FileChooser();
+        fileChooser.setTitle("Selecionar foto");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Imagens", "*.png", "*.jpg", "*.jpeg"));
+        File arquivo = fileChooser.showOpenDialog(ctx2.selfStage());
+        if (arquivo != null) {
+            destino.set(arquivo.toURI().toString());
+        }
+    }
+
+    @Override
+    public void fetchListData() {
+        Async.Run(() -> {
+            try {
+                var list = pesagemService.listarComRelacoes();
+                UI.runOnUi(() -> allDataList.set(list));
+            } catch (Exception e) {
+                e.printStackTrace();
+                UI.runOnUi(() -> Components.ShowAlertError("Erro ao buscar pesagens: " + e.getMessage()));
+            }
+        });
+    }
+
+    public void aplicarFiltro() {
+        Async.Run(() -> {
+            try {
+                Long inicioMillis = filtroDataInicio.get() == null ? null
+                        : my_app.utils.DateUtils.localDateParaMillis(filtroDataInicio.get());
+                Long fimMillis = filtroDataFim.get() == null ? null
+                        : my_app.utils.DateUtils.localDateParaMillis(filtroDataFim.get()) + 86399999L;
+
+                var list = pesagemService.filtrar(
+                        filtroPlaca.get().isBlank() ? null : filtroPlaca.get().trim(),
+                        filtroMotorista.get().isBlank() ? null : filtroMotorista.get().trim(),
+                        clienteSelected.get() != null ? clienteSelected.get().getId() : null,
+                        produtoSelected.get() != null ? produtoSelected.get().getId() : null,
+                        inicioMillis, fimMillis
+                );
+                UI.runOnUi(() -> allDataList.set(list));
+            } catch (Exception e) {
+                UI.runOnUi(() -> Components.ShowAlertError("Erro ao filtrar: " + e.getMessage()));
+            }
+        });
+    }
+
+    @Override
+    public void handleClickMenuDelete() {
+        final var model = pesagemSelecionada.get();
+        if (model == null) return;
+
+        Components.ShowAlertAdvice("Deseja excluir a pesagem da placa " + model.getPlaca(), () -> Async.Run(() -> {
+            try {
+                pesagemService.excluirById(model.getId());
+                UI.runOnUi(() -> {
+                    allDataList.removeIf(it -> it.getId().equals(model.getId()));
+                    Components.ShowPopup(ctx, "Pesagem excluída com sucesso");
+                    EventBus.getInstance().publish(EntityEvent.excluido(model.getId()));
+                });
+            } catch (Exception e) {
+                UI.runOnUi(() -> Components.ShowAlertError("Erro ao tentar excluir: " + e.getMessage()));
+            }
+        }));
+    }
+
+    @Override
+    public void handleAddOrUpdate() {
+        if (modoEdicao.get() && pesagemSelecionada.get() == null) return;
+
+        boolean editando = modoEdicao.get();
+        var model = populateModelFromFields();
+        var descontoModel = montarDesconto();
+
+        Async.Run(() -> {
+            try {
+                if (editando && model.getDescontoId() != null) {
+                    descontoModel.setId(model.getDescontoId());
+                    descontoService.atualizar(descontoModel);
+                } else {
+                    var descontoSalvo = descontoService.salvar(descontoModel);
+                    model.setDescontoId(descontoSalvo.getId());
+                }
+
+                if (editando) {
+                    pesagemService.atualizar(model);
+                } else {
+                    pesagemService.salvar(model);
+                }
+
+                var comRelacoes = pesagemService.buscarComRelacoes(model.getId());
+                boolean finalEditando = editando;
+                UI.runOnUi(() -> {
+                    if (finalEditando) {
+                        allDataList.updateIf(it -> it.getId().equals(comRelacoes.getId()), it -> comRelacoes);
+                        Components.ShowPopup(ctx, "Pesagem atualizada com sucesso");
+                        EventBus.getInstance().publish(EntityEvent.editado(comRelacoes));
+                    } else {
+                        allDataList.add(comRelacoes);
+                        Components.ShowPopup(ctx, "Pesagem cadastrada com sucesso");
+                        EventBus.getInstance().publish(EntityEvent.criado(comRelacoes));
+                    }
+                    clearForm();
+                });
+            } catch (IllegalArgumentException e) {
+                UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
+            } catch (Exception e) {
+                UI.runOnUi(() -> Components.ShowAlertError("Erro inesperado: " + e.getMessage()));
+            }
+        });
+    }
+
+    public void carregarOperacaoPelaPlaca() {
+        var placaValue = placa.get().trim();
+        if (placaValue.isEmpty() || modoEdicao.get()) return;
+        Async.Run(() -> {
+            try {
+                pesagemService.determinarOperacao(placaValue);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    @Override
+    public void clearForm() {
+        motoristaNome.set("");
+        motoristaDocumento.set("");
+        placa.set("");
+        notaFiscal.set("");
+        observacoes.set("");
+        pesoVeiculo.set("");
+        pesoTotal.set("");
+        pesoFinal.set("");
+        clienteSelected.set(null);
+        produtoSelected.set(null);
+        avariados.set("");
+        ardidos.set("");
+        quebraArdidos.set("");
+        impurezas.set("");
+        quebraImpurezas.set("");
+        umidade.set("");
+        quebraUmidade.set("");
+        outros.set("");
+        fotoFrente1.set(null);
+        fotoFrente2.set(null);
+        fotoCostas1.set(null);
+        fotoCostas2.set(null);
+    }
+
+    @Override
+    public void onDestroy() throws Exception {
+        pararLeituraBalanca();
+        this.pesagemService.close();
+        this.clienteService.close();
+        this.produtoService.close();
+        this.descontoService.close();
+        this.conexaoBalancaService.close();
+    }
+}

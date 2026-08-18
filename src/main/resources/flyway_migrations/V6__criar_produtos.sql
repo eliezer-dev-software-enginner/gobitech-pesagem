@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS produtos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL UNIQUE,
+    unidade TEXT,
+    observacoes TEXT,
+    ativo BIT NOT NULL DEFAULT 1,
+    dataCriacao TIMESTAMP NOT NULL
+)

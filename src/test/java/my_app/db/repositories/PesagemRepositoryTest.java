@@ -1,0 +1,171 @@
+package my_app.db.repositories;
+
+import my_app.db.models.ClienteModel;
+import my_app.db.models.PesagemModel;
+import my_app.db.models.ProdutoModel;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.math.BigDecimal;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class PesagemRepositoryTest extends BaseRepositoryTest {
+
+    private static final Logger log =
+            LoggerFactory.getLogger(PesagemRepositoryTest.class);
+
+    PesagemRepository repository;
+    ClienteRepository clienteRepository;
+    ProdutoRepository produtoRepository;
+
+    Integer clienteId;
+    Integer produtoId;
+
+    @Override
+    protected void initRepository() {
+        repository = new PesagemRepository(session);
+        clienteRepository = new ClienteRepository(session);
+        produtoRepository = new ProdutoRepository(session);
+    }
+
+    @BeforeEach
+    void criarClienteEProduto() throws SQLException {
+        var cliente = new ClienteModel();
+        cliente.setLoja("Fazenda Teste");
+        cliente.setRazaoSocial("Fazenda Teste Ltda");
+        cliente.setAtivo(true);
+        cliente.setDataCriacao(LocalDateTime.now());
+        clienteId = clienteRepository.salvar(cliente).getId();
+
+        var produto = new ProdutoModel();
+        produto.setNome("Soja");
+        produto.setUnidade("SC");
+        produto.setAtivo(true);
+        produto.setDataCriacao(LocalDateTime.now());
+        produtoId = produtoRepository.salvar(produto).getId();
+    }
+
+    private PesagemModel novaPesagem(String placa) {
+        var model = new PesagemModel();
+        model.setMotoristaNome("José da Silva");
+        model.setMotoristaDocumento("123.456.789-00");
+        model.setPlaca(placa);
+        model.setOperacao("Entrada");
+        model.setPesoVeiculo(BigDecimal.valueOf(8500));
+        model.setPesoTotal(BigDecimal.valueOf(32000));
+        model.setPesoFinal(BigDecimal.valueOf(23500));
+        model.setClienteId(clienteId);
+        model.setProdutoId(produtoId);
+        model.setDataCriacao(LocalDateTime.now());
+        return model;
+    }
+
+    @Test
+    void salvar() throws SQLException {
+        PesagemModel salvo = repository.salvar(novaPesagem("ABC1D23"));
+
+        log.info("Pesagem salva com id={}", salvo.getId());
+
+        assertNotNull(salvo);
+        assertNotNull(salvo.getId());
+        assertEquals("ABC1D23", salvo.getPlaca());
+        assertEquals(0, BigDecimal.valueOf(23500).compareTo(salvo.getPesoFinal()));
+    }
+
+    @Test
+    void listar() throws SQLException {
+        repository.salvar(novaPesagem("XYZ9A87"));
+
+        var lista = repository.listar();
+
+        assertNotNull(lista);
+        assertFalse(lista.isEmpty());
+    }
+
+    @Test
+    void atualizar() throws SQLException {
+        PesagemModel salvo = repository.salvar(novaPesagem("ABC1D23"));
+
+        salvo.setObservacoes("Observação atualizada");
+        repository.atualizar(salvo);
+
+        PesagemModel atualizado = repository.buscarById(salvo.getId());
+
+        assertEquals("Observação atualizada", atualizado.getObservacoes());
+    }
+
+    @Test
+    void excluirById() throws SQLException {
+        PesagemModel salvo = repository.salvar(novaPesagem("ABC1D23"));
+
+        repository.excluirById(salvo.getId());
+
+        assertNull(repository.buscarById(salvo.getId()));
+    }
+
+    @Test
+    void buscarPorPlacaRetornaEmOrdemCronologica() throws SQLException {
+        var primeira = repository.salvar(novaPesagem("ABC1D23"));
+        var segunda = novaPesagem("ABC1D23");
+        segunda.setDataCriacao(primeira.getDataCriacao().plusHours(2));
+        segunda.setOperacao("Saída");
+        repository.salvar(segunda);
+
+        var lista = repository.buscarPorPlaca("ABC1D23");
+
+        assertEquals(2, lista.size());
+        assertEquals("Entrada", lista.get(0).getOperacao());
+        assertEquals("Saída", lista.get(1).getOperacao());
+    }
+
+    @Test
+    void filtrarPorPlacaEMotoristaJuntosRestringeAmbos() throws SQLException {
+        repository.salvar(novaPesagem("AAA1111"));
+        var outraPlaca = novaPesagem("BBB2222");
+        outraPlaca.setMotoristaNome("Outro Motorista");
+        repository.salvar(outraPlaca);
+
+        // placa E motorista devem combinar (AND) — não bastar um dos dois
+        var resultado = repository.filtrar("AAA1111", "Outro Motorista", null, null, null, null);
+
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void filtrarPorClienteRespeitaOutrosFiltros() throws SQLException {
+        repository.salvar(novaPesagem("AAA1111"));
+
+        var outroCliente = new ClienteModel();
+        outroCliente.setLoja("Outra Fazenda");
+        outroCliente.setRazaoSocial("Outra Fazenda Ltda");
+        outroCliente.setAtivo(true);
+        outroCliente.setDataCriacao(LocalDateTime.now());
+        var outroClienteId = clienteRepository.salvar(outroCliente).getId();
+
+        var pesagemOutroCliente = novaPesagem("CCC3333");
+        pesagemOutroCliente.setClienteId(outroClienteId);
+        repository.salvar(pesagemOutroCliente);
+
+        // filtrando pela placa da primeira pesagem, mas pelo cliente da segunda — não
+        // deve retornar nada, já que os filtros são combinados por AND (bug do app
+        // original: um OR aqui faria essa combinação "vazar" e retornar a primeira)
+        var resultado = repository.filtrar("AAA1111", null, outroClienteId, null, null, null);
+
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void filtrarSemNenhumCampoRetornaTodas() throws SQLException {
+        repository.salvar(novaPesagem("AAA1111"));
+        repository.salvar(novaPesagem("BBB2222"));
+
+        var resultado = repository.filtrar(null, null, null, null, null, null);
+
+        assertEquals(2, resultado.size());
+    }
+}
