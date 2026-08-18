@@ -1,5 +1,18 @@
 # TODO
 
+## Concluído (login/senha sempre criptografados — 2026-08-18)
+- [x] Bug real corrigido: `UsuarioService.autenticar()` tentava decriptar texto puro (nunca
+      funcionava — 4/12 testes de `UsuarioServiceTest` já falhavam antes desse fix)
+- [x] `salvar()`/`atualizar()`/`autenticar()`/`listarAtivos()`/`buscarPorLogin()`: login/senha
+      sempre criptografados em repouso (AES/ECB via `CryptoManager`), texto puro só na fronteira
+      com as telas
+- [x] Admin padrão (`V10__dados_padrao.sql`) trocado pros valores fornecidos pelo usuário
+      (login/senha já cifrados) — decriptam pra `admin_andre@admin.admin`/`12345`
+- [x] Banco local (`~/.gobitech/erp.db`) apagado e recriado do zero — autorizado pelo usuário
+- [x] `./gradlew test`: **155/155, BUILD SUCCESSFUL** (inclusive os 4 que antes falhavam) + teste
+      descartável de ponta a ponta confirmando o admin autentica e o banco guarda só o cifrado.
+      Ver `DECISIONS.md`.
+
 ## Concluído (fix do restart falso no dev.py — 2026-08-18)
 - [x] `dev.py`: `known_hashes` nunca era pré-populado — primeiro touch de metadado em qualquer
       arquivo (sem mudança de conteúdo) disparava restart falso. Nova `seed_known_hashes()`

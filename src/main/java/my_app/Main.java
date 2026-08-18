@@ -122,6 +122,7 @@ public class Main {
 
     private static void handleAppError(Throwable t) {
         TelegramNotifierFactory.create().enviarMensagem("ERRO NA APLICAÇÃO: " + descreverErro(t));
+        t.printStackTrace();
 
         Platform.runLater(() -> {
             if (t instanceof IllegalArgumentException) {

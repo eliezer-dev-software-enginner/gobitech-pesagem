@@ -40,32 +40,25 @@ public class AuthScreen implements ScreenComponent {
     @Override
     public Component render() {
         return new Container(new ContainerProps().paddingAll(20).bgImage("/assets/bgAuth.jpg")).children(
-                new Row(new RowProps()).children(new Text("Plics - SW " + Main.APP_VERSION, new TextProps().color("white").bold())),
-                new SpacerVertical(20),
-                new Row().children(
+                new Row(new RowProps().fillWidth()).children(
                         new Column().children(
-                                new Text("Realize seu login", new TextProps().color("white").fontSize(14)),
-                                Components.InputColumnAuth("Login", vm.loginState, "Ex: gestor"),
-                                Components.InputColumnAuth("Senha", vm.passwordState, "Digite sua senha"),
-                                new SpacerVertical(ThemeManager.theme().spacing().sm()),
-                                Components.ButtonCadastro("Entrar", () -> vm.entrar(ctx))
-                        ),
-                        new Row(new RowProps().fillWidth()),
-                        new Column(new ColumnProps().maxWidth(170)).children(
                                 new Column(new ColumnProps().centerHorizontally()).children(
-                                        new Image("/assets/qrcode2.png", new ImageProps().size(170)),
-                                        new Text("Plics - SW", new TextProps().color("white").bold())
-                                ),
-                                new SpacerVertical(10),
-                                new TextFlow(new Text("Scaneie o QRCode para ir para o suporte no WhatsApp.",
-                                        new TextProps().textColor("#fff").fontSize(13)))
+                                        new Image("/assets/app_banner.png", new ImageProps().size(210)),
+                                        new Text("Seu sistema de pesagem de balança de caminhão completo", new TextProps().color("white").bold())
+                                )
+                        ),
+                        new SpacerHorizontal().fill(),
+                        new Card(
+                                new Column().children(
+                                        new Text("Login", new TextProps().fontSize(ThemeManager.theme().typography().subtitle())),
+                                        Components.InputColumnAuth("E-mail", vm.loginState, "Ex: gestor@teste.com"),
+                                        Components.InputColumnAuth("Senha", vm.passwordState, "Digite sua senha"),
+                                        new SpacerVertical(ThemeManager.theme().spacing().sm()),
+                                        Components.ButtonCadastro("Entrar", () -> vm.entrar(ctx))
+                                )
                         )
-                ),
-                new Column(new ColumnProps().fillHeight()),
-                Components.imageWithTextRow("/assets/whatsapp.png", Data.getNumberWhatsappSupportFormatted() + " - Suporte garantido."),
-                new Button("Ir para o Suporte (24h)", new ButtonProps().bgColor("#25D366").textColor("black")).onClick(() -> Redirect.to(Data.linkWhatsappSupport)),
-                new SpacerVertical(15),
-                new Button("Ir para o Site Oficial").onClick(() -> Redirect.to(Data.linkWebsiteOfficial))
+
+                )
         );
     }
 }

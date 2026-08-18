@@ -1,5 +1,51 @@
 # Decisões Arquiteturais
 
+## 2026-08-18: Login/senha de usuário sempre criptografados em repouso; admin padrão trocado
+
+**Contexto:** usuário pediu que o admin padrão fosse criado com login/senha já cifrados
+(forneceu os valores prontos) e que login/senha fiquem **sempre criptografados** ao salvar,
+não só o admin. Investigando a fronteira certa pra isso, achei um bug real e já existente:
+`UsuarioService.autenticar()` tentava **decriptar** os parâmetros de entrada (como se já
+chegassem cifrados), mas `AuthScreenViewModel.entrar()` sempre mandou texto puro — e a
+comparação de senha comparava a variável errada. Rodando os testes antes de mexer: **4 dos 12
+testes de `UsuarioServiceTest` já estavam falhando** (`RuntimeException: Illegal base64
+character`/`Last unit does not have enough valid bits`) — login nunca funcionou de verdade
+depois da última reescrita do `AuthScreenViewModel`.
+
+**Decisão — onde a criptografia mora:** só em `UsuarioService` (usa o `CryptoManager` já
+existente, AES/ECB, mesma chave fixa usada pro token do Telegram). `UsuarioRepository` e a
+`UsuarioModel` continuam sem saber de criptografia nenhuma — só leem/gravam o que já está no
+banco. Como AES/ECB é determinístico, dá pra **buscar e comparar por igualdade de texto cifrado**
+sem nunca precisar decriptar a senha armazenada:
+- `salvar()`/`atualizar()`: criptografam login/senha antes de persistir, restauram o texto puro
+  no objeto do chamador logo depois (em `finally`) — quem chama (ViewModel/tela) nunca vê nem
+  precisa saber do texto cifrado.
+- `autenticar(login, senha)`: recebe texto puro (como sempre foi chamado), criptografa
+  internamente pra buscar/comparar. Corrige o bug acima de quebra.
+- `listarAtivos()`/`buscarPorLogin()`: decriptam antes de devolver, pra telas de listagem/edição
+  (`UsuarioScreen`) continuarem mostrando login legível.
+- Verificação de "login já em uso" agora compara o texto **cifrado** (o que de fato está
+  gravado), não mais o texto puro contra uma coluna cifrada (o que nunca teria batido).
+
+**Admin padrão** (`V10__dados_padrao.sql`): login/senha trocados pros valores fornecidos —
+`login = 'qs0g1NZE1uw9f6blYfgsLVfw+mHQEXUZWdyYp4OxxW4='`, `senha = 'F9/1j/YRj56RRZaCZbFsOw=='`
+(decriptam pra `admin_andre@admin.admin` / `12345`, confirmado rodando o `CryptoManager` de
+verdade antes de gravar). `nome` trocado de "Gestor" pra "André".
+
+**Banco local apagado** (`~/.gobitech/erp.db`) — autorizado explicitamente pelo usuário, app
+ainda não está em produção. Sem isso o Flyway não teria como re-popular o admin (já tinha uma
+linha antiga com login `'gestor'` em texto puro aplicada). Migration `V10` editada **diretamente**
+em vez de nova migration — seguro porque o banco foi apagado por completo (sem checksum
+conflitante em `flyway_schema_history`).
+
+**Testado:** `./gradlew test` — 155/155, incluindo os 4 que antes falhavam. Além disso, um teste
+descartável (criado e removido depois, seguindo o mesmo padrão usado pra validar a V11) rodou o
+Flyway do zero contra o caminho real do banco e confirmou de ponta a ponta: (1) a coluna
+`login`/`senha` no banco fica com o texto **exatamente cifrado** fornecido, não texto puro;
+(2) `autenticar("admin_andre@admin.admin", "12345")` autentica; (3) senha errada e login
+inexistente retornam `null`; (4) o modelo retornado por `autenticar()` traz login/senha em texto
+puro pro resto do app usar normalmente.
+
 ## 2026-08-18: `dev.py` reiniciava sozinho com qualquer toque de metadado (ex.: indexação do IntelliJ)
 
 **Contexto:** usuário relatou "só de fazer ctrl+f no IntelliJ já dispara [o hot reload]". `dev.py`
