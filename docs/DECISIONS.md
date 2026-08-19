@@ -1,5 +1,70 @@
 # Decisões Arquiteturais
 
+## 2026-08-19: Workflow de release no GitHub — e dois bugs reais achados no caminho
+
+**Contexto:** pedido pra criar um workflow de GitHub Actions que gera releases automaticamente,
+igual ao já usado nos projetos de `scene2d-suite` (`hud-creator-gdx`/`atlas-animator-gdx`,
+`.github/workflows/package.yml`). Diferente daqueles projetos (libGDX/LWJGL3, empacotam com
+`./gradlew installDist` + `jpackage` direto no workflow), este app já tinha seu próprio
+empacotamento pronto (`scripts/create-deb.py`, `create-msi.py`, `config.py` — shadowJar + jlink +
+jpackage, JavaFX embutido via jlink) — então o workflow novo só precisa **invocar** esses
+scripts existentes dentro do CI, não reimplementar a lógica de empacotamento.
+
+**Decisão:** `.github/workflows/package.yml`, mesmo padrão de gatilho do scene2d-suite
+(`workflow_dispatch` manual + push de tag `v*`), matriz `ubuntu-latest`/`windows-latest`, um job
+`package` que roda `scripts/create-deb.py`/`create-msi.py` e sobe os instaladores como artifact,
+e um job `release` que baixa os artifacts e publica via `softprops/action-gh-release@v2`,
+lendo a versão de `gradle.properties` (mesma composição `appVersion[.appPatch]` de
+`config.py::APP_VERSION`).
+
+Duas coisas que os scripts existentes precisam e não vêm de nenhuma dependência do Gradle:
+- **JavaFX modules pro jlink** (`JAVAFX_MODULES_HOME`): baixado no workflow do mesmo zip que já
+  é usado localmente (`java_fx_modules.zip`, publicado como release asset em
+  `megalodonte-base` — link fornecido pelo usuário), já vem com `linux-25.0.1/` e
+  `windows-25.0.1/` nos nomes certos, sem precisar renomear nada.
+- **WiX Toolset** (Windows, `jpackage --type msi` shella pra ele) e **Xvfb** (Linux, o
+  `smoke_test()` de `config.py` abre uma janela JavaFX de verdade por alguns segundos pra
+  confirmar que o runtime empacotado sobe sem exceção — sem display nenhum no runner, precisa de
+  um virtual).
+
+**Verificado de verdade, não só lido**: rodei o pipeline localmente com o JDK 25 e o zip de
+JavaFX modules baixado da mesma URL do workflow (só pulando o `smoke_test()`, que exige um
+display de verdade e não consegui instalar Xvfb aqui sem sudo) — `shadowJar` → `jlink` →
+`jpackage --type deb` produziram um `.deb` real, válido, ~260MB, com metadata correta (versão,
+vendor, dependências das libs de mídia do JavaFX). Isso validou a parte mais arriscada do
+workflow (a nova, nunca testada: baixar/estruturar o JavaFX modules em CI) antes de considerar
+pronto.
+
+**Dois bugs reais achados tentando rodar isso, não hipotéticos:**
+1. `gradle.properties` estava salvo com encoding misto — a maior parte do arquivo em UTF-8 de
+   verdade, mas a linha `appDescription=Sistema de balança para caminhão.` especificamente em
+   Latin-1/CP1252 (bytes `0xe7`/`0xe3` pra "ç"/"ã"). `scripts/config.py` lê esse arquivo sem
+   especificar encoding (padrão da plataforma, UTF-8 no Linux) — `UnicodeDecodeError` na hora,
+   quebrando **qualquer** empacotamento local, não só em CI. Corrigido reescrevendo só aquela
+   linha em UTF-8 de verdade (tentei uma primeira vez decodificando o arquivo inteiro como
+   Latin-1 e resalvando — piorou as linhas que já estavam certas, duplo-corrompendo acentos que
+   já eram UTF-8 válido; revertido e corrigido preservando o resto do arquivo).
+2. `.gitignore` tinha uma regra genérica `*.properties` (pensada pra excluir `app.properties`,
+   configs com segredo) que **também pegava `gradle.properties`** — um arquivo sem segredo
+   nenhum (nome/versão/vendor do app), lido tanto por `build.gradle.kts` quanto pelos scripts de
+   empacotamento. A exceção existente (`!.gradle.properties`, com ponto extra no começo) não
+   batia com o nome de verdade do arquivo. Resultado: `gradle.properties` nunca esteve
+   versionado neste repositório — um checkout novo do zero (exatamente o que o workflow de CI
+   faz a cada execução) não teria o arquivo, e tanto o build quanto o release quebrariam de
+   cara. Corrigido: `!gradle.properties` (nome certo) no `.gitignore`, arquivo adicionado ao
+   controle de versão.
+
+Também corrigido `config.py::open_dist_folder()` — chamado no fim dos dois scripts, tentava
+abrir o gerenciador de arquivos (`xdg-open`/`os.startfile`) sem checar se havia sessão de
+desktop; num runner de CI isso quebraria o workflow bem no fim, depois de já ter gerado o
+pacote. Agora vira no-op quando `CI=true` (setado automaticamente pelo GitHub Actions em todo
+runner) — comportamento local/interativo continua igual.
+
+**Pendente, fora do meu escopo sem autorização explícita:** este repositório ainda não tem
+remote nenhum configurado (`git remote -v` vazio) — o workflow só passa a rodar de verdade
+depois que o repo for criado no GitHub e o código, enviado (`git push`). Não fiz isso — criar
+repositório remoto e publicar código são ações que pedem confirmação explícita.
+
 ## 2026-08-19: Tara sugerida a partir da entrada em aberto da mesma placa
 
 **Contexto:** ao explicar como Tara/Peso bruto/Peso líquido funcionam na prática (usuário
