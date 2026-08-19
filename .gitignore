@@ -68,6 +68,11 @@ app.properties
 # E em scripts/config.py (empacotamento). Sem essa exceção, um checkout novo do zero não tinha o
 # arquivo, e tanto o build quanto o workflow de release quebravam de cara.
 !gradle.properties
+# Mesmo problema pro wrapper: sem esse arquivo (só define a distribuição/versão do Gradle a
+# baixar, nada sensível), gradlew falha de cara em qualquer checkout novo — foi exatamente o
+# erro visto rodando o workflow de release de verdade ("Wrapper properties file ... does not
+# exist").
+!gradle/wrapper/gradle-wrapper.properties
 
 ### Diretório de configuração local ###
 .erp-local/
