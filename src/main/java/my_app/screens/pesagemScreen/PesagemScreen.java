@@ -1,8 +1,10 @@
 package my_app.screens.pesagemScreen;
 
+import javafx.stage.Stage;
 import megalodonte.base.components.Component;
 import megalodonte.base.components.ScreenComponent;
 import megalodonte.base.theme.ThemeManager;
+import megalodonte.components.Button;
 import megalodonte.components.Card;
 import megalodonte.components.LineHorizontal;
 import megalodonte.components.SimpleTable;
@@ -10,9 +12,12 @@ import megalodonte.components.SpacerVertical;
 import megalodonte.components.Text;
 import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.FlowRow;
+import megalodonte.components.layout_components.Row;
+import megalodonte.props.ButtonProps;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.FlowRowProps;
 import megalodonte.props.ImageProps;
+import megalodonte.props.RowProps;
 import megalodonte.props.TextProps;
 import megalodonte.router.v4.ScreenContext;
 import my_app.db.models.PesagemModel;
@@ -160,6 +165,46 @@ public class PesagemScreen implements ScreenComponent, ContratoTelaCrudV3<Pesage
                 .onItemDoubleClick(it -> showItemDetailsComAcoes(it, this.screenContext, 500));
 
         return Components.limitTableHeight(simpleTable);
+    }
+
+    /**
+     * Sobrescreve o padrão do ContratoTelaCrudV3 (Editar/Clonar/Excluir) só pra acrescentar
+     * "Imprimir ticket" — ação específica de pesagem, não faz sentido nas outras telas de
+     * CRUD que também implementam esse contrato.
+     */
+    @Override
+    public void showItemDetailsComAcoes(PesagemModel model, ScreenContext ctx, int height) {
+        Stage[] modalStage = new Stage[1];
+        Runnable fechar = () -> {
+            if (modalStage[0] != null) modalStage[0].close();
+        };
+
+        Component conteudo = new Column(new ColumnProps().fillWidth().spacingOf(15))
+                .children(
+                        itemDetails(model),
+                        new Row(new RowProps().fillWidth().spacingOf(10))
+                                .children(
+                                        new Button("Imprimir ticket", new ButtonProps().bgColor("#16a34a").textColor("white"))
+                                                .onClick(() -> vm.imprimirTicket(model)),
+                                        new Button("Editar", new ButtonProps().bgColor("#2563eb").textColor("white"))
+                                                .onClick(() -> {
+                                                    fechar.run();
+                                                    handleClickMenuEdit();
+                                                }),
+                                        new Button("Clonar", new ButtonProps().bgColor("#6b7280").textColor("white"))
+                                                .onClick(() -> {
+                                                    fechar.run();
+                                                    handleClickMenuClone();
+                                                }),
+                                        new Button("Excluir", new ButtonProps().bgColor("#ef4444").textColor("white"))
+                                                .onClick(() -> {
+                                                    fechar.run();
+                                                    handleClickMenuDelete();
+                                                })
+                                )
+                );
+
+        modalStage[0] = Components.ShowModal(conteudo, ctx, height);
     }
 
     public Component itemDetails(PesagemModel model) {

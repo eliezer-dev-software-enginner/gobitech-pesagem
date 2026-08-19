@@ -14,12 +14,14 @@ import my_app.db.models.ProdutoModel;
 import my_app.db.services.ClienteService;
 import my_app.db.services.ConexaoBalancaService;
 import my_app.db.services.DescontoService;
+import my_app.db.services.EmpresaService;
 import my_app.db.services.PesagemService;
 import my_app.db.services.ProdutoService;
 import my_app.core.events.EntityEvent;
 import my_app.core.events.EventBus;
 import my_app.domain.ViewModelScreenContract;
 import my_app.domain.components.Components;
+import my_app.infra.TicketPdfExporter;
 import my_app.infra.balanca.LeitorBalanca;
 import my_app.infra.balanca.LeitorBalancaFactory;
 import my_app.infra.balanca.PesagemCalculo;
@@ -35,6 +37,8 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
     private final ProdutoService produtoService;
     private final DescontoService descontoService;
     private final ConexaoBalancaService conexaoBalancaService;
+    private final EmpresaService empresaService;
+    private final TicketPdfExporter ticketPdfExporter = new TicketPdfExporter();
 
     private LeitorBalanca leitorBalanca;
     final State<String> pesoAoVivo = State.of("—");
@@ -85,6 +89,7 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
         this.produtoService = createOrReport(ProdutoService::new);
         this.descontoService = createOrReport(DescontoService::new);
         this.conexaoBalancaService = createOrReport(ConexaoBalancaService::new);
+        this.empresaService = createOrReport(EmpresaService::new);
         carregarClientesEProdutos();
 
         // Ao selecionar um produto, carrega o desconto padrão dele no campo "Outros" — só um
@@ -318,6 +323,49 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
         return d;
     }
 
+    /**
+     * Exporta o ticket dessa pesagem em PDF (o app original imprimia direto na térmica via
+     * ESC/POS — aqui, como no plics-sw, o operador escolhe onde salvar e imprime pelo
+     * visualizador de PDF padrão do sistema; ver TicketPdfExporter).
+     */
+    public void imprimirTicket(PesagemModel model) {
+        var fileChooser = new FileChooser();
+        fileChooser.setTitle("Salvar ticket em PDF");
+        fileChooser.setInitialFileName("ticket_pesagem_" + model.getId() + ".pdf");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF", "*.pdf"));
+        File destino = fileChooser.showSaveDialog(ctx2.selfStage());
+        if (destino == null) return;
+
+        Async.Run(() -> {
+            try {
+                var empresa = empresaService.buscarUnico();
+                ticketPdfExporter.gerar(destino, empresa, model);
+                abrirArquivo(destino);
+                UI.runOnUi(() -> Components.ShowPopup(ctx2, "Ticket salvo em: " + destino.getAbsolutePath()));
+            } catch (Exception e) {
+                e.printStackTrace();
+                UI.runOnUi(() -> Components.ShowAlertError("Erro ao gerar ticket: " + e.getMessage()));
+            }
+        });
+    }
+
+    /**
+     * Abre o PDF gerado no visualizador padrão do sistema — de lá o operador já consegue
+     * imprimir de verdade (Ctrl+P), sem o app precisar falar com impressora nenhuma. Se o
+     * ambiente não suportar (ex.: sem gerenciador de desktop configurado), falha em silêncio;
+     * o arquivo já foi salvo e o caminho aparece no popup de qualquer forma.
+     */
+    private void abrirArquivo(File arquivo) {
+        try {
+            if (java.awt.Desktop.isDesktopSupported()
+                    && java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.OPEN)) {
+                java.awt.Desktop.getDesktop().open(arquivo);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void escolherFoto(State<String> destino) {
         var fileChooser = new FileChooser();
         fileChooser.setTitle("Selecionar foto");
@@ -464,5 +512,6 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
         this.produtoService.close();
         this.descontoService.close();
         this.conexaoBalancaService.close();
+        this.empresaService.close();
     }
 }
