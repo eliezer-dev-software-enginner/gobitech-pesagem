@@ -1,5 +1,24 @@
 # Decisões Arquiteturais
 
+## 2026-08-19: Versão do app empacotado sempre mostrava "dev"
+
+**Contexto:** usuário notou que o pacote gerado (via o workflow de release) mostra versão "dev"
+em vez da versão real. `scripts/config.py::run_jpackage()` já passa
+`--java-options -Dplics.appVersion=${APP_VERSION}` corretamente pro launcher nativo — o problema
+estava do lado de quem lê.
+
+**Causa:** `Main.APP_VERSION = System.getProperty("-Dplics.appVersion", "dev")` — o `-D` faz
+parte só da sintaxe de linha de comando pra *definir* uma system property
+(`java -Dchave=valor`), não da chave em si; a JVM guarda só `plics.appVersion`. Procurar por
+`"-Dplics.appVersion"` (com o `-D` incluído na string) nunca batia com nada, então sempre caía
+no default `"dev"` — em qualquer build, empacotado ou não.
+
+**Decisão:** removido o `-D` da chave — `System.getProperty("plics.appVersion", "dev")`.
+Verificado com um `java -Dplics.appVersion=1.0.0` isolado, exatamente a flag que o jpackage
+gera: antes do fix lia "dev" mesmo com a flag presente, depois lê "1.0.0" corretamente; sem a
+flag (`./gradlew run` local) continua caindo no default "dev", como esperado pra build de
+desenvolvimento.
+
 ## 2026-08-19: Revertido o teto de tamanho da Stage — quebrava maximizar de propósito
 
 **Contexto:** usuário reportou que não conseguia mais maximizar a janela. Regressão direta de um
