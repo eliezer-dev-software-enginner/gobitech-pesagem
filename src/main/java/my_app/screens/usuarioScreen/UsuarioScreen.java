@@ -87,7 +87,7 @@ public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<Usuari
                 .onItemSelectChange(vm.usuarioSelecionado::set)
                 .onItemDoubleClick(it -> showItemDetailsComAcoes(it, this.screenContext, 350));
 
-        return simpleTable;
+        return Components.limitTableHeight(simpleTable);
     }
 
     public Component itemDetails(UsuarioModel model) {

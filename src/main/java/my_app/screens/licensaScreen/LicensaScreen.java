@@ -77,6 +77,6 @@ public class LicensaScreen implements ScreenComponent {
                 .column("Gerada em", it -> DateUtils.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build();
 
-        return simpleTable;
+        return Components.limitTableHeight(simpleTable);
     }
 }

@@ -91,7 +91,7 @@ public class ClienteScreen implements ScreenComponent, ContratoTelaCrudV3<Client
                 .onItemSelectChange(vm.clienteSelecionado::set)
                 .onItemDoubleClick(it -> showItemDetailsComAcoes(it, this.screenContext, 400));
 
-        return simpleTable;
+        return Components.limitTableHeight(simpleTable);
     }
 
     public Component itemDetails(ClienteModel model) {

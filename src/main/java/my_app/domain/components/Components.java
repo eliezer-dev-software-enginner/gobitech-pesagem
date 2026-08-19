@@ -54,6 +54,19 @@ import static my_app.utils.Utils.*;
 
 public class Components {
 
+    // SimpleTable (megalodonte-components) não tem teto de altura por padrão — cresce até
+    // preencher todo o espaço vertical disponível na página (VBox.setVgrow ALWAYS +
+    // setMaxHeight(MAX_VALUE) no construtor). Aplicado só aqui, por tela, em vez de mudar o
+    // componente compartilhado: outros apps (ex.: plics-sw) usam o mesmo SimpleTable e não
+    // pediram essa mudança. Acima disso a tabela rola por dentro sozinha (comportamento nativo
+    // do TableView), então itens extras nunca ficam escondidos.
+    private static final double TABLE_MAX_HEIGHT = 360;
+
+    public static <T> SimpleTable<T> limitTableHeight(SimpleTable<T> table) {
+        table.getTableView().setMaxHeight(TABLE_MAX_HEIGHT);
+        return table;
+    }
+
     public static IconInterface ikon(Ikon ikon, double size, String color) {
         return IconInterface.of(FontIcon.of(ikon, (int) size, Color.web(color)));
     }

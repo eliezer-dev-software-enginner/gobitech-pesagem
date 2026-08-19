@@ -159,7 +159,7 @@ public class PesagemScreen implements ScreenComponent, ContratoTelaCrudV3<Pesage
                 .onItemSelectChange(vm.pesagemSelecionada::set)
                 .onItemDoubleClick(it -> showItemDetailsComAcoes(it, this.screenContext, 500));
 
-        return simpleTable;
+        return Components.limitTableHeight(simpleTable);
     }
 
     public Component itemDetails(PesagemModel model) {

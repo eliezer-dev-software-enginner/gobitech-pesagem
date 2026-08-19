@@ -86,7 +86,7 @@ public class ProdutoScreen implements ScreenComponent, ContratoTelaCrudV3<Produt
                 .onItemSelectChange(vm.produtoSelecionado::set)
                 .onItemDoubleClick(it -> showItemDetailsComAcoes(it, this.screenContext, 350));
 
-        return simpleTable;
+        return Components.limitTableHeight(simpleTable);
     }
 
     public Component itemDetails(ProdutoModel model) {
