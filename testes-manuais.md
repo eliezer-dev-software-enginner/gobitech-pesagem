@@ -59,16 +59,16 @@ Logout. Empresa/Conexão da balança/Gerar licença/Suporte ficam no menu do top
 Campos: Loja*, Razão social*, CPF/CNPJ, Telefone, Endereço (CEP/UF/Cidade/Bairro/Rua/Número),
 Complemento.
 
-| # | Cenário | Loja | Razão social | Efeito Esperado | Resultado                                                                  |
-|---|---------|------|---------------|------------------|----------------------------------------------------------------------------|
-| 21 | Cadastro válido | Fazenda Santa Rita | Santa Rita Agropecuária Ltda | Salvo com sucesso. Aparece na tabela. | ok                                                                         |
-| 22 | Loja vazia | (vazio) | Qualquer | Alerta "Loja é obrigatória". Não salva. | ok                                                                         |
-| 23 | Razão social vazia | Qualquer | (vazio) | Alerta "Razão social é obrigatória". Não salva. | ok                                                                         |
-| 24 | Loja duplicada | (nome já cadastrado) | Outra razão social | Alerta "Já existe um cliente cadastrado com essa loja". | ok                                                                         |
+| # | Cenário | Loja | Razão social | Efeito Esperado | Resultado                                                                                        |
+|---|---------|------|---------------|------------------|--------------------------------------------------------------------------------------------------|
+| 21 | Cadastro válido | Fazenda Santa Rita | Santa Rita Agropecuária Ltda | Salvo com sucesso. Aparece na tabela. | ok                                                                                               |
+| 22 | Loja vazia | (vazio) | Qualquer | Alerta "Loja é obrigatória". Não salva. | ok                                                                                               |
+| 23 | Razão social vazia | Qualquer | (vazio) | Alerta "Razão social é obrigatória". Não salva. | ok                                                                                               |
+| 24 | Loja duplicada | (nome já cadastrado) | Outra razão social | Alerta "Já existe um cliente cadastrado com essa loja". | ok                                                                                               |
 | 25 | CPF/CNPJ duplicado (loja diferente) | Nome novo | Razão nova, mesmo CPF/CNPJ de outro cliente | Alerta "CPF/CNPJ já cadastrado para outro cliente". | ok — bug de formatação (máscara sempre de CNPJ, mesmo digitando CPF) corrigido, ver DECISIONS.md |
-| 26 | Telefone inválido | Nome novo | Razão nova | Preencher telefone sem DDD → alerta "Telefone inválido (informe DDD + Número)" |                                                                            |
-| 27 | CEP inválido | Nome novo | Razão nova | CEP incompleto/errado → alerta "CEP inválido" | ok                                                                         |
-| 28 | Editar cliente existente | (via modal de detalhes → Editar) | | Atualiza, some da lista e reaparece com dado novo | ok                                                                         |
+| 26 | Telefone inválido | Nome novo | Razão nova | Preencher telefone sem DDD → alerta "Telefone inválido (informe DDD + Número)" | ok                                                                                               |
+| 27 | CEP inválido | Nome novo | Razão nova | CEP incompleto/errado → alerta "CEP inválido" | ok                                                                                               |
+| 28 | Editar cliente existente | (via modal de detalhes → Editar) | | Atualiza, some da lista e reaparece com dado novo | ok                                                                                               |
 
 ---
 
@@ -173,11 +173,12 @@ Logomarca.
 
 | # | Cenário | Efeito Esperado | Resultado |
 |---|---------|------------------|-----------|
-| 73 | Acessar como admin | Menu "Gerar licença" aparece no menu Gerencial | |
-| 74 | Acessar como não-admin | Item "Gerar licença" **não aparece** no menu | |
-| 75 | Gerar licença sem data de expiração | Popup "Licença gerada com sucesso"; código aparece na tela e na lista; nunca expira | |
-| 76 | Gerar licença com data de expiração | Idem, mas `expirada()` passa a `true` depois da data escolhida (23:59:59 daquele dia) | |
-| 77 | Usuário não-admin loga depois da licença vencer | Bloqueado (ver caso #5) | |
+| 73 | Acessar como admin | Menu "Gerar licença" aparece no menu Gerencial | ok        |
+| 74 | Acessar como não-admin | Item "Gerar licença" **não aparece** no menu | ok        |
+| 75 | Gerar licença com "Definir data de expiração?" = Não | DatePicker **não aparece**. Popup "Licença gerada com sucesso"; código aparece na tela e na lista; nunca expira | ok        |
+| 76 | Selecionar "Definir data de expiração?" = Sim | DatePicker aparece. Escolher uma data e gerar: idem #75, mas `expirada()` passa a `true` depois da data escolhida (23:59:59 daquele dia) |           |
+| 77 | Selecionar "Sim" mas não escolher nenhuma data | Alerta "Selecione a data de expiração". Não gera. |           |
+| 78 | Usuário não-admin loga depois da licença vencer | Bloqueado (ver caso #5) |           |
 
 ---
 

@@ -71,8 +71,12 @@ public class HomeScreenViewModel {
 
     public void logout() {
         Components.ShowAlertAdvice("Deseja realmente sair?", () -> {
+            // Não zera telaAtiva: renderConteudo() faz telaAtiva.get().render() sem checar
+            // null (telaAtiva nunca fica null depois que o construtor passou a montar o
+            // Dashboard de cara — ver comentário lá). destruirTelaAtual() já limpa os recursos
+            // da tela atual; navegarAndCloseOthers troca a Scene inteira por AUTH logo em
+            // seguida, então não sobra nenhum render() acontecendo em cima de um telaAtiva nulo.
             destruirTelaAtual();
-            telaAtiva.set(null);
             screenContext.navigateAndCloseOthers(AppRoutes.Screens.AUTH.name());
         });
     }

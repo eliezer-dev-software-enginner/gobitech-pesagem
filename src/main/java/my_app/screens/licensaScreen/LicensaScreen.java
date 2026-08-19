@@ -2,20 +2,18 @@ package my_app.screens.licensaScreen;
 
 import megalodonte.base.components.Component;
 import megalodonte.base.components.ScreenComponent;
-import megalodonte.base.theme.ThemeManager;
 import megalodonte.components.Card;
 import megalodonte.components.LineHorizontal;
 import megalodonte.components.SimpleTable;
 import megalodonte.components.SpacerVertical;
-import megalodonte.components.Text;
 import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.Container;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.ContainerProps;
-import megalodonte.props.TextProps;
 import megalodonte.router.v4.ScreenContext;
 import megalodonte.v2.Show;
 import my_app.db.models.LicensaModel;
+import my_app.domain.Data;
 import my_app.domain.components.Components;
 import my_app.utils.DateUtils;
 
@@ -51,9 +49,8 @@ public class LicensaScreen implements ScreenComponent {
                         new Column(new ColumnProps().paddingAll(20))
                                 .c_child(Components.FormTitle("Gerar licença"))
                                 .c_child(new SpacerVertical(10))
-                                .c_child(new Text("Data de validade (deixe em branco pra sem expiração):",
-                                        new TextProps().fontSize(ThemeManager.theme().typography().small())))
-                                .c_child(Components.DatePickerColumn(vm.dataExpiracao, "Validade"))
+                                .c_child(Components.SelectColumn("Definir data de expiração?", Data.simNaoList, vm.definirExpiracaoSelected, it -> it))
+                                .c_child(Show.when(vm.definirExpiracao, () -> Components.DatePickerColumn(vm.dataExpiracao, "Validade")))
                                 .c_child(new SpacerVertical(10))
                                 .c_child(Components.ButtonCadastro("Gerar nova licença", vm::gerar))
                                 .c_child(new SpacerVertical(10))

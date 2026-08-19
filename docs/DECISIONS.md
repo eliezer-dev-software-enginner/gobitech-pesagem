@@ -1,5 +1,44 @@
 # Decisões Arquiteturais
 
+## 2026-08-18: DatePicker de validade da licença só aparece se o usuário optar por definir expiração
+
+**Contexto:** antes, o `DatePicker` de "Data de validade" em `LicensaScreen` ficava sempre
+visível, com um texto de apoio dizendo "deixe em branco pra sem expiração" — pedido: o
+DatePicker só deve aparecer se o usuário explicitamente escolher definir uma data.
+
+**Decisão:** `LicensaViewModel` ganhou `definirExpiracaoSelected` (Sim/Não, mesmo padrão
+`Data.simNaoList` já usado em outras telas — ex. "Administrador?" em Usuário), default "Não"
+(a maioria das licenças, ex. pro próprio admin, não expira). `LicensaScreen` troca o texto de
+apoio pelo seletor Sim/Não e envolve o `DatePickerColumn` num `Show.when(vm.definirExpiracao,
+...)`.
+
+`gerar()` passou a consultar o toggle (`definirExpiracao.get()`), não só se `dataExpiracao` já
+tinha valor — sem isso, escolher uma data e depois mudar de ideia pra "Não" deixaria a data
+antiga (ainda no state, só não mais visível na tela) sendo usada mesmo assim. Também adicionada
+uma validação: "Sim" selecionado sem nenhuma data escolhida agora alerta "Selecione a data de
+expiração" em vez de gerar silenciosamente uma licença sem expiração (o oposto do que "Sim"
+significa).
+
+## 2026-08-18: NullPointerException ao clicar em Logout — regressão do fix do Dashboard
+
+**Contexto:** usuário reportou `NullPointerException: ... State.get() is null` ao clicar em
+Logout na sidebar.
+
+**Causa:** regressão introduzida por mim mesmo no fix do Dashboard (ver decisão "Tela de boas-
+vindas virou um dashboard real" mais abaixo): `HomeScreenViewModel.logout()` ainda fazia
+`telaAtiva.set(null)` antes de navegar pra AUTH — um passo que fazia sentido no design ANTIGO,
+onde `telaAtiva == null` era um estado válido (`HomeScreen.renderConteudo()` tratava esse caso
+caindo pra `welcomeContent()`). Quando o Dashboard passou a ser sempre uma tela de verdade,
+`renderConteudo()` foi simplificado pra `viewModel.telaAtiva.get().render()` sem checar null —
+mas o `telaAtiva.set(null)` do `logout()` ficou esquecido, e como `HomeScreen` está inscrito em
+`telaAtiva` (`subscribe(tela -> renderConteudo())`), esse `set(null)` disparava
+`renderConteudo()` na hora, batendo de frente com o `.get().render()` sem proteção.
+
+**Decisão:** removida a linha `telaAtiva.set(null)` de `logout()` — não tem mais necessidade
+nenhuma dela: `destruirTelaAtual()` já libera os recursos da tela atual (onDestroy + cancela o
+Scope), e `navigateAndCloseOthers` troca a Scene inteira por AUTH logo em seguida, então não
+sobra nenhum `render()` rodando em cima de um `telaAtiva` nulo.
+
 ## 2026-08-18: Campo CPF/CNPJ sempre formatava como CNPJ, mesmo digitando um CPF
 
 **Contexto:** achado durante teste manual (`testes-manuais.md`, caso #25, seção Cliente):

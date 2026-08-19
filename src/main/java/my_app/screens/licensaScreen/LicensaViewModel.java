@@ -9,6 +9,7 @@ import megalodonte.v2.ListState;
 import my_app.core.AppRoutes;
 import my_app.db.models.LicensaModel;
 import my_app.db.services.LicensaService;
+import my_app.domain.Data;
 import my_app.domain.SessaoUsuario;
 import my_app.domain.components.Components;
 
@@ -22,6 +23,13 @@ public class LicensaViewModel {
     final State<LocalDate> dataExpiracao = State.of(null);
     final State<String> codigoGerado = State.of("");
     final ListState<LicensaModel> licensasState = ListState.ofEmpty();
+
+    // "Não" por padrão — a maioria das licenças geradas (ex.: pro próprio admin) não expira.
+    final State<String> definirExpiracaoSelected = State.of(Data.simNaoList.getLast());
+    final ComputedState<Boolean> definirExpiracao = ComputedState.of(
+            () -> definirExpiracaoSelected.get().equals(Data.simNaoList.getFirst()),
+            definirExpiracaoSelected
+    );
 
     final ComputedState<Boolean> codigoGeradoVisible = ComputedState.of(
             () -> !codigoGerado.get().isEmpty(), codigoGerado
@@ -62,7 +70,15 @@ public class LicensaViewModel {
     }
 
     public void gerar() {
-        LocalDateTime expiraEm = dataExpiracao.get() == null ? null : dataExpiracao.get().atTime(23, 59, 59);
+        // Consulta o toggle, não só se dataExpiracao já tem valor — sem isso, escolher uma data
+        // e depois mudar de ideia pra "Não" deixaria a data antiga (ainda no state, só não mais
+        // visível na tela) sendo usada mesmo assim.
+        if (definirExpiracao.get() && dataExpiracao.get() == null) {
+            Components.ShowAlertError("Selecione a data de expiração.");
+            return;
+        }
+
+        LocalDateTime expiraEm = definirExpiracao.get() ? dataExpiracao.get().atTime(23, 59, 59) : null;
 
         Async.Run(() -> {
             try {
