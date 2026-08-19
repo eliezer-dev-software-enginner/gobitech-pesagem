@@ -5,10 +5,7 @@ import megalodonte.router.v4.Router;
 import my_app.Main;
 import my_app.SplashScreen;
 import my_app.screens.acessoBloqueadoScreen.AcessoBloqueadoScreen;
-import my_app.screens.welcomeScreen.WelcomeScreen;
 import my_app.screens.infoUpdateScreen.InfoUpdateScreen;
-import my_app.screens.feedbackScreen.RelatarErroScreen;
-import my_app.screens.feedbackScreen.SugerirMelhoriaScreen;
 import my_app.screens.authScreen.AuthScreen;
 import my_app.screens.clienteScreen.ClienteScreen;
 import my_app.screens.conexaoBalancaScreen.ConexaoBalancaScreen;
@@ -24,7 +21,6 @@ import java.util.Set;
 public class AppRoutes {
     public enum Screens {
         SPLASH,
-        WELCOME,
         AUTH,
         HOME,
         PRODUTOS,
@@ -34,8 +30,6 @@ public class AppRoutes {
         PESAGENS,
         CONEXAO_BALANCA,
         LICENSA,
-        RELATAR_ERRO,
-        SUGERIR_MELHORIA,
         INFO_UPDATE,
         ACESSO_BLOQUEADO
     }
@@ -54,7 +48,6 @@ public class AppRoutes {
         return Set.of(
                 new Router.Route(Screens.SPLASH.name(), ctx -> new SplashScreen(),
                         new RouteProps(MIN_WIDTH, MIN_HEIGHT, Main.BASE_TITLE, false)),
-                new Router.Route(Screens.WELCOME.name(), WelcomeScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, Main.BASE_TITLE, true)),
                 new Router.Route(Screens.AUTH.name(), AuthScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Seja muito bem vindo", false)),
                 new Router.Route(Screens.HOME.name(), HomeScreen::new, new RouteProps(MAX_WIDTH, MAX_HEIGHT, Main.BASE_TITLE, true)),
                 new Router.Route(Screens.PRODUTOS.name(), ProdutoScreen::new, new RouteProps(MAX_WIDTH, MAX_HEIGHT, "Cadastro de produtos", true)),
@@ -64,8 +57,6 @@ public class AppRoutes {
                 new Router.Route(Screens.PESAGENS.name(), PesagemScreen::new, new RouteProps(MAX_WIDTH, MAX_HEIGHT, "Pesagens", true)),
                 new Router.Route(Screens.CONEXAO_BALANCA.name(), ConexaoBalancaScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Conexão com a balança", false)),
                 new Router.Route(Screens.LICENSA.name(), LicensaScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Gerar licença", false)),
-                new Router.Route(Screens.RELATAR_ERRO.name(), RelatarErroScreen::new, new RouteProps(MIN_WIDTH, MIN_HEIGHT, "Relatar erros", true)),
-                new Router.Route(Screens.SUGERIR_MELHORIA.name(), SugerirMelhoriaScreen::new, new RouteProps(MIN_WIDTH, MIN_HEIGHT, "Detalhes de melhoria ou funcionalidades a serem sugeridas", true)),
                 new Router.Route(Screens.INFO_UPDATE.name(), InfoUpdateScreen::new, new RouteProps(MAX_WIDTH, MAX_HEIGHT, "Atualizações do aplicativo", false)),
                 new Router.Route(Screens.ACESSO_BLOQUEADO.name(), ctx -> new AcessoBloqueadoScreen(),
                         new RouteProps(MIN_WIDTH, MIN_HEIGHT, "Acesso bloqueado", false))

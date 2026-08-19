@@ -45,12 +45,10 @@ public class SplashScreen implements ScreenComponent {
                 );
     }
 
-
     @Override
     public void onDestroy() {
         if (pulse != null) {
             pulse.stop();
         }
     }
-
 }
