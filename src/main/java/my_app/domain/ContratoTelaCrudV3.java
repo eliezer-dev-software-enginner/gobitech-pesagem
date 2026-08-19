@@ -1,5 +1,10 @@
 package my_app.domain;
 
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import megalodonte.base.UI;
 import megalodonte.base.components.Component;
@@ -7,11 +12,11 @@ import megalodonte.base.theme.ThemeManager;
 import megalodonte.components.Button;
 import megalodonte.components.Card;
 import megalodonte.components.SimpleTable;
-import megalodonte.components.SpacerHorizontal;
 import megalodonte.components.SpacerVertical;
 import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.Container;
 import megalodonte.components.layout_components.Row;
+import megalodonte.components.layout_components.Stack;
 import megalodonte.props.ButtonProps;
 import megalodonte.props.CardProps;
 import megalodonte.props.ColumnProps;
@@ -91,8 +96,13 @@ public interface ContratoTelaCrudV3<T> {
                 );
     }
 
+    /**
+     * "Criar novo" flutua em posição absoluta (canto inferior direito, ~20px de margem) por
+     * cima do conteúdo scrollável, em vez de ficar no fluxo normal — assim continua visível e
+     * clicável mesmo com a tabela cheia, sem precisar rolar até o fim da página pra achá-lo.
+     */
     private Component listPage() {
-        return Components.ScrollPaneDefault(
+        Component conteudo = Components.ScrollPaneDefault(
                 new Column(new ColumnProps().fillWidth().spacingOf(15))
                         .children(
                                 extraListContent(),
@@ -103,16 +113,19 @@ public interface ContratoTelaCrudV3<T> {
                                                         table()
                                                 ),
                                         new CardProps().fillWidth().padding(20).bgColor("#ffffff")
-                                ),
-                                new Row(new RowProps().fillWidth())
-                                        .children(
-                                                new SpacerHorizontal().fill(),
-                                                new Button("+ Criar novo", new ButtonProps().height(34)
-                                                        .bgColor(ThemeManager.theme().colors().primary()).textColor("black"))
-                                                        .onClick(this::handleClickNew)
-                                        )
+                                )
                         )
         );
+
+        Component botaoCriarNovo = new Button("+ Criar novo", new ButtonProps().height(34)
+                .bgColor(ThemeManager.theme().colors().primary()).textColor("black"))
+                .onClick(this::handleClickNew);
+        StackPane.setAlignment(botaoCriarNovo.getNode(), Pos.BOTTOM_RIGHT);
+        StackPane.setMargin(botaoCriarNovo.getNode(), new Insets(0, 20, 20, 0));
+
+        Component pilha = new Stack().children(conteudo, botaoCriarNovo);
+        VBox.setVgrow(pilha.getNode(), Priority.ALWAYS);
+        return pilha;
     }
 
     private Component formPage() {
