@@ -433,6 +433,15 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
 
     @Override
     public void handleAddOrUpdate() {
+        salvar(false);
+    }
+
+    /** Igual {@link #handleAddOrUpdate()}, mas já abre o diálogo de "Salvar ticket em PDF" logo em seguida. */
+    public void handleAddOrUpdateEBaixarTicket() {
+        salvar(true);
+    }
+
+    private void salvar(boolean tambemBaixarTicket) {
         if (modoEdicao.get() && pesagemSelecionada.get() == null) return;
 
         boolean editando = modoEdicao.get();
@@ -467,6 +476,9 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
                         Components.ShowPopup(ctx, "Pesagem cadastrada com sucesso");
                         EventBus.getInstance().publish(EntityEvent.criado(comRelacoes));
                     }
+                    // Antes de voltarParaLista(): o diálogo de salvar ainda faz sentido com o
+                    // formulário na tela; a tela em si não muda, só o formIsVisible da ViewModel.
+                    if (tambemBaixarTicket) imprimirTicket(comRelacoes);
                     voltarParaLista();
                 });
             } catch (IllegalArgumentException e) {

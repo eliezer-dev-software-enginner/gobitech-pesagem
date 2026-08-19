@@ -138,7 +138,22 @@ public class PesagemScreen implements ScreenComponent, ContratoTelaCrudV3<Pesage
                                 .c_child(Components.TextAreaColumn("Observações", vm.observacoes, "Alguma observação sobre a pesagem?", 60, 160))
                                 .c_child(new SpacerVertical(20))
                                 .c_child(Components.actionButtons(vm.btnText, this::handleAddOrUpdate))
+                                .c_child(new SpacerVertical(10))
+                                .c_child(new Button("Salvar e baixar ticket", new ButtonProps()
+                                        .fillWidth().height(31).fontSize(16)
+                                        .textColor("white").bgColor("#16a34a"))
+                                        .onClick(this::handleAddOrUpdateEBaixarTicket))
                 ));
+    }
+
+    /** Mesmo salvamento de {@link #handleAddOrUpdate()}, mas já oferece o PDF do ticket em seguida. */
+    private void handleAddOrUpdateEBaixarTicket() {
+        try {
+            vm.handleAddOrUpdateEBaixarTicket();
+            vm.modoEdicaoState().set(false);
+        } catch (Exception e) {
+            Components.ShowAlertError(e.getMessage());
+        }
     }
 
     @Override
