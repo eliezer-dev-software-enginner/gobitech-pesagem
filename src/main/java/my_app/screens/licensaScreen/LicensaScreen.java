@@ -10,6 +10,7 @@ import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.Container;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.ContainerProps;
+import megalodonte.props.SimpleTableProps;
 import megalodonte.router.v4.ScreenContext;
 import megalodonte.v2.Show;
 import my_app.db.models.LicensaModel;
@@ -67,7 +68,7 @@ public class LicensaScreen implements ScreenComponent {
     }
 
     private SimpleTable<LicensaModel> table() {
-        var simpleTable = new SimpleTable<LicensaModel>();
+        var simpleTable = new SimpleTable<LicensaModel>(new SimpleTableProps().maxHeight(Components.TABLE_MAX_HEIGHT));
         simpleTable.fromData(vm.licensasState)
                 .header()
                 .columns()
@@ -77,6 +78,6 @@ public class LicensaScreen implements ScreenComponent {
                 .column("Gerada em", it -> DateUtils.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build();
 
-        return Components.limitTableHeight(simpleTable);
+        return simpleTable;
     }
 }

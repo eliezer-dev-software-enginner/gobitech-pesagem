@@ -54,18 +54,13 @@ import static my_app.utils.Utils.*;
 
 public class Components {
 
-    // SimpleTable (megalodonte-components) não tem teto de altura por padrão — cresce até
-    // preencher todo o espaço vertical disponível na página (VBox.setVgrow ALWAYS +
-    // setMaxHeight(MAX_VALUE) no construtor). Aplicado só aqui, por tela, em vez de mudar o
-    // componente compartilhado: outros apps (ex.: plics-sw) usam o mesmo SimpleTable e não
-    // pediram essa mudança. Acima disso a tabela rola por dentro sozinha (comportamento nativo
-    // do TableView), então itens extras nunca ficam escondidos.
-    private static final double TABLE_MAX_HEIGHT = 350;
-
-    public static <T> SimpleTable<T> limitTableHeight(SimpleTable<T> table) {
-        table.getTableView().setMaxHeight(TABLE_MAX_HEIGHT);
-        return table;
-    }
+    // SimpleTable (megalodonte-components) não tinha teto de altura configurável — cresce até
+    // preencher todo o espaço vertical disponível na página por padrão. Cada tela passa
+    // "new SimpleTableProps().maxHeight(TABLE_MAX_HEIGHT)" no próprio construtor da tabela
+    // (ver SimpleTableProps.maxHeight, megalodonte-components) em vez de mexer no node do
+    // JavaFX depois de pronta. Acima do teto a tabela rola por dentro sozinha (comportamento
+    // nativo do TableView), então itens extras nunca ficam escondidos.
+    public static final double TABLE_MAX_HEIGHT = 350;
 
     public static IconInterface ikon(Ikon ikon, double size, String color) {
         return IconInterface.of(FontIcon.of(ikon, (int) size, Color.web(color)));

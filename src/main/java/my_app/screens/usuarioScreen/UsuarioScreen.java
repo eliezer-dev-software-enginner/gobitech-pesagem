@@ -12,6 +12,7 @@ import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.FlowRow;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.FlowRowProps;
+import megalodonte.props.SimpleTableProps;
 import megalodonte.props.TextProps;
 import megalodonte.router.v4.ScreenContext;
 import my_app.db.models.UsuarioModel;
@@ -74,7 +75,7 @@ public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<Usuari
 
     @Override
     public SimpleTable<UsuarioModel> table() {
-        var simpleTable = new SimpleTable<UsuarioModel>();
+        var simpleTable = new SimpleTable<UsuarioModel>(new SimpleTableProps().maxHeight(Components.TABLE_MAX_HEIGHT));
         simpleTable.fromData(vm.filteredList)
                 .header()
                 .columns()
@@ -87,7 +88,7 @@ public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<Usuari
                 .onItemSelectChange(vm.usuarioSelecionado::set)
                 .onItemDoubleClick(it -> showItemDetailsComAcoes(it, this.screenContext, 350));
 
-        return Components.limitTableHeight(simpleTable);
+        return simpleTable;
     }
 
     public Component itemDetails(UsuarioModel model) {

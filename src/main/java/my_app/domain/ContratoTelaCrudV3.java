@@ -1,10 +1,5 @@
 package my_app.domain;
 
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import megalodonte.base.UI;
 import megalodonte.base.components.Component;
@@ -120,12 +115,11 @@ public interface ContratoTelaCrudV3<T> {
         Component botaoCriarNovo = new Button("+ Criar novo", new ButtonProps().height(34)
                 .bgColor(ThemeManager.theme().colors().primary()).textColor("black"))
                 .onClick(this::handleClickNew);
-        StackPane.setAlignment(botaoCriarNovo.getNode(), Pos.BOTTOM_RIGHT);
-        StackPane.setMargin(botaoCriarNovo.getNode(), new Insets(0, 20, 20, 0));
 
-        Component pilha = new Stack().children(conteudo, botaoCriarNovo);
-        VBox.setVgrow(pilha.getNode(), Priority.ALWAYS);
-        return pilha;
+        return new Stack()
+                .children(conteudo)
+                .childInCorner(botaoCriarNovo, Stack.Corner.BOTTOM_RIGHT, 20)
+                .fillHeight();
     }
 
     private Component formPage() {

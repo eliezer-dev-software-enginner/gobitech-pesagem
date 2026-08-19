@@ -18,6 +18,7 @@ import megalodonte.props.ColumnProps;
 import megalodonte.props.FlowRowProps;
 import megalodonte.props.ImageProps;
 import megalodonte.props.RowProps;
+import megalodonte.props.SimpleTableProps;
 import megalodonte.props.TextProps;
 import megalodonte.router.v4.ScreenContext;
 import my_app.db.models.PesagemModel;
@@ -163,7 +164,7 @@ public class PesagemScreen implements ScreenComponent, ContratoTelaCrudV3<Pesage
 
     @Override
     public SimpleTable<PesagemModel> table() {
-        var simpleTable = new SimpleTable<PesagemModel>();
+        var simpleTable = new SimpleTable<PesagemModel>(new SimpleTableProps().maxHeight(Components.TABLE_MAX_HEIGHT));
         simpleTable.fromData(vm.filteredList)
                 .header()
                 .columns()
@@ -179,7 +180,7 @@ public class PesagemScreen implements ScreenComponent, ContratoTelaCrudV3<Pesage
                 .onItemSelectChange(vm.pesagemSelecionada::set)
                 .onItemDoubleClick(it -> showItemDetailsComAcoes(it, this.screenContext, 500));
 
-        return Components.limitTableHeight(simpleTable);
+        return simpleTable;
     }
 
     /**

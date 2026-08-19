@@ -1,11 +1,7 @@
 package my_app.screens.logsScreen;
 
-import javafx.scene.control.TextArea;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 import megalodonte.base.components.Component;
 import megalodonte.base.components.ScreenComponent;
-import megalodonte.base.state.State;
 import megalodonte.base.theme.ThemeManager;
 import megalodonte.components.Button;
 import megalodonte.components.SpacerHorizontal;
@@ -32,16 +28,12 @@ public class LogsScreen implements ScreenComponent {
 
     @Override
     public Component render() {
-        var textoLogs = new TextAreaInput(new State<>(vm.conteudoLogs.get()),
-                new InputProps().fontSize(ThemeManager.theme().typography().small()));
-        var textArea = (TextArea) textoLogs.getNode();
-        textArea.setEditable(false);
-        textArea.setWrapText(false);
-        textArea.setStyle("-fx-font-family: 'Courier New', monospace;");
-        textArea.setMaxHeight(Double.MAX_VALUE);
-        textArea.setMaxWidth(Double.MAX_VALUE);
-        VBox.setVgrow(textArea, Priority.ALWAYS);
-        vm.conteudoLogs.subscribe(textArea::setText);
+        var textoLogs = new TextAreaInput(vm.conteudoLogs,
+                new InputProps()
+                        .fontSize(ThemeManager.theme().typography().small())
+                        .fontFamily("'Courier New', monospace")
+                        .editable(false)
+                        .fillHeight());
 
         return new Container(new ContainerProps().paddingAll(20).fillHeight())
                 .children(
