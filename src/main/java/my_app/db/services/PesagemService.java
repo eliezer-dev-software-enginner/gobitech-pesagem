@@ -59,6 +59,20 @@ public class PesagemService extends BaseService<PesagemModel> {
         return temPesagemEmAberto ? "Saída" : "Entrada";
     }
 
+    /**
+     * Tara sugerida pra uma pesagem de "Saída": a que já foi capturada na última pesagem
+     * "Entrada" em aberto pra essa placa — na prática o caminhão não muda de peso vazio entre a
+     * entrada e a saída da mesma visita, então não precisa pesar vazio de novo. `null` se essa
+     * placa não tem entrada em aberto (a próxima pesagem seria "Entrada", sem sugestão) ou se a
+     * entrada em aberto não tinha Tara preenchida.
+     */
+    public BigDecimal buscarTaraSugerida(String placa) throws SQLException {
+        if (placa == null || placa.isBlank()) return null;
+        var anteriores = pesagemRepository.buscarPorPlaca(placa);
+        boolean temPesagemEmAberto = !anteriores.isEmpty() && anteriores.size() % 2 != 0;
+        return temPesagemEmAberto ? anteriores.getLast().getPesoVeiculo() : null;
+    }
+
     public PesagemModel buscarComRelacoes(long id) throws SQLException {
         var pesagem = repository.buscarById(id);
         if (pesagem != null) anexarRelacoes(pesagem);

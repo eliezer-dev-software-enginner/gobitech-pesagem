@@ -96,6 +96,38 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
             if (produto == null) return;
             outros.set(produto.getDesconto() == null ? "" : produto.getDesconto().toPlainString());
         });
+
+        // Ao digitar a placa, sugere a Tara da última pesagem "Entrada" em aberto pra ela —
+        // evita pesar o caminhão vazio de novo na "Saída" da mesma visita. Busca é assíncrona
+        // (precisa ir no banco); diferente do desconto do produto (que só lê um objeto já em
+        // memória), aqui NÃO dá pra confiar que roda antes do populateFieldsFromModel() da
+        // edição sobrescrever de volta — por isso o modoEdicao.get() é checado só quando o
+        // resultado chega (UI.runOnUi), não no disparo: populateFieldsFromModel() seta a placa
+        // antes de modoEdicaoState() virar true (ver ContratoTelaCrudV3.handleClickMenuEdit),
+        // então checar no disparo veria false incorretamente e aplicaria a sugestão em cima da
+        // Tara real de uma pesagem sendo editada.
+        placa.subscribe(valor -> carregarTaraSugerida());
+    }
+
+    private void carregarTaraSugerida() {
+        var placaValue = placa.get().trim();
+        if (placaValue.isEmpty()) return;
+
+        Async.Run(() -> {
+            try {
+                var tara = pesagemService.buscarTaraSugerida(placaValue);
+                if (tara == null) return;
+
+                UI.runOnUi(() -> {
+                    if (modoEdicao.get()) return;
+                    if (!placa.get().trim().equals(placaValue)) return; // placa já mudou de novo
+                    pesoVeiculo.set(tara.toPlainString());
+                    Components.ShowPopup(ctx2, "Tara preenchida com a última pesagem dessa placa");
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public void iniciarLeituraBalanca() {
@@ -397,17 +429,6 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
         });
     }
 
-    public void carregarOperacaoPelaPlaca() {
-        var placaValue = placa.get().trim();
-        if (placaValue.isEmpty() || modoEdicao.get()) return;
-        Async.Run(() -> {
-            try {
-                pesagemService.determinarOperacao(placaValue);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }
 
     @Override
     public void clearForm() {

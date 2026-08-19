@@ -115,6 +115,30 @@ Tara/Peso do veículo, Peso bruto/total, Peso líquido/final (calculado), 8 tipo
 4 fotos, Observações. Mostra o peso ao vivo da balança conectada (topo da lista, fora da tela de
 lista/formulário — ver seção "Conexão da balança").
 
+### Testando sem balança física (casos #50–54, #79)
+
+`LeitorBalancaTcp` (`my_app.infra.balanca`) não faz handshake nem manda comando nenhum pra
+balança — só abre um socket TCP e lê o que vier, então dá pra simular com um script simples
+sem precisar de hardware nem porta serial de verdade:
+
+- **`scripts/simular_balanca_tcp.py [porta] [peso_base]`** — manda um peso a cada ~1s, com um
+  pequeno ruído aleatório em volta do valor base (imita uma balança "tremendo"). Bom pra ver o
+  "Peso na balança agora" atualizando sozinho (útil pro caso #50/#51 em geral).
+- **`scripts/simular_balanca_tcp_manual.py [porta]`** — só manda um peso quando você digita um
+  valor e aperta Enter no terminal (Enter vazio repete o último). Bom pra testar sequências
+  exatas — ex.: mandar uma Tara específica, capturar, mandar um Peso bruto específico, capturar,
+  e só então calcular, conferindo a conta exata sem o ruído do script automático atrapalhar.
+
+Em ambos: rode o script primeiro, **depois** configure a tela "Conexão da balança" (Tipo TCP,
+IP `127.0.0.1`, Porta igual à passada pro script) e só então abra a tela de Pesagem — o leitor
+conecta uma vez ao montar a tela e não parece reconectar sozinho se não achar nada escutando
+ainda.
+
+Isso não cobre o caminho **Serial** (`LeitorBalancaSerial`, via JSSC) — testar esse exigiria uma
+porta serial virtual (`socat` cria um par, mas configurar o app pra usar uma porta Linux
+arbitrária pela tela ainda não foi verificado nesta reescrita). Ver "Pendências conhecidas" no
+fim deste arquivo.
+
 | # | Cenário | Placa | Motorista | Cliente | Produto | Efeito Esperado | Resultado |
 |---|---------|-------|-----------|---------|---------|------------------|-----------|
 | 43 | Cadastro válido completo | ABC1D23 | José da Silva | (selecionar) | (selecionar) | Salvo, aparece na lista com Operação (Entrada/Saída) | |
@@ -134,6 +158,9 @@ lista/formulário — ver seção "Conexão da balança").
 | 57 | Filtrar por período (data início/fim) | | | | | Só mostra pesagens no intervalo | |
 | 58 | Anexar as 4 fotos | | | | | Cada slot abre seletor de arquivo, mostra preview | |
 | 59 | Editar pesagem existente | (via modal → Editar) | | | | Recalcula/atualiza mantendo vínculo com cliente/produto/desconto | |
+| 79 | Clicar "Calcular" **antes** de capturar Tara e Peso bruto, depois capturar os dois | Capturar Tara, clicar Calcular, capturar Peso bruto (nessa ordem) | | | | Líquido calculado fica **desatualizado** — usa bruto=0 no momento do clique (ex.: líquido ≈ −Tara). "Calcular" não recalcula sozinho quando Tara/Peso bruto mudam depois; precisa capturar os dois **antes** de clicar Calcular por último | |
+| 80 | Tara sugerida na "Saída" | 1. Cadastrar uma pesagem com placa X e Tara preenchida (vira "Entrada"). 2. Criar nova pesagem, mesma placa X | | | | Ao digitar a placa X no formulário novo, campo Tara já vem preenchido sozinho com o valor da pesagem anterior + popup avisando. Ainda editável por cima. | |
+| 81 | Sem tara sugerida numa "Entrada" nova | Placa nunca usada, ou placa já com Entrada+Saída fechadas (3ª pesagem seria Entrada de novo) | | | | Campo Tara continua vazio — sem sugestão, preenche manual/captura normal | |
 
 ---
 
@@ -186,5 +213,7 @@ Logomarca.
 ## Pendências conhecidas (não testar até implementar)
 - Exportação de pesagem em PDF/Nota Fiscal — ainda não implementada nesta reescrita (só existia
   no app antigo). Ver `docs/TODO.md`.
-- Leitura de peso via Serial/TCP contra hardware/porta real — só testado com a lógica de parsing
-  isolada (`PesoParserTest`), não contra um leitor de balança de verdade. Ver `docs/DECISIONS.md`.
+- Leitura de peso via **Serial** contra hardware/porta real — só testado com a lógica de parsing
+  isolada (`PesoParserTest`), não contra um leitor de balança de verdade nem uma porta serial
+  virtual. Ver `docs/DECISIONS.md`. **TCP** já dá pra testar sem hardware — ver seção 6 acima
+  (`scripts/simular_balanca_tcp.py` / `simular_balanca_tcp_manual.py`).

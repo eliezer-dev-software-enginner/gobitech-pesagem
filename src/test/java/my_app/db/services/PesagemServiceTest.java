@@ -142,4 +142,30 @@ class PesagemServiceTest extends BaseServiceTest {
         assertEquals(1, resultado.size());
         assertNotNull(resultado.getFirst().getCliente());
     }
+
+    @Test
+    void taraSugeridaEhNullQuandoPlacaNuncaFoiPesada() throws Exception {
+        assertNull(pesagemService.buscarTaraSugerida("XYZ9Z99"));
+    }
+
+    @Test
+    void taraSugeridaVemDaEntradaEmAbertoDaPlaca() throws Exception {
+        var entrada = pesagemValida();
+        entrada.setPesoVeiculo(new java.math.BigDecimal("8500"));
+        pesagemService.salvar(entrada);
+
+        var tara = pesagemService.buscarTaraSugerida("ABC1D23");
+
+        assertEquals(0, new java.math.BigDecimal("8500").compareTo(tara));
+    }
+
+    @Test
+    void taraSugeridaEhNullQuandoNaoHaEntradaEmAberto() throws Exception {
+        // Entrada + Saída: placa fica "fechada", a próxima pesagem seria uma Entrada nova —
+        // sem entrada em aberto, não tem tara pra sugerir.
+        pesagemService.salvar(pesagemValida());
+        pesagemService.salvar(pesagemValida());
+
+        assertNull(pesagemService.buscarTaraSugerida("ABC1D23"));
+    }
 }

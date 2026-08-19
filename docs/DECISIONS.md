@@ -1,5 +1,40 @@
 # Decisões Arquiteturais
 
+## 2026-08-19: Tara sugerida a partir da entrada em aberto da mesma placa
+
+**Contexto:** ao explicar como Tara/Peso bruto/Peso líquido funcionam na prática (usuário
+perguntou "como se eu fosse o operador"), ficou claro que "Entrada"/"Saída"
+(`PesagemService.determinarOperacao`) era só um rótulo alternado por placa — não alimentava nada
+entre uma pesagem e a próxima. Na prática real, o caminhão não muda de peso vazio entre a
+entrada e a saída da mesma visita, então repetir a pesagem vazia na Saída é redundante — o
+operador deveria poder reaproveitar a Tara já capturada na Entrada.
+
+Achado de bônus: existia um método `carregarOperacaoPelaPlaca()` na ViewModel, já escrito, mas
+**sem nenhum chamador em lugar nenhum do app** — calculava a operação e descartava o resultado.
+Substituído por completo pela feature de verdade, em vez de deixado como código morto ao lado.
+
+**Decisão:** `PesagemService.buscarTaraSugerida(placa)` — mesma regra de
+`determinarOperacao` (conta de pesagens pra essa placa, ímpar = tem entrada em aberto), mas
+devolve a `Tara` daquela entrada em vez de só o rótulo; `null` se não há entrada em aberto (ou
+a entrada não tinha Tara). `PesagemViewModel` assina mudanças em `placa` e, quando o valor bate
+com uma entrada em aberto, preenche o campo Tara sozinho + um toast avisando de onde veio (o
+operador ainda pode sobrescrever digitando por cima, é só um ponto de partida).
+
+**Cuidado com a ordem, por ser assíncrono:** diferente do auto-preenchimento de desconto do
+produto (que só lê um objeto já em memória, roda síncrono), esse busca no banco — não dá pra
+contar que o resultado chega antes de `populateFieldsFromModel()` (editar/clonar) já ter setado
+a Tara de verdade. `modoEdicao.get()` só é checado dentro do callback assíncrono (quando o
+resultado chega), não no disparo do `placa.subscribe(...)` — `populateFieldsFromModel()` seta a
+placa *antes* de `modoEdicaoState()` virar `true` (ver `ContratoTelaCrudV3.
+handleClickMenuEdit`), então checar no disparo veria `false` incorretamente e aplicaria a
+sugestão em cima da Tara real de uma pesagem sendo editada. Também checa se a placa não mudou de
+novo enquanto a busca corria (evita sugestão de uma placa antiga chegando atrasada e
+sobrescrevendo o que já é relevante pra placa atual).
+
+**Testado:** `PesagemServiceTest` — placa nunca pesada retorna `null`; placa com uma Entrada
+(Tara explícita) retorna essa Tara; placa com Entrada+Saída (fechada, sem entrada em aberto)
+retorna `null`.
+
 ## 2026-08-18: DatePicker de validade da licença só aparece se o usuário optar por definir expiração
 
 **Contexto:** antes, o `DatePicker` de "Data de validade" em `LicensaScreen` ficava sempre
