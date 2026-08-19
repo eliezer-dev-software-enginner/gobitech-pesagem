@@ -1,5 +1,29 @@
 # Decisões Arquiteturais
 
+## 2026-08-19: Workflow de release não publicava as bibliotecas megalodonte-libs primeiro
+
+**Contexto:** primeira execução de verdade do workflow (usuário publicou o repo e rodou) falhou:
+`Could not find megalodonte:megalodonte-base:1.0.0-beta` — óbvio em retrospecto. Essas
+bibliotecas nunca foram publicadas em nenhum repositório remoto (Maven Central etc.), só existem
+via `mavenLocal()` — e só estavam disponíveis nesta máquina porque eu venho publicando cada uma
+manualmente (`./gradlew publishToMavenLocal`) a cada mudança nelas ao longo da sessão. Um runner
+de CI não tem nada disso.
+
+**Decisão:** o workflow agora clona `megalodonte-libs` (workspace com os 5 submódulos, cada um
+seu próprio repositório público) e roda `install-all.sh`/`install-all.ps1` — os mesmos scripts
+que já existiam pra instalação local — antes de empacotar o app, publicando as 5 bibliotecas em
+mavenLocal no próprio runner.
+
+**Isso escancarou outro bug real, achado tentando reproduzir localmente antes de mexer no
+workflow**: cloná-la do zero com `--recurse-submodules` falhava — o ponteiro de submódulo de
+`megalodonte-theme` dentro do superprojeto apontava pro commit `6a625dc` ("fix: remove broken
+javadoc link..."), mas esse commit nunca tinha sido enviado pro remoto de `megalodonte-theme`,
+só existia local nesta máquina. `git rev-list --left-right --count origin/main...HEAD` confirmou
+1 commit só local antes do push. Sem acesso de push configurado neste ambiente (sem `gh` logado,
+sem credential helper), pedi confirmação e o usuário enviou o commit manualmente — depois disso,
+clone fresco + `install-all.sh` completo (as 5 bibliotecas) rodou limpo, verificado de verdade,
+não só lido.
+
 ## 2026-08-19: Workflow de release no GitHub — e dois bugs reais achados no caminho
 
 **Contexto:** pedido pra criar um workflow de GitHub Actions que gera releases automaticamente,

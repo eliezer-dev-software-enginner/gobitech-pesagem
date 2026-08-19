@@ -35,6 +35,28 @@ jobs:
         with:
           python-version: "3.12"
 
+      # balanca-gobitech depende de "megalodonte:*:1.0.0-beta" — só existe via mavenLocal,
+      # nenhum artefato publicado num repositório remoto (Maven Central etc.). Clona o
+      # workspace megalodonte-libs (5 submódulos, cada um seu próprio repo público) e publica
+      # cada um em mavenLocal antes de compilar o app — mesma coisa que install-all.sh/.ps1 já
+      # fazem pra desenvolvimento local, só que numa cópia fresca clonada no runner.
+      - name: Clonar megalodonte-libs
+        shell: bash
+        run: |
+          git clone --recurse-submodules --depth 1 https://github.com/eliezer-dev-software-enginner/megalodonte-libs.git "${{ runner.temp }}/megalodonte-libs"
+
+      - name: Publicar megalodonte-libs em mavenLocal (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        working-directory: ${{ runner.temp }}/megalodonte-libs
+        run: bash install-all.sh
+
+      - name: Publicar megalodonte-libs em mavenLocal (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        working-directory: ${{ runner.temp }}/megalodonte-libs
+        run: .\install-all.ps1
+
       # jpackage --type msi shella pro WiX pra montar o instalador — não precisa disso
       # pro --type deb do Linux.
       - name: Instalar WiX Toolset (só Windows)
