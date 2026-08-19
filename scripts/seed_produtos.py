@@ -22,23 +22,28 @@ def resolve_db_path() -> Path:
     return base / "erp.db"
 
 
+# A tela de Produtos só aceita 3 unidades (my_app.domain.Data.unidadesDeMedidaList):
+# "Quilos", "Toneladas", "Gramas" — nada de "sc"/"ton"/"m³", que não existem no dropdown do app.
+QUILOS = "Quilos"
+TONELADAS = "Toneladas"
+
 # (nome, unidade, observacoes, desconto)
 PRODUTOS = [
-    ("Soja", "sc", "Grão a granel", 0),
-    ("Milho", "sc", "Grão a granel", 0),
-    ("Trigo", "sc", "Grão a granel", 0),
-    ("Sorgo", "sc", "Grão a granel", 0),
-    ("Algodão em caroço", "ton", "Fibra + caroço", 2.5),
-    ("Arroz em casca", "sc", "Grão a granel", 0),
-    ("Feijão", "sc", "Grão a granel", 0),
-    ("Farelo de Soja", "ton", "Subproduto do esmagamento da soja", 0),
-    ("Farelo de Trigo", "ton", "Subproduto da moagem do trigo", 0),
-    ("Adubo/Fertilizante", "ton", "Carga a granel", 3.0),
-    ("Calcário", "ton", "Corretivo de solo, carga a granel", 0),
-    ("Ração Animal", "ton", "Ensacada ou a granel", 0),
-    ("Areia", "m³", "Material de construção, carga a granel", 0),
-    ("Brita", "m³", "Material de construção, carga a granel", 0),
-    ("Cana-de-açúcar", "ton", "Carga a granel", 5.0),
+    ("Soja", TONELADAS, "Grão a granel", 0),
+    ("Milho", TONELADAS, "Grão a granel", 0),
+    ("Trigo", TONELADAS, "Grão a granel", 0),
+    ("Sorgo", TONELADAS, "Grão a granel", 0),
+    ("Algodão em caroço", TONELADAS, "Fibra + caroço", 2.5),
+    ("Arroz em casca", TONELADAS, "Grão a granel", 0),
+    ("Feijão", TONELADAS, "Grão a granel", 0),
+    ("Farelo de Soja", TONELADAS, "Subproduto do esmagamento da soja", 0),
+    ("Farelo de Trigo", TONELADAS, "Subproduto da moagem do trigo", 0),
+    ("Adubo/Fertilizante", QUILOS, "Carga a granel", 3.0),
+    ("Calcário", TONELADAS, "Corretivo de solo, carga a granel", 0),
+    ("Ração Animal", QUILOS, "Ensacada ou a granel", 0),
+    ("Areia", TONELADAS, "Material de construção, carga a granel", 0),
+    ("Brita", TONELADAS, "Material de construção, carga a granel", 0),
+    ("Cana-de-açúcar", TONELADAS, "Carga a granel", 5.0),
 ]
 
 
