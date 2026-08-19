@@ -1,5 +1,172 @@
 # Decisões Arquiteturais
 
+## 2026-08-19: Componentes escritos direto no node JavaFX — corrigido, estendido o Megalodonte
+
+**Contexto:** feedback do usuário na `LogsScreen` (ver decisão logo abaixo): o código castava
+`TextAreaInput.getNode()` pra `TextArea` e chamava `setEditable`/`setWrapText`/`setStyle`/
+`setMaxHeight`/`VBox.setVgrow` direto no node, em vez de resolver via Props do Megalodonte. "Se
+o que você precisou não existe no Megalodonte, crie lá" — o mesmo padrão apareceu em mais dois
+lugares desta sessão: `Components.limitTableHeight` (castava `SimpleTable.getTableView()` pra
+setar `maxHeight`) e o botão flutuante "Criar novo" em `ContratoTelaCrudV3` (`StackPane.
+setAlignment`/`setMargin`/`VBox.setVgrow` direto no node do `Stack`).
+
+**Decisão:** estendido `megalodonte-components` (repo próprio, publicado em `mavenLocal`) em vez
+de continuar castando:
+- `TextComponentProps.fontFamily(String)` — base compartilhada de todo componente de texto.
+- `InputProps.editable(boolean)` e `.fillHeight()` — aplicados tanto no `TextField` de uma linha
+  quanto no `TextArea`.
+- `SimpleTableProps.maxHeight(double)` — precisou mover o "libera crescimento vertical" padrão
+  que estava hardcoded no construtor de `SimpleTable` pra dentro de
+  `SimpleTableProps.applyContainerStyling`: `Props.apply()` roda dentro do `super(...)` do
+  `Component`, **antes** do resto do construtor de `SimpleTable` — um `setMaxHeight` fixo lá
+  depois sempre sobrescrevia de volta qualquer teto customizado vindo dos Props.
+- `Stack.childInCorner(Component, Stack.Corner, int margin)` e `Stack.fillHeight()` — fixa um
+  filho num canto (ex.: FAB por cima de conteúdo scrollável) sem expor `Pos`/`Insets` do JavaFX
+  na API pública; `Corner` é um enum simples, mesmo idioma que `RowProps`/`ColumnProps` já usam
+  pros próprios métodos de alinhamento nomeados (`centerHorizontally()`, `bottomVertically()`
+  etc.) em vez de aceitar `Pos` cru.
+
+`LogsScreen`, `Components.limitTableHeight` (removido, virou `new SimpleTableProps().maxHeight(
+Components.TABLE_MAX_HEIGHT)` direto no construtor de cada tabela) e o botão flutuante do
+`ContratoTelaCrudV3` foram reescritos em cima dessa API nova. `megalodonte-components`
+republicado em `mavenLocal`; validado ponta a ponta contra o `balanca-gobitech`
+(`--refresh-dependencies compileJava test`: sem regressão).
+
+---
+
+## 2026-08-19: Log de produção crescendo pra dezenas de milhares de linhas — causa raiz era teste
+
+**Contexto:** usuário reportou a `LogsScreen` (ver decisão abaixo) extremamente pesada, a ponto
+de travar o app ao tentar abrir a pasta de logs pelo gerenciador de arquivos. `gobitech.log`
+estava com **37.539 linhas / 4,6MB**, e a pasta inteira (com os arquivos já rolados pelo
+`RollingFileAppender`) somava **14MB**.
+
+**Causa raiz:** os testes não tinham `logback.xml` próprio — herdavam
+`src/main/resources/logback.xml` (o mesmo do app real) e escreviam direto em
+`~/.gobitech/logs/gobitech.log`. Cada teste recria o schema do zero via Flyway
+(`BaseRepositoryTest`), e cada migration loga ~17 linhas em `INFO` — uma única rodada de
+`./gradlew test` já gerava perto de 17 mil linhas de log só de migration. Rodada várias vezes ao
+longo da sessão (desenvolvimento normal + verificação de cada mudança), isso sozinho respondia
+por ~33 mil das 37.539 linhas do arquivo — **não era uso real do app**.
+
+**Decisão:** `src/test/resources/logback-test.xml` — Logback prioriza esse arquivo sobre
+`logback.xml` quando os dois estão no classpath, exatamente pra isolar log de teste do de
+produção. Só `ConsoleAppender`, sem `FileAppender` nenhum (fica estruturalmente impossível
+repetir o vazamento), nível `WARN` em vez de `INFO` (silencia o ruído repetitivo do
+Flyway/Persism sem esconder erro/aviso real). Verificado rodando a suíte completa duas vezes
+seguidas: `gobitech.log` não ganhou nenhuma linha nova nas duas.
+
+Arquivos antigos (rolados + o `gobitech.log`/`error.log` ativos, ~14MB no total) apagados/
+esvaziados com autorização do usuário, já que eram majoritariamente ruído de teste.
+`LogsScreenViewModel` também limitado a mostrar só as últimas 500 linhas do arquivo (`TextArea`
+do JavaFX não é virtualizado como `TableView` — mesmo sem o vazamento de teste, o arquivo
+inteiro carregado nele deixa a tela pesada a partir de alguns milhares de linhas).
+
+---
+
+## 2026-08-19: Tela de Logs em Suporte + logging em todos os pontos principais da aplicação
+
+**Contexto:** pedido do usuário — nenhuma forma de ver o log da aplicação de dentro do app, e a
+maior parte do código tratava erro com `e.printStackTrace()` (não persiste em lugar nenhum
+acessível pro usuário/suporte) ou simplesmente engolia a exceção sem log nenhum.
+
+**Decisão:**
+- `LogsScreen`/`LogsScreenViewModel` (novo) — item "Ver logs da aplicação" no menu Suporte
+  (`HomeScreen.menuBar()`), lê `~/.gobitech/logs/gobitech.log` (caminho já definido em
+  `logback.xml`) e mostra num viewer só-leitura, com botão de atualizar e de abrir a pasta de
+  logs no gerenciador de arquivos padrão (`java.awt.Desktop`).
+- Toda ocorrência de `e.printStackTrace()` no `src/main/java` (6 arquivos) virou `log.error(...)`
+  de verdade.
+- `BaseService` (classe-base de todo Service de entidade) ganhou logging de `salvar`/
+  `atualizar`/`excluirById` por padrão — sem logar o model inteiro via `toString()` (não há
+  garantia, numa classe genérica, de que um Model futuro não ganhe campo sensível exposto via
+  `@ToString`). Como a maioria dos Services concretos sobrescreve esses métodos (chamando
+  `repository.X` direto, não `super.X`), cada um ganhou log próprio com campos escolhidos a
+  dedo — `UsuarioService` em particular **nunca** loga senha, só login (login/senha continuam
+  sempre criptografados em repouso, ver decisão de login mais abaixo), e loga tentativas de
+  login falhas/bem-sucedidas.
+- Leitores de balança (TCP/Serial): log de conectando/conectado/erro/encerrando — antes,
+  silenciosos.
+- Todo catch que só engolia a exceção (ou só fazia `printStackTrace()`) nos ViewModels de
+  Cliente, Produto, Usuário, Pesagem, Licença, Empresa, Conexão da balança, Dashboard e Home
+  (logout) virou `log.error`/`log.warn` real.
+
+---
+
+## 2026-08-19: Botão "Salvar e baixar ticket" no formulário de pesagem
+
+**Contexto:** pedido do usuário — o formulário de pesagem só tinha "Salvar" (adiciona/atualiza
+direto); pra baixar o ticket (ver decisão do ticket em PDF, abaixo) era preciso salvar, voltar
+pra lista e abrir os detalhes da pesagem de novo.
+
+**Decisão:** `PesagemViewModel.handleAddOrUpdate()` refatorado numa `salvar(boolean
+tambemBaixarTicket)` privada compartilhada — o botão novo passa `true` e reusa exatamente o
+mesmo fluxo de exportar/abrir o PDF (`imprimirTicket`) já usado no modal de detalhes, chamado
+logo após o salvamento ter sucesso, antes de `voltarParaLista()` (formulário ainda na tela
+quando o diálogo de salvar aparece). O botão "Salvar" original não muda de comportamento.
+
+---
+
+## 2026-08-19: Botão "Criar novo" flutua fixo no canto inferior direito
+
+**Contexto:** pedido do usuário — antes ficava no fluxo normal da página, depois da tabela; em
+telas com muitos registros era preciso rolar até o fim pra achá-lo.
+
+**Decisão:** movido pra dentro de um `Stack` sobreposto ao conteúdo scrollável, fixo no canto
+inferior direito com ~20px de margem (independente da posição do scroll) — padrão "floating
+action button". Está no `listPage()` privado do `ContratoTelaCrudV3`, então vale igual pras 4
+telas que usam esse fluxo padrão (Cliente, Produto, Usuário, Pesagem); Licença tem layout
+próprio e não é afetada. (A implementação em si — `StackPane.setAlignment` cru — foi corrigida
+depois pra usar a API nova do Megalodonte; ver decisão "Componentes escritos direto no node
+JavaFX" acima.)
+
+---
+
+## 2026-08-19: Ticket de pesagem em PDF, abrindo automaticamente no visualizador do sistema
+
+**Contexto:** usuário apontou que os requisitos do projeto original (auditoria do app antigo)
+previam poder imprimir o "tiquet" da pesagem, e essa parte nunca foi implementada nesta
+reescrita. O app antigo (`pesagemFinal`) imprimia direto numa impressora térmica via ESC/POS —
+mas a decisão de "Recursos específicos de varejo/marketing removidos" (mais abaixo neste
+arquivo) já tinha descartado a seleção de impressora térmica em Preferências, seguindo o mesmo
+caminho do `plics-sw`: exportar PDF em vez de falar com impressora/porta/spooler diretamente.
+
+**Decisão:** `TicketPdfExporter` (novo, `my_app.infra`) gera o ticket em PDF com Apache PDFBox
+(já era dependência do projeto, herdada do `plics-sw`, mas não usada nesta cópia) — mesmo padrão
+de código do `RelatorioPdfExporter` do `plics-sw`. Cabeçalho com dados da empresa
+(`EmpresaModel`), veículo/motorista, cliente/produto, tara/bruto/líquido e o detalhamento de
+descontos já existente (`DescontoModel`, só os campos não-zerados) — deliberadamente mais simples
+que o ticket "CLASSIFICAÇÃO" do app antigo (umidade/avariados/impureza em percentuais soltos,
+sem amostra/peso convertido/peso NF — campos que nunca tiveram implementação real por trás nesta
+reescrita).
+
+Botão "Imprimir ticket" só no modal de detalhes da tela de Pesagem
+(`PesagemScreen.showItemDetailsComAcoes`, sobrescrevendo o padrão do `ContratoTelaCrudV3`) — as
+outras telas de CRUD que reusam o mesmo contrato não ganham essa ação, não faz sentido pra
+Cliente/Produto/Usuário/Licença.
+
+Depois de salvo, o PDF abre sozinho no visualizador padrão do sistema (`java.awt.Desktop`) — o
+operador já consegue imprimir de lá (Ctrl+P) sem o app precisar falar com impressora nenhuma;
+falha em silêncio se o ambiente não suportar (arquivo já está salvo, caminho aparece no popup de
+qualquer forma).
+
+---
+
+## 2026-08-19: Teto de altura nas tabelas de listagem
+
+**Contexto:** pedido do usuário — `SimpleTable` (megalodonte-components) crescia livre até
+preencher todo o espaço vertical disponível na página, mesmo com poucos itens.
+
+**Decisão:** teto de 350px (~6-8 linhas visíveis) nas 5 telas de lista (Cliente, Produto,
+Usuário, Licença, Pesagem) — acima disso a tabela rola por dentro sozinha (comportamento nativo
+do `TableView`), nenhum item fica escondido. Aplicado por app (não editando o componente
+compartilhado direto) porque outros apps (`plics-sw`) também usam `SimpleTable` e não pediram
+essa mudança. (A forma de aplicar o teto mudou depois — ver decisão "Componentes escritos direto
+no node JavaFX" acima: `Components.limitTableHeight` castando `getTableView()` virou
+`SimpleTableProps.maxHeight`, um recurso de verdade do componente.)
+
+---
+
 ## 2026-08-19: Versão do app empacotado sempre mostrava "dev"
 
 **Contexto:** usuário notou que o pacote gerado (via o workflow de release) mostra versão "dev"

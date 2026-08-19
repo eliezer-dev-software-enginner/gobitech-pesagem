@@ -1,5 +1,27 @@
 # TODO
 
+## Concluído (ticket em PDF, tela de Logs, logging em toda a aplicação — 2026-08-19)
+- [x] `TicketPdfExporter` (PDFBox) — requisito do projeto original que faltava nesta reescrita;
+      botão "Imprimir ticket" no modal de detalhes da pesagem + "Salvar e baixar ticket" no
+      formulário; PDF abre sozinho no visualizador padrão do sistema depois de salvo
+- [x] Botão "Criar novo" flutuante (canto inferior direito) e teto de altura nas tabelas de
+      listagem (350px) — pedidos de UX do usuário
+- [x] `LogsScreen` (Suporte > "Ver logs da aplicação") — lê `~/.gobitech/logs/gobitech.log`
+- [x] Logging adicionado em todos os pontos principais (app lifecycle, toda entidade
+      salvar/atualizar/excluir, login/logout, leitores de balança) — praticamente tudo usava
+      `e.printStackTrace()` ou engolia a exceção sem log nenhum antes disso
+- [x] **Bug real encontrado e corrigido**: log de produção (`~/.gobitech/logs/gobitech.log`)
+      tinha crescido pra 37,5 mil linhas / 4,6MB (14MB somando os arquivos rolados) — causa raiz
+      era os testes não terem `logback.xml` próprio e escreverem no mesmo arquivo do app real
+      (cada rodada de `./gradlew test` gerava ~17 mil linhas só de migration do Flyway). Corrigido
+      com `src/test/resources/logback-test.xml`; log antigo limpo; `LogsScreenViewModel` também
+      limitado a mostrar só as últimas 500 linhas (TextArea do JavaFX não é virtualizado)
+- [x] `megalodonte-components` estendido (`fontFamily`/`editable`/`fillHeight` em `InputProps`,
+      `maxHeight` em `SimpleTableProps`, `childInCorner`/`fillHeight` em `Stack`) — telas
+      passaram a usar só a API do framework em vez de castar pro node JavaFX cru; republicado em
+      `mavenLocal`
+- [x] `./gradlew test`: **167 testes, BUILD SUCCESSFUL**
+
 ## Concluído (desconto do produto + fix de edição não refletindo — 2026-08-18)
 - [x] `ProdutoModel.desconto` (novo campo, previsto no DER original) — migration `V12`,
       formulário de Produto, tabela, modal de detalhes
