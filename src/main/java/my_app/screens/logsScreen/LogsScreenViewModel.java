@@ -73,21 +73,31 @@ public class LogsScreenViewModel {
         });
     }
 
+    /**
+     * Desktop.open() é chamada bloqueante (espera o SO terminar de abrir o gerenciador de
+     * arquivos) — chamada direto no clique do botão, ela trava a FX Application Thread até lá,
+     * e a janela toda para de responder enquanto isso (foi reportado como "o app trava").
+     * Precisa rodar fora da FX thread, igual PesagemViewModel.abrirArquivo() já faz pro PDF do
+     * ticket.
+     */
     public void abrirPastaDeLogs() {
-        try {
-            var pasta = pastaDeLogs();
-            if (!Files.exists(pasta)) {
-                Components.ShowAlertError("A pasta de logs ainda não existe: " + pasta);
-                return;
-            }
-            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
-                Desktop.getDesktop().open(pasta.toFile());
-            } else {
-                Components.ShowAlertError("Não foi possível abrir a pasta automaticamente. Caminho: " + pasta);
-            }
-        } catch (Exception e) {
-            log.error("Erro ao abrir pasta de logs", e);
-            Components.ShowAlertError("Erro ao abrir a pasta de logs: " + e.getMessage());
+        var pasta = pastaDeLogs();
+        if (!Files.exists(pasta)) {
+            Components.ShowAlertError("A pasta de logs ainda não existe: " + pasta);
+            return;
         }
+
+        Async.Run(() -> {
+            try {
+                if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
+                    Desktop.getDesktop().open(pasta.toFile());
+                } else {
+                    UI.runOnUi(() -> Components.ShowAlertError("Não foi possível abrir a pasta automaticamente. Caminho: " + pasta));
+                }
+            } catch (Exception e) {
+                log.error("Erro ao abrir pasta de logs", e);
+                UI.runOnUi(() -> Components.ShowAlertError("Erro ao abrir a pasta de logs: " + e.getMessage()));
+            }
+        });
     }
 }

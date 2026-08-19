@@ -1,5 +1,25 @@
 # Decisões Arquiteturais
 
+## 2026-08-19: "Abrir pasta de logs" travava o app inteiro (bloqueava a FX Application Thread)
+
+**Contexto:** usuário reportou o app travando ao clicar em "Abrir pasta de logs" — mesmo depois
+da pasta já ter sido limpa (ver decisão do log gigante, abaixo), o problema continuava. Não era
+mais sobre tamanho de arquivo.
+
+**Causa:** `LogsScreenViewModel.abrirPastaDeLogs()` estava ligado direto no `onClick` do botão
+(`LogsScreen`) e chamava `Desktop.getDesktop().open(...)` de forma síncrona — essa chamada
+bloqueia esperando o SO terminar de abrir o gerenciador de arquivos, e como o clique do botão
+roda na FX Application Thread, a janela inteira parava de responder enquanto isso. O mesmo
+padrão pro PDF do ticket (`PesagemViewModel.abrirArquivo()`) já rodava dentro de `Async.Run` —
+só a versão da tela de Logs tinha ficado de fora.
+
+**Decisão:** `abrirPastaDeLogs()` movido pra dentro de `Async.Run`, com o
+`Components.ShowAlertError` do caminho de erro voltando pra FX thread via `UI.runOnUi` (a
+`Alert` do JavaFX só pode ser criada/mostrada nela). Conferido que não sobrou nenhuma outra
+chamada a `Desktop.getDesktop().open()` fora de `Async.Run` no projeto.
+
+---
+
 ## 2026-08-19: Componentes escritos direto no node JavaFX — corrigido, estendido o Megalodonte
 
 **Contexto:** feedback do usuário na `LogsScreen` (ver decisão logo abaixo): o código castava
