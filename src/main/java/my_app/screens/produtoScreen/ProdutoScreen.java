@@ -48,7 +48,7 @@ public class ProdutoScreen implements ScreenComponent, ContratoTelaCrudV3<Produt
     @Override
     public Component form() {
         return new Card(
-                new Column(new ColumnProps().paddingAll(20))
+                new Column(new ColumnProps().paddingAll(10))
                         .c_child(Components.FormTitle("Cadastrar produto"))
                         .c_child(new SpacerVertical(20))
                         .c_child(new FlowRow(new FlowRowProps().spacingOf(10))

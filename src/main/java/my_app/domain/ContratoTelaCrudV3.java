@@ -20,6 +20,7 @@ import megalodonte.props.RowProps;
 import megalodonte.router.v4.ScreenContext;
 import megalodonte.v2.Show;
 import my_app.domain.components.Components;
+import org.kordamp.ikonli.antdesignicons.AntDesignIconsOutlined;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,7 +85,7 @@ public interface ContratoTelaCrudV3<T> {
         // forçada a caber no espaço real disponível, então o ScrollPane lá dentro nunca é
         // forçado a rolar de verdade; ele só cresce, e o conteúdo que não cabe na janela some
         // sem jeito de rolar até ele (reportado: tabela cheia empurrando "Criar novo" pra fora).
-        return new Container(new ContainerProps().paddingAll(20).bgColor("#f3f4f6").fillHeight())
+        return new Container(new ContainerProps().paddingAll(10).bgColor("#f3f4f6").fillHeight())
                 .children(
                         Show.when(viewModel().formIsVisible, this::formPage, this::listPage).fillHeight()
                 );
@@ -118,8 +119,10 @@ public interface ContratoTelaCrudV3<T> {
         return Components.ScrollPaneDefault(
                 new Column(new ColumnProps().fillWidth().spacingOf(15))
                         .children(
-                                new Button("< Voltar", new ButtonProps().bgColor("#e5e7eb").textColor("#111"))
-                                        .onClick(this::handleClickVoltar),
+                                new Button("Voltar", new ButtonProps().bgColor("#e5e7eb")
+                                        .textColor("#111"))
+                                        .onClick(this::handleClickVoltar)
+                                        .icon(Components.ikon(AntDesignIconsOutlined.LEFT, 12, "black")),
                                 new Card(form(), new CardProps().fillWidth().padding(20).bgColor("#ffffff"))
                         )
         );

@@ -90,7 +90,6 @@ public class Main {
         Router router = new Router(routes, AppRoutes.Screens.SPLASH.name());
         context.useRouter(router).start(); // mostra a splash via fluxo normal do Router
 
-
         Async.Run(() -> {
             // ---- tudo aqui roda fora da FX thread ----
             var flyway = Flyway.configure()
@@ -101,16 +100,7 @@ public class Main {
             flyway.repair();
             flyway.migrate();
 
-            boolean isFirstAccess = false;
-
-            try (var preferenciasService = new PreferenciasService()) {
-                var prefs = preferenciasService.listar();
-                if (!prefs.isEmpty()) {
-                    isFirstAccess = prefs.getFirst().isFirstAccess();
-                }
-            }
-
-            String rotaInicial = InitialRouteResolver.resolve(isFirstAccess);
+            String rotaInicial = InitialRouteResolver.resolve();
 
             // ---- volta pra FX thread só pra trocar a splash pela rota real ----
             UI.runOnUi(() -> {

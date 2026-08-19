@@ -5,6 +5,7 @@ import megalodonte.base.components.ScreenComponent;
 import megalodonte.base.theme.ThemeManager;
 import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.Container;
+import megalodonte.components.layout_components.FlowRow;
 import megalodonte.router.v4.ScreenContext;
 import my_app.domain.Data;
 import my_app.domain.components.Components;
@@ -53,7 +54,7 @@ public class CadastroEmpresaScreen implements ScreenComponent {
                 )
                 .c_child(new SpacerVertical(ThemeManager.theme().spacing().sm()))
                 .c_child(Components.FormTitle("Endereço"))
-                .c_child(new Row(new RowProps().bottomVertically().spacingOf(ThemeManager.theme().spacing().sm()))
+                .children(new FlowRow(new FlowRowProps().spacingOf(ThemeManager.theme().spacing().sm()))
                         .children(
                                 Components.InputColumnCep("Cep", vm.cep),
                                 Components.SelectColumn("UF", Data.ufList, vm.estadoSelected, it -> it),

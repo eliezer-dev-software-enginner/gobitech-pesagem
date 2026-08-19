@@ -60,7 +60,7 @@ public class Components {
     // componente compartilhado: outros apps (ex.: plics-sw) usam o mesmo SimpleTable e não
     // pediram essa mudança. Acima disso a tabela rola por dentro sozinha (comportamento nativo
     // do TableView), então itens extras nunca ficam escondidos.
-    private static final double TABLE_MAX_HEIGHT = 360;
+    private static final double TABLE_MAX_HEIGHT = 350;
 
     public static <T> SimpleTable<T> limitTableHeight(SimpleTable<T> table) {
         table.getTableView().setMaxHeight(TABLE_MAX_HEIGHT);

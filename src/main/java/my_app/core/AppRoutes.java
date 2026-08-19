@@ -47,7 +47,7 @@ public class AppRoutes {
     public Set<Router.Route> routes() {
         return Set.of(
                 new Router.Route(Screens.SPLASH.name(), ctx -> new SplashScreen(),
-                        new RouteProps(MIN_WIDTH, MIN_HEIGHT, Main.BASE_TITLE, false)),
+                        new RouteProps(MIN_WIDTH-100, MIN_HEIGHT-100, Main.BASE_TITLE, false)),
                 new Router.Route(Screens.AUTH.name(), AuthScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Seja muito bem vindo", false)),
                 new Router.Route(Screens.HOME.name(), HomeScreen::new, new RouteProps(MAX_WIDTH, MAX_HEIGHT, Main.BASE_TITLE, true)),
                 new Router.Route(Screens.PRODUTOS.name(), ProdutoScreen::new, new RouteProps(MAX_WIDTH, MAX_HEIGHT, "Cadastro de produtos", true)),

@@ -36,11 +36,11 @@ public class SplashScreen implements ScreenComponent {
     public Component render() {
         return new Column(new ColumnProps().centerHorizontally().centerVertically())
                 .children(
-                        new Image("logo_256x256.png", new ImageProps().size(96)),
+                        new Image("assets/app_banner.png", new ImageProps().size(120)),
                         new SpacerVertical(16),
-                        new Text("Gobitech - " + Main.APP_VERSION, new TextProps().fontSize(ThemeManager.theme().typography().title()).bold()),
+                        new Text("Gobitech - " + Main.APP_VERSION, new TextProps().fontSize(ThemeManager.theme().typography().subtitle()).bold()),
                         new SpacerVertical(8),
-                        new Text("Carregando...", new TextProps().fontSize(ThemeManager.theme().typography().subtitle()))
+                        new Text("Carregando...", new TextProps().fontSize(ThemeManager.theme().typography().body()))
                                 .ref(carregandoRef)
                 );
     }

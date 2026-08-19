@@ -3,16 +3,8 @@ package my_app.core;
 import my_app.Main;
 
 public class InitialRouteResolver {
-
-    /**
-     * Login é sempre obrigatório (cada usuário tem sua própria conta —
-     * ver AppRoutes/AuthScreen). WELCOME só aparece uma vez, no primeiro acesso.
-     */
-    public static String resolve(boolean isFirstAccess) {
-        //if(Main.devMode)return AppRoutes.Screens.HOME.name();
-        if (isFirstAccess) {
-            return AppRoutes.Screens.WELCOME.name();
-        }
+    public static String resolve() {
+        //if(Main.devMode)return AppRoutes.Screens.SPLASH.name();
         return AppRoutes.Screens.AUTH.name();
     }
 }
