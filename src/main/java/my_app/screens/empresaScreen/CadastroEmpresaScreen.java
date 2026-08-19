@@ -47,7 +47,7 @@ public class CadastroEmpresaScreen implements ScreenComponent {
                 .c_child(TopWithImage())
                 .c_child(new Row(new RowProps().bottomVertically().spacingOf(ThemeManager.theme().spacing().sm()))
                         .children(
-                                Components.InputColumnCnpjAlfanumerico("CPF/CNPJ", vm.cpfCnpj),
+                                Components.InputColumnCpfCnpj("CPF/CNPJ", vm.cpfCnpj),
                                 Components.InputColumn("Email", vm.email, "Ex: contato@empresa.com.br")
                         )
                 )

@@ -59,16 +59,16 @@ Logout. Empresa/Conexão da balança/Gerar licença/Suporte ficam no menu do top
 Campos: Loja*, Razão social*, CPF/CNPJ, Telefone, Endereço (CEP/UF/Cidade/Bairro/Rua/Número),
 Complemento.
 
-| # | Cenário | Loja | Razão social | Efeito Esperado | Resultado |
-|---|---------|------|---------------|------------------|-----------|
-| 21 | Cadastro válido | Fazenda Santa Rita | Santa Rita Agropecuária Ltda | Salvo com sucesso. Aparece na tabela. | |
-| 22 | Loja vazia | (vazio) | Qualquer | Alerta "Loja é obrigatória". Não salva. | |
-| 23 | Razão social vazia | Qualquer | (vazio) | Alerta "Razão social é obrigatória". Não salva. | |
-| 24 | Loja duplicada | (nome já cadastrado) | Outra razão social | Alerta "Já existe um cliente cadastrado com essa loja". | |
-| 25 | CPF/CNPJ duplicado (loja diferente) | Nome novo | Razão nova, mesmo CPF/CNPJ de outro cliente | Alerta "CPF/CNPJ já cadastrado para outro cliente". | |
-| 26 | Telefone inválido | Nome novo | Razão nova | Preencher telefone sem DDD → alerta "Telefone inválido (informe DDD + Número)" | |
-| 27 | CEP inválido | Nome novo | Razão nova | CEP incompleto/errado → alerta "CEP inválido" | |
-| 28 | Editar cliente existente | (via modal de detalhes → Editar) | | Atualiza, some da lista e reaparece com dado novo | |
+| # | Cenário | Loja | Razão social | Efeito Esperado | Resultado                                                                  |
+|---|---------|------|---------------|------------------|----------------------------------------------------------------------------|
+| 21 | Cadastro válido | Fazenda Santa Rita | Santa Rita Agropecuária Ltda | Salvo com sucesso. Aparece na tabela. | ok                                                                         |
+| 22 | Loja vazia | (vazio) | Qualquer | Alerta "Loja é obrigatória". Não salva. | ok                                                                         |
+| 23 | Razão social vazia | Qualquer | (vazio) | Alerta "Razão social é obrigatória". Não salva. | ok                                                                         |
+| 24 | Loja duplicada | (nome já cadastrado) | Outra razão social | Alerta "Já existe um cliente cadastrado com essa loja". | ok                                                                         |
+| 25 | CPF/CNPJ duplicado (loja diferente) | Nome novo | Razão nova, mesmo CPF/CNPJ de outro cliente | Alerta "CPF/CNPJ já cadastrado para outro cliente". | ok — bug de formatação (máscara sempre de CNPJ, mesmo digitando CPF) corrigido, ver DECISIONS.md |
+| 26 | Telefone inválido | Nome novo | Razão nova | Preencher telefone sem DDD → alerta "Telefone inválido (informe DDD + Número)" |                                                                            |
+| 27 | CEP inválido | Nome novo | Razão nova | CEP incompleto/errado → alerta "CEP inválido" | ok                                                                         |
+| 28 | Editar cliente existente | (via modal de detalhes → Editar) | | Atualiza, some da lista e reaparece com dado novo | ok                                                                         |
 
 ---
 
@@ -79,11 +79,11 @@ antes eram as unidades genéricas de varejo), Observações.
 
 | # | Cenário | Nome | Unidade | Efeito Esperado | Resultado |
 |---|---------|------|---------|------------------|-----------|
-| 29 | Cadastro válido | Soja | Toneladas | Salvo com sucesso. | |
-| 30 | Nome vazio | (vazio) | Quilos | Alerta "Nome do produto é obrigatório". | |
-| 31 | Nome duplicado | (nome já cadastrado) | Gramas | Alerta "Já existe um produto cadastrado com esse nome". | |
-| 32 | Conferir as 3 opções do dropdown | — | — | Só aparecem **Quilos, Toneladas, Gramas** (nada de UN/CX/PCT/etc. do varejo) | |
-| 33 | Editar unidade de um produto existente | (via modal → Editar) | trocar unidade | Atualiza corretamente | |
+| 29 | Cadastro válido | Soja | Toneladas | Salvo com sucesso. | ok         |
+| 30 | Nome vazio | (vazio) | Quilos | Alerta "Nome do produto é obrigatório". | ok        |
+| 31 | Nome duplicado | (nome já cadastrado) | Gramas | Alerta "Já existe um produto cadastrado com esse nome". |           |
+| 32 | Conferir as 3 opções do dropdown | — | — | Só aparecem **Quilos, Toneladas, Gramas** (nada de UN/CX/PCT/etc. do varejo) | ok        |
+| 33 | Editar unidade de um produto existente | (via modal → Editar) | trocar unidade | Atualiza corretamente | ok        |
 
 ---
 
@@ -178,19 +178,6 @@ Logomarca.
 | 75 | Gerar licença sem data de expiração | Popup "Licença gerada com sucesso"; código aparece na tela e na lista; nunca expira | |
 | 76 | Gerar licença com data de expiração | Idem, mas `expirada()` passa a `true` depois da data escolhida (23:59:59 daquele dia) | |
 | 77 | Usuário não-admin loga depois da licença vencer | Bloqueado (ver caso #5) | |
-
----
-
-## 10. Feedback (RelatarErroScreen / SugerirMelhoriaScreen)
-
-Ambas usam o mesmo `FeedbackViewModel`: campo de texto único, limite 300 caracteres, envia via
-Telegram.
-
-| # | Cenário | Texto | Efeito Esperado | Resultado |
-|---|---------|-------|------------------|-----------|
-| 78 | Enviar relato válido | "Erro ao imprimir" | Botão mostra "Enviando" e depois volta; mensagem chega no Telegram configurado | |
-| 79 | Enviar vazio | (vazio) | Botão não faz nada (`send()` retorna sem enviar) | |
-| 80 | Texto maior que 300 caracteres | (301+ caracteres) | Alerta "Erro ao enviar, texto muito longo. Seu texto deve possuir no máximo 300 caracteres!" | |
 
 ---
 

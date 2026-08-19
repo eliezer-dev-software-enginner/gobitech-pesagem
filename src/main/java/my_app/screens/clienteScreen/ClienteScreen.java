@@ -1,5 +1,6 @@
 package my_app.screens.clienteScreen;
 
+import jdk.jshell.execution.Util;
 import megalodonte.base.components.Component;
 import megalodonte.base.components.ScreenComponent;
 import megalodonte.base.theme.ThemeManager;
@@ -19,6 +20,7 @@ import my_app.domain.ContratoTelaCrudV3;
 import my_app.domain.ViewModelScreenContract;
 import my_app.domain.components.Components;
 import my_app.utils.DateUtils;
+import my_app.utils.Utils;
 
 public class ClienteScreen implements ScreenComponent, ContratoTelaCrudV3<ClienteModel> {
     private final ClienteViewModel vm;
@@ -54,7 +56,7 @@ public class ClienteScreen implements ScreenComponent, ContratoTelaCrudV3<Client
                                 .children(
                                         Components.InputColumn("Loja", vm.loja, "Ex: Fazenda Santa Rita"),
                                         Components.InputColumn("Razão social", vm.razaoSocial, "Ex: Santa Rita Agropecuária Ltda"),
-                                        Components.InputColumnCnpjAlfanumerico("CPF/CNPJ", vm.cnpjCpf),
+                                        Components.InputColumnCpfCnpj("CPF/CNPJ", vm.cnpjCpf),
                                         Components.InputColumnPhone("Telefone", vm.telefone)
                                 )
                         )
@@ -82,8 +84,8 @@ public class ClienteScreen implements ScreenComponent, ContratoTelaCrudV3<Client
                 .column("ID", ClienteModel::getId, 60.0)
                 .column("Loja", ClienteModel::getLoja)
                 .column("Razão social", ClienteModel::getRazaoSocial)
-                .column("CPF/CNPJ", ClienteModel::getCpfCnpj)
-                .column("Telefone", ClienteModel::getTelefone)
+                .column("CPF/CNPJ", it->Utils.formatCpfCnpj(it.getCpfCnpj()))
+                .column("Telefone", it->Utils.formatPhone(it.getTelefone()))
                 .column("Data de criação", it -> DateUtils.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build()
                 .onItemSelectChange(vm.clienteSelecionado::set)
@@ -99,8 +101,8 @@ public class ClienteScreen implements ScreenComponent, ContratoTelaCrudV3<Client
                 .c_child(Components.TextWithDetails("ID: ", model.getId()))
                 .c_child(Components.TextWithDetails("Loja: ", model.getLoja()))
                 .c_child(Components.TextWithDetails("Razão social: ", model.getRazaoSocial()))
-                .c_child(Components.TextWithDetails("CPF/CNPJ: ", model.getCpfCnpj()))
-                .c_child(Components.TextWithDetails("Telefone: ", model.getTelefone()))
+                .c_child(Components.TextWithDetails("CPF/CNPJ: ", Utils.formatCpfCnpj(model.getCpfCnpj())))
+                .c_child(Components.TextWithDetails("Telefone: ", Utils.formatPhone(model.getTelefone())))
                 .c_child(Components.ItemDetailEndereco(model.getEndereco()))
                 .c_child(Components.TextWithDetails("Complemento: ", model.getComplemento()))
                 .c_child(Components.TextWithDetails("Data de criação: ", DateUtils.localDateTimeToBrazilianDateTime(model.getDataCriacao())));

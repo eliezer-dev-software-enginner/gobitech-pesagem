@@ -64,5 +64,37 @@ class UtilsTest {
     @Test
     void isValidCnpj_aceitaMistoLetrasDigitos() {
         assertTrue(Utils.isValidCnpj("AB123456789082"));
-}
+    }
+
+    @Test
+    void formatCpfCnpj_formataComoCpfAte11Caracteres() {
+        assertEquals("123", Utils.formatCpfCnpj("123"));
+        assertEquals("123.456", Utils.formatCpfCnpj("123456"));
+        assertEquals("123.456.789", Utils.formatCpfCnpj("123456789"));
+        assertEquals("123.456.789-01", Utils.formatCpfCnpj("12345678901"));
+    }
+
+    @Test
+    void formatCpfCnpj_formataComoCnpjAPartirDe12Caracteres() {
+        assertEquals("12.345.678/9012", Utils.formatCpfCnpj("123456789012"));
+        assertEquals("12.345.678/9012-34", Utils.formatCpfCnpj("12345678901234"));
+    }
+
+    @Test
+    void formatCpfCnpj_aceitaCnpjAlfanumericoAcimaDe11Caracteres() {
+        assertEquals("12.ABC.345/01DE-35", Utils.formatCpfCnpj("12ABC34501DE35"));
+    }
+
+    @Test
+    void formatCpfCnpj_removeLetrasQuandoAindaNaFaixaDeCpf() {
+        // enquanto o tamanho ainda sugere CPF, letras digitadas por engano são descartadas —
+        // CPF é sempre puramente numérico
+        assertEquals("123", Utils.formatCpfCnpj("1A2B3"));
+    }
+
+    @Test
+    void formatCpfCnpj_vazioOuNuloRetornaVazio() {
+        assertEquals("", Utils.formatCpfCnpj(""));
+        assertEquals("", Utils.formatCpfCnpj(null));
+    }
 }

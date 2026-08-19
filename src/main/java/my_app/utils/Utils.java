@@ -236,6 +236,20 @@ public static BigDecimal deCentavosParaReal(String centavos){
         return sb.toString();
     }
 
+    /**
+     * Formata um campo combinado CPF-ou-CNPJ: enquanto o usuário digita 11 caracteres ou menos,
+     * assume CPF (puramente numérico); a partir do 12º caractere, assume CNPJ (aceita letras,
+     * formato alfanumérico mais recente). O reagrupamento dos separadores ao cruzar esse limiar
+     * é esperado — sem perguntar de antemão qual documento é, não tem como saber os grupos certos
+     * antes de ver o tamanho final.
+     */
+    public static String formatCpfCnpj(String cleaned) {
+        if (cleaned == null || cleaned.isEmpty()) return "";
+        if (cleaned.length() <= 11) {
+            return formatCpf(cleaned.replaceAll("[^0-9]", ""));
+        }
+        return formatCnpj(cleaned);
+    }
 
     @Deprecated(forRemoval = true)
     public static <T> void updateItemOnObservableList(

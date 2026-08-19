@@ -1,5 +1,28 @@
 # Decisões Arquiteturais
 
+## 2026-08-18: Campo CPF/CNPJ sempre formatava como CNPJ, mesmo digitando um CPF
+
+**Contexto:** achado durante teste manual (`testes-manuais.md`, caso #25, seção Cliente):
+funcionalmente OK (detecção de duplicado funcionava), mas a máscara do campo "CPF/CNPJ" sempre
+aplicava o padrão de CNPJ (`AA.AAA.AAA/AAAA-DD`), mesmo digitando um CPF de 11 dígitos.
+
+**Causa:** o campo "CPF/CNPJ" (em `ClienteScreen` e também em `CadastroEmpresaScreen` — mesmo
+bug, mesmo componente) estava ligado a `Components.InputColumnCnpjAlfanumerico`, que chama
+`Utils.formatCnpj(...)` incondicionalmente em `onInitialize`/`onChange`, sem nenhum branch por
+tamanho. Existia um `InputColumnCpf` com a máscara certa pra CPF, mas nenhuma das duas telas com
+campo combinado usava ele — não existia um componente que decidisse a máscara certa conforme o
+tamanho digitado.
+
+**Decisão:** `Utils.formatCpfCnpj(String)` novo — enquanto o digitado tem 11 caracteres ou menos,
+assume CPF (só numérico, `formatCpf` com letras descartadas); a partir do 12º, assume CNPJ
+(aceita letras — formato alfanumérico mais recente). O reagrupamento dos separadores ao cruzar
+esse limiar (ex.: dígitos de CNPJ digitados rápido, os primeiros 11 aparecem com máscara de CPF
+até o 12º caractere entrar) é esperado — sem perguntar de antemão qual documento é, não dá pra
+saber os grupos certos antes de ver o tamanho final; é o mesmo comportamento usado por a maioria
+dos sistemas brasileiros com campo CPF/CNPJ combinado. `Components.InputColumnCpfCnpj` novo
+substitui `InputColumnCnpjAlfanumerico` nos dois call sites (`ClienteScreen`,
+`CadastroEmpresaScreen`) — o componente antigo, sem mais chamadores, foi removido.
+
 ## 2026-08-18: Toggle da sidebar movido pro topo + ícone único que gira até a posição final
 
 Dois ajustes rápidos em cima do fix anterior: (1) posição subiu de "perto do fim" (`Pos.

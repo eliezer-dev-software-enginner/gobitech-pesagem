@@ -118,10 +118,9 @@ public interface ContratoTelaCrudV3<T> {
         return Components.ScrollPaneDefault(
                 new Column(new ColumnProps().fillWidth().spacingOf(15))
                         .children(
-                                new Card(form(), new CardProps().fillWidth().padding(20).bgColor("#ffffff")),
                                 new Button("< Voltar", new ButtonProps().bgColor("#e5e7eb").textColor("#111"))
                                         .onClick(this::handleClickVoltar),
-                                new SpacerVertical(10)
+                                new Card(form(), new CardProps().fillWidth().padding(20).bgColor("#ffffff"))
                         )
         );
     }
