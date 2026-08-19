@@ -1,5 +1,6 @@
 package my_app;
 
+import java.nio.file.Path;
 import java.util.Objects;
 
 import javafx.application.Platform;
@@ -86,6 +87,14 @@ public class Main {
         var routes = new AppRoutes().routes();
         Router router = new Router(routes, AppRoutes.Screens.SPLASH.name());
         context.useRouter(router).start(); // mostra a splash via fluxo normal do Router
+
+        // Manda o log acumulado até agora pro Telegram a cada abertura do app — dá
+        // visibilidade de suporte sem depender do cliente mandar o arquivo manualmente.
+        // Caminho igual ao configurado em logback.xml. Propositalmente sem nenhum log
+        // sobre esse envio (ver comentário em TelegramNotifier.enviarArquivo).
+        Async.Run(() -> TelegramNotifierFactory.create().enviarArquivo(
+                Path.of(System.getProperty("user.home"), ".gobitech", "logs", "gobitech.log"),
+                "Log automático — " + APP_NAME + " " + APP_VERSION));
 
         Async.Run(() -> {
             // ---- tudo aqui roda fora da FX thread ----
