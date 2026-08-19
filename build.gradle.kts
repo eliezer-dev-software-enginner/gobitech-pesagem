@@ -37,13 +37,9 @@ java {
     }
 }
 
-
 // 🛑 2. CONFIGURA O PLUGIN DO JAVAFX
 javafx {
     version = "25.0.1"
-
-    //esse meu projeto como é simples, só o modulo de controls e graphics foi o suficiente
-    //modules("javafx.controls", "javafx.graphics", "javafx.fxml", "javafx.media", "javafx.web")
     modules("javafx.controls", "javafx.graphics")
 }
 
@@ -60,9 +56,6 @@ dependencies {
     implementation("megalodonte:megalodonte-theme:1.0.0-beta")
 
     //implementation("org.controlsfx:controlsfx:11.2.4-SNAPSHOT")
-
-
-    implementation("org.jsoup:jsoup:1.23.1")
 
     //
     implementation("net.java.dev.jna:jna:5.14.0")
@@ -95,14 +88,6 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.5.18")
     testImplementation("org.junit.jupiter:junit-jupiter:5.13.1")
 
-    //componentes gemfx
-    //implementation("com.dlsc.gemsfx:gemsfx:2.16.0")
-
-    //implementation("megalodonte:megalodonte-previewer-components:1.0.0")
-
-    // Dependências JavaFX removidas (agora gerenciadas pelo bloco 'javafx { ... }')
-
-
     // Flyway também para testes
     testImplementation("org.flywaydb:flyway-core:10.15.0")
 
@@ -115,7 +100,6 @@ dependencies {
     // SLF4J/Logback para testes
     testImplementation("ch.qos.logback:logback-classic:1.5.18")
 
-
     //jackson
     implementation("com.fasterxml.jackson.core:jackson-core:2.17.0")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.0")
@@ -123,10 +107,6 @@ dependencies {
 
     //geracao de PDF (tela de Relatorios)
     implementation("org.apache.pdfbox:pdfbox:2.0.29")
-
-    //leitor de excel e afins
-    implementation("org.apache.poi:poi:5.3.0")
-    implementation("org.apache.poi:poi-ooxml:5.3.0")
 }
 
 tasks.test {

@@ -9,7 +9,7 @@ public class InitialRouteResolver {
      * ver AppRoutes/AuthScreen). WELCOME só aparece uma vez, no primeiro acesso.
      */
     public static String resolve(boolean isFirstAccess) {
-        if(Main.devMode)return AppRoutes.Screens.HOME.name();
+        //if(Main.devMode)return AppRoutes.Screens.HOME.name();
         if (isFirstAccess) {
             return AppRoutes.Screens.WELCOME.name();
         }
