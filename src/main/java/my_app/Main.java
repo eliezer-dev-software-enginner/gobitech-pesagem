@@ -22,8 +22,12 @@ import my_app.core.AppRoutes;
 import my_app.domain.telegram.TelegramNotifierFactory;
 import my_app.infra.ProcessKiller;
 import org.flywaydb.core.Flyway;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Main {
+    private static final Logger log = LoggerFactory.getLogger(Main.class);
+
     public static final boolean devMode = "true".equals(System.getenv("DEV_MODE"));
 
     public static final String APP_NAME = "Gobitech";
@@ -33,7 +37,8 @@ public class Main {
     public static final String BASE_TITLE = String.format("%s - %s - Sistema de pesagem",
             APP_NAME,APP_VERSION);
 
-    public static final String ICON_PATH = "/assets/app_ico.png";
+    //public static final String ICON_PATH = "/assets/app_ico.png";
+    public static final String ICON_PATH = "/assets/app_banner_square.png";
 
     public static Image loadIcon() {
         return new Image(Objects.requireNonNull(Main.class.getResourceAsStream(ICON_PATH)));
@@ -42,36 +47,28 @@ public class Main {
     public static class AppHost extends MegalodonteApplication {}
 
     static void main(String[] args) {
+        log.info("Iniciando {} versão {}", APP_NAME, APP_VERSION);
         MegalodonteApp.appName(APP_NAME);
         // Em Linux, garante um .desktop local pra rodar direto de JVM (IDE, gradle
         // run, dev.py) também ter ícone na dock — sem pacote instalado não existe
         // .desktop nenhum pra casar o WM_CLASS. Ver LinuxDesktopEntry.
         MegalodonteApp.appIcon(ICON_PATH);
-        MegalodonteApp.run(AppHost.class, args, Main::start, Main::onEvent);
-    }
-
-    private static void start(Context context) {
+        MegalodonteApp.run(AppHost.class, args, context->{
             final var stage = context.javafxStage();
+            stage.getIcons().add(loadIcon());
 
-            final String[] images = {"/logo_32x32.png", "/logo_256x256.png"};
-
-            for (String image : images) {
-                stage.getIcons().add(new Image(Objects.requireNonNull(Main.class.getResourceAsStream(image))));
+            // registra o handler de erro o quanto antes — antes de qualquer Async.Run rodar
+            ErrorReporter.register(Main::handleAppError);
+            initialize(context);
+        }, event -> {
+            if (event == MegalodonteApp.Event.CloseRequest) {
+                handleClose();
             }
-
-            stage.getIcons().add(Main.loadIcon());
-        // registra o handler de erro o quanto antes — antes de qualquer Async.Run rodar
-        ErrorReporter.register(Main::handleAppError);
-        initialize(context);
-    }
-
-    private static void onEvent(MegalodonteApp.Event ev) {
-        if (ev == MegalodonteApp.Event.CloseRequest) {
-            handleClose();
-        }
+        });
     }
 
     public static void handleClose(){
+            log.info("Encerrando {}", APP_NAME);
             ListenerManager.disposeAll();
             DB.closeAllSessions();
 
@@ -99,6 +96,7 @@ public class Main {
                     .load();
             flyway.repair();
             flyway.migrate();
+            log.info("Migrations do banco aplicadas com sucesso");
 
             String rotaInicial = InitialRouteResolver.resolve();
 
@@ -111,8 +109,8 @@ public class Main {
     }
 
     private static void handleAppError(Throwable t) {
+        log.error("Erro não tratado na aplicação", t);
         TelegramNotifierFactory.create().enviarMensagem("ERRO NA APLICAÇÃO: " + descreverErro(t));
-        t.printStackTrace();
 
         Platform.runLater(() -> {
             if (t instanceof IllegalArgumentException) {

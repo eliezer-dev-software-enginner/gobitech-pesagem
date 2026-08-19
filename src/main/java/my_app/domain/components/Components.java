@@ -505,12 +505,6 @@ public class Components {
                 .c_child(input);
     }
 
-    static megalodonte.props.InputProps getInputProps(String placeholder, int height) {
-        return new megalodonte.props.InputProps().height(height)
-                .placeHolder(placeholder).fontSize(ThemeManager.theme().typography().small())
-                .fontSize(ThemeManager.theme().typography().small());
-    }
-
     static InputProps getInputPropsV2(String placeholder) {
         return getInputPropsV2(placeholder, 31);
     }
@@ -519,6 +513,21 @@ public class Components {
         return new InputProps().height(height)
                 .placeHolder(placeholder).fontSize(ThemeManager.theme().typography().small());
     }
+
+    public static Component InputColumnAuth(String label, ReadableState<String> inputState, String placeholder) {
+        var props = getInputPropsV2(placeholder);
+        props.height(35);
+        props.width(220);
+
+        TextProps labelProps = new TextProps().fontSize(ThemeManager.theme().typography().small());
+
+        return new Column(new ColumnProps().spacingOf(5))
+                .children(
+                        new Text(label, labelProps),
+                        new Input((State<String>) inputState, props)
+                );
+    }
+
 
     public static Component InputColumn(String label, ReadableState<String> inputState, String placeholder, boolean disableInput,
                                         int borderWidth, int borderRadius, String borderColor, String labelColor,
@@ -544,13 +553,6 @@ public class Components {
     }
 
     public static Component InputColumn(String label, ReadableState<String> inputState, String placeholder, boolean disableInput,
-                                        String labelColor, Integer width, Integer height) {
-        return InputColumn(label, inputState, placeholder, disableInput, ThemeManager.theme().border().width(),
-                ThemeManager.theme().border().radiusMd(),
-                ThemeManager.theme().colors().border(), labelColor, width, height);
-    }
-
-    public static Component InputColumn(String label, ReadableState<String> inputState, String placeholder, boolean disableInput,
                                         String labelColor, Integer width) {
         return InputColumn(label, inputState, placeholder, disableInput, ThemeManager.theme().border().width(),
                 ThemeManager.theme().border().radiusMd(),
@@ -562,24 +564,10 @@ public class Components {
         return InputColumn(label, inputState, placeholder, disableInput, null, null);
     }
 
-    public static Component InputColumnAuth(String label, ReadableState<String> inputState, String placeholder) {
-        return InputColumn(label, inputState, placeholder, false, "#fff", null, 35);
-    }
-
     public static Component InputColumn(String label, ReadableState<String> inputState, String placeholder) {
         return InputColumn(label, inputState, placeholder, false);
     }
 
-
-    public static Component TextAreaColumn(String label, State<String> inputState, String placeholder, int height) {
-        TextAreaInput textAreaInput = new TextAreaInput(inputState,
-                getInputProps(placeholder, height).width(400)
-        );
-
-        return new Column()
-                .c_child(new Text(label, new TextProps().fontSize(ThemeManager.theme().typography().small())))
-                .c_child(textAreaInput);
-    }
 
     // Variante que cresce com o conteúdo em vez de ficar travado numa altura fixa
     // (a outra sobrecarga, com um único "height", trava prefHeight=minHeight=maxHeight).

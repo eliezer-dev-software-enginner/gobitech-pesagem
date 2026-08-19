@@ -39,23 +39,38 @@ public class AuthScreen implements ScreenComponent {
 
     @Override
     public Component render() {
-        return new Container(new ContainerProps().paddingAll(20).bgImage("/assets/bgAuth.jpg")).children(
-                new Row(new RowProps().fillWidth()).children(
-                        new Column(new ColumnProps().spacingOf(ThemeManager.theme().spacing().md()).centerHorizontally()
-                                .paddingTop(90)).children(
-                                new Image("/assets/app_banner.png", new ImageProps().size(210)),
-                                new Text("Seu sistema de pesagem de balança de caminhão completo", new TextProps().color("white").bold())
+        return new Container(new ContainerProps().paddingAll(20).bgImage("/assets/wallpapers/bgAuth.jpg")).children(
+                new Row(new RowProps().fillWidth().fillHeight()).children(
+                        new Column(new ColumnProps().fillHeight().spacingOf(ThemeManager.theme().spacing().md())
+                                .centerHorizontally()
+                                .centerVertically()
+                                .maxWidth(400)
+                                //.paddingTop(90)).children(
+                                ).children(
+                                new Image("/assets/app_banner.png", new ImageProps().size(300)),
+                                new Row().children(
+                                        new SpacerHorizontal(50),
+                                        new TextFlow(
+                                                new Text("Seu sistema completo de pesagem de balança de caminhão: leitura automática da balança, controle de tara, peso bruto e líquido, cadastro de clientes e produtos — tudo em um só lugar.",
+                                                        new TextProps().color("white").fontSize(ThemeManager.theme().typography().small()))
+                                        )
+                                )
                         ),
                         new SpacerHorizontal().fill(),
-                        new Card(
-                                new Column().children(
-                                        new Text("Login", new TextProps().fontSize(ThemeManager.theme().typography().subtitle())),
-                                        Components.InputColumnAuth("E-mail", vm.loginState, "Ex: gestor@teste.com"),
-                                        Components.InputColumnAuth("Senha", vm.passwordState, "Digite sua senha"),
-                                        new SpacerVertical(ThemeManager.theme().spacing().sm()),
-                                        Components.ButtonCadastro("Entrar", () -> vm.entrar(ctx))
+                        new Column(new ColumnProps().fillHeight().centerVertically().paddingRight(50)).children(
+                                new Card(
+                                        new Column(new ColumnProps().paddingAll(10)).children(
+                                                new Text("Login", new TextProps().fontSize(ThemeManager.theme().typography().subtitle())),
+                                                new SpacerVertical(ThemeManager.theme().spacing().lg()),
+                                                Components.InputColumnAuth("E-mail", vm.loginState, "Ex: gestor@teste.com"),
+                                                new SpacerVertical(ThemeManager.theme().spacing().lg()),
+                                                Components.InputColumnAuth("Senha", vm.passwordState, "Digite sua senha"),
+                                                new SpacerVertical(ThemeManager.theme().spacing().xl()),
+                                                Components.ButtonCadastro("Entrar", () -> vm.entrar(ctx))
+                                        )
                                 )
                         )
+
 
                 )
         );
