@@ -22,6 +22,13 @@ import java.nio.file.Paths;
 public class LogsScreenViewModel {
     private static final Logger log = LoggerFactory.getLogger(LogsScreenViewModel.class);
 
+    // gobitech.log gira em até 5MB (ver logback.xml) — com bastante uso vira dezenas de
+    // milhares de linhas. Um javafx.scene.control.TextArea não é virtualizado (ao contrário
+    // de TableView): carregar o arquivo inteiro nele deixa a tela extremamente pesada bem
+    // antes de chegar no limite de 5MB. Mostra só a cauda mais recente; o arquivo completo
+    // continua disponível via "Abrir pasta de logs".
+    private static final int MAX_LINHAS = 500;
+
     final State<String> conteudoLogs = State.of("Carregando...");
 
     public LogsScreenViewModel() {
@@ -41,10 +48,24 @@ public class LogsScreenViewModel {
         Async.Run(() -> {
             try {
                 var arquivo = arquivoLogPrincipal();
-                String texto = Files.exists(arquivo)
-                        ? Files.readString(arquivo, StandardCharsets.UTF_8)
-                        : "Nenhum log encontrado ainda em " + arquivo;
-                UI.runOnUi(() -> conteudoLogs.set(texto.isBlank() ? "(log vazio)" : texto));
+                if (!Files.exists(arquivo)) {
+                    UI.runOnUi(() -> conteudoLogs.set("Nenhum log encontrado ainda em " + arquivo));
+                    return;
+                }
+
+                var linhas = Files.readAllLines(arquivo, StandardCharsets.UTF_8);
+                int total = linhas.size();
+                var ultimas = total > MAX_LINHAS ? linhas.subList(total - MAX_LINHAS, total) : linhas;
+
+                var texto = new StringBuilder();
+                if (total > MAX_LINHAS) {
+                    texto.append("(mostrando as últimas ").append(MAX_LINHAS).append(" de ").append(total)
+                            .append(" linhas — arquivo completo em ").append(arquivo).append(")\n\n");
+                }
+                texto.append(String.join("\n", ultimas));
+
+                var textoFinal = texto.toString();
+                UI.runOnUi(() -> conteudoLogs.set(textoFinal.isBlank() ? "(log vazio)" : textoFinal));
             } catch (IOException e) {
                 log.error("Erro ao ler arquivo de log", e);
                 UI.runOnUi(() -> conteudoLogs.set("Erro ao ler o log: " + e.getMessage()));
