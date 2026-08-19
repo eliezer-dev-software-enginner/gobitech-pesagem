@@ -1,5 +1,26 @@
 # Decisões Arquiteturais
 
+## 2026-08-19: Revertido o teto de tamanho da Stage — quebrava maximizar de propósito
+
+**Contexto:** usuário reportou que não conseguia mais maximizar a janela. Regressão direta de um
+fix meu de ontem (`ScreenContext.applyStageProps`, megalodonte-router): pra impedir a janela de
+crescer sozinha além do declarado na rota (sintoma investigado então: conteúdo alto empurrando
+Logout/"Criar novo" pra fora da tela), adicionei `stage.setMaxWidth(width)` /
+`setMaxHeight(height)`. Isso trava a janela num teto **absoluto** — vale pra qualquer resize,
+inclusive o usuário clicando maximizar de propósito numa rota `screenIsExpandable=true`, que é
+exatamente o oposto do que essa flag deveria permitir.
+
+**Decisão:** revertido — removidas as duas linhas. O problema original que motivou o teto já
+tinha correção no nível certo, feita antes disso no mesmo dia (`Show.fillHeight()` em
+`ContratoTelaCrudV3.mainView()` + o `ScrollPane` na Sidebar, ambos no app consumidor): o
+conteúdo em si passou a respeitar o espaço disponível e rolar por dentro em vez de crescer,
+então travar a janela era redundante além de errado — a documentação de quando adicionei o teto
+já registrava essa incerteza ("não consegui confirmar visualmente o resultado final").
+
+**Verificado numericamente** (diagnóstico jogável fora): depois de navegar pra uma rota
+`resizable=true`, `stage.getMaxWidth()`/`getMaxHeight()` voltam a `Double.MAX_VALUE` (sem teto),
+em vez de travados no tamanho declarado da rota.
+
 ## 2026-08-19: Workflow de release não publicava as bibliotecas megalodonte-libs primeiro
 
 **Contexto:** primeira execução de verdade do workflow (usuário publicou o repo e rodou) falhou:
