@@ -423,10 +423,11 @@ sem nunca precisar decriptar a senha armazenada:
 - Verificação de "login já em uso" agora compara o texto **cifrado** (o que de fato está
   gravado), não mais o texto puro contra uma coluna cifrada (o que nunca teria batido).
 
-**Admin padrão** (`V10__dados_padrao.sql`): login/senha trocados pros valores fornecidos —
-`login = 'qs0g1NZE1uw9f6blYfgsLVfw+mHQEXUZWdyYp4OxxW4='`, `senha = 'F9/1j/YRj56RRZaCZbFsOw=='`
-(decriptam pra `admin_andre@admin.admin` / `12345`, confirmado rodando o `CryptoManager` de
-verdade antes de gravar). `nome` trocado de "Gestor" pra "André".
+**Admin padrão** (`V10__dados_padrao.sql`): login/senha trocados pros valores cifrados fornecidos
+pelo usuário (confirmado rodando o `CryptoManager` de verdade antes de gravar — as credenciais
+reais em si não ficam documentadas aqui, mesma chave AES/ECB fixa já usada em outro lugar do app
+torna o texto cifrado equivalente a texto puro pra quem tem acesso ao repositório). `nome`
+trocado de "Gestor" pra "André".
 
 **Banco local apagado** (`~/.gobitech/erp.db`) — autorizado explicitamente pelo usuário, app
 ainda não está em produção. Sem isso o Flyway não teria como re-popular o admin (já tinha uma
@@ -438,7 +439,7 @@ conflitante em `flyway_schema_history`).
 descartável (criado e removido depois, seguindo o mesmo padrão usado pra validar a V11) rodou o
 Flyway do zero contra o caminho real do banco e confirmou de ponta a ponta: (1) a coluna
 `login`/`senha` no banco fica com o texto **exatamente cifrado** fornecido, não texto puro;
-(2) `autenticar("admin_andre@admin.admin", "12345")` autentica; (3) senha errada e login
+(2) `autenticar(...)` com as credenciais reais do admin autentica; (3) senha errada e login
 inexistente retornam `null`; (4) o modelo retornado por `autenticar()` traz login/senha em texto
 puro pro resto do app usar normalmente.
 

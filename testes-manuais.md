@@ -17,17 +17,18 @@ observado com o esperado e anote o resultado.
 
 ## 1. AuthScreen (login)
 
-Login padrão do admin (seed `V10__dados_padrao.sql`): `admin_andre@admin.admin` / `12345`.
+Login padrão do admin (seed `V10__dados_padrao.sql`): peça as credenciais reais de quem
+administra o ambiente — não ficam documentadas aqui (nem em nenhum outro lugar do repo).
 
 | # | Cenário | Login | Senha | Efeito Esperado | Resultado |
 |---|---------|-------|-------|------------------|-----------|
-| 1 | Login válido (admin) | `admin_andre@admin.admin` | `12345` | Entra, popup "Seja bem-vindo(a), André!", vai pra Home | |
-| 2 | Senha errada | `admin_andre@admin.admin` | `senhaerrada` | Alerta "Login ou senha inválidos". Não entra. | |
+| 1 | Login válido (admin) | (credencial real do admin) | (credencial real do admin) | Entra, popup "Seja bem-vindo(a), André!", vai pra Home | |
+| 2 | Senha errada | (login real do admin) | qualquer senha errada | Alerta "Login ou senha inválidos". Não entra. | |
 | 3 | Login inexistente | `naoexiste@x.com` | `12345` | Alerta "Login ou senha inválidos". Não entra. | |
 | 4 | Campos vazios | (vazio) | (vazio) | Alerta "Informe login e senha". Não tenta autenticar. | |
-| 5 | Usuário não-admin com licença vencida ou ausente | login de um usuário comum | senha dele | Alerta "Licença expirada. Contate o administrador para gerar uma nova." Não entra. | |
+| 5 | Usuário não-admin com licença vencida ou ausente | login de um usuário comum | senha dele | Alerta "Licença expirada. Contate o administrador para gerar uma nova." Não entra. | ok |
 | 6 | Usuário não-admin com licença válida | login de um usuário comum | senha dele | Entra normalmente. | |
-| 7 | Admin com licença vencida ou ausente | `admin_andre@admin.admin` | `12345` | **Entra normalmente mesmo assim** — admin nunca fica bloqueado (senão não teria como gerar licença nova). | |
+| 7 | Admin com licença vencida ou ausente | (credencial real do admin) | (credencial real do admin) | **Entra normalmente mesmo assim** — admin nunca fica bloqueado (senão não teria como gerar licença nova). | |
 | 8 | Primeiro acesso | (banco recém-criado) | — | Depois do primeiro login com sucesso, `primeiro_acesso` vira `0` no banco (`preferencias`). | |
 
 ---
@@ -177,8 +178,8 @@ Logomarca.
 | 74 | Acessar como não-admin | Item "Gerar licença" **não aparece** no menu | ok        |
 | 75 | Gerar licença com "Definir data de expiração?" = Não | DatePicker **não aparece**. Popup "Licença gerada com sucesso"; código aparece na tela e na lista; nunca expira | ok        |
 | 76 | Selecionar "Definir data de expiração?" = Sim | DatePicker aparece. Escolher uma data e gerar: idem #75, mas `expirada()` passa a `true` depois da data escolhida (23:59:59 daquele dia) |           |
-| 77 | Selecionar "Sim" mas não escolher nenhuma data | Alerta "Selecione a data de expiração". Não gera. |           |
-| 78 | Usuário não-admin loga depois da licença vencer | Bloqueado (ver caso #5) |           |
+| 77 | Selecionar "Sim" mas não escolher nenhuma data | Alerta "Selecione a data de expiração". Não gera. | ok        |
+| 78 | Usuário não-admin loga depois da licença vencer | Bloqueado (ver caso #5) | ok        |
 
 ---
 

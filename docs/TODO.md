@@ -17,7 +17,7 @@
       sempre criptografados em repouso (AES/ECB via `CryptoManager`), texto puro só na fronteira
       com as telas
 - [x] Admin padrão (`V10__dados_padrao.sql`) trocado pros valores fornecidos pelo usuário
-      (login/senha já cifrados) — decriptam pra `admin_andre@admin.admin`/`12345`
+      (login/senha já cifrados) — credenciais reais não documentadas aqui, só o admin sabe
 - [x] Banco local (`~/.gobitech/erp.db`) apagado e recriado do zero — autorizado pelo usuário
 - [x] `./gradlew test`: **155/155, BUILD SUCCESSFUL** (inclusive os 4 que antes falhavam) + teste
       descartável de ponta a ponta confirmando o admin autentica e o banco guarda só o cifrado.
