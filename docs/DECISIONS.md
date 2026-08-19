@@ -1,5 +1,57 @@
 # Decisões Arquiteturais
 
+## 2026-08-19: Integração com câmera Intelbras — captura automática de foto na pesagem
+
+**Contexto:** item adiado desde a auditoria do app antigo ("Fase 2" em `TODO.md`) — a
+especificação original previa foto do caminhão na pesagem, nunca implementada nesta reescrita
+(campos `fotoFrente1/2`/`fotoCostas1/2` só aceitavam escolher um arquivo já existente via
+`FileChooser`, sem integração real com câmera nenhuma).
+
+**Pesquisa:** câmeras Intelbras da linha VIP são rebrand da Dahua — herdam o mesmo endpoint HTTP
+CGI `/cgi-bin/snapshot.cgi?channel=<n>`, autenticado por HTTP **Digest** (não Basic; a câmera
+responde 401 com o desafio, cliente recalcula e reenvia). ONVIF Profile S também é suportado
+como padrão genérico, mas o CGI direto é mais simples e é o que os posts do fórum oficial da
+Intelbras confirmam funcionando pra linha VIP. Existe um SDK proprietário, mas exige assinar
+termo de confidencialidade com a Intelbras — não vale a pena quando o endpoint CGI já resolve.
+Fontes: fórum oficial Intelbras (temas 66724, 62599, 65034), guia de compatibilidade SmartRTSP.
+
+**Topologia confirmada com o usuário:** 2 câmeras físicas fixas (frente e costas da balança,
+apontadas pro caminhão), não 4 câmeras nem uma única com PTZ. Cada pesagem nova dispara as duas:
+"Entrada" preenche `fotoFrente1`/`fotoCostas1`, "Saída" preenche `fotoFrente2`/`fotoCostas2` —
+mesma regra de duas visitas por placa já usada pra Tara sugerida.
+
+**Decisão:**
+- `CameraSnapshotClient` (`my_app.infra.camera`) — implementa o desafio/resposta Digest (RFC
+  2617, MD5) na mão em cima de `java.net.http.HttpClient`, que não tem suporte nativo a Digest
+  (só Basic via `java.net.Authenticator`). Sem lib nova.
+- `ConexaoCameraModel`/`Repository`/`Service` (migration `V13`) — configuração singleton (uma
+  linha, igual `ConexaoBalancaModel`) com os dois conjuntos de campos (IP/porta/canal/usuário/
+  senha) pra frente e costas. As duas câmeras são **opcionais e independentes**: só valida que,
+  se um IP foi informado, a porta também foi — nenhuma é obrigatória (diferente de
+  `ConexaoBalancaModel`, onde a balança em si é sempre obrigatória).
+- `ConexaoCameraScreen`/`ViewModel` (menu Gerencial > "Conexão das câmeras") — um formulário só
+  com as duas seções, cada uma com botão "Testar câmera" que captura de verdade e mostra a foto
+  (`Image` reativo) pra confirmar que a câmera está acessível e enquadrada certo antes de
+  colocar em produção.
+- `PesagemViewModel.capturarFotosAutomaticamente()` — chamado só ao **criar** uma pesagem nova
+  (não ao editar uma existente: reeditar depois não deve disparar a câmera de novo, o caminhão
+  pode nem estar mais lá), logo após o `pesagemService.salvar()` ter sucesso — não na hora de
+  imprimir o ticket, que era o timing errado do app original (ver `TODO.md`, Fase 2). Câmera não
+  configurada é pulada sem erro; falha de rede/autenticação numa câmera não derruba a pesagem
+  (já está salva nesse ponto) — só fica sem aquela foto, e um `log.warn` registra o motivo.
+- `FotoPesagemStorage` (`my_app.infra.camera`) — salva os bytes JPEG capturados em
+  `~/.gobitech/fotos/`, diferente da foto escolhida manualmente (que só guarda a URI do arquivo
+  onde já estava — não há "arquivo original" pra uma captura de câmera, só bytes de resposta
+  HTTP).
+
+**Testado:** `CameraSnapshotClientTest` sobe um servidor HTTP fake (`com.sun.net.httpserver`, já
+no JDK, sem lib nova) que exige o mesmo desafio Digest de uma câmera real e só libera o JPEG se
+o `response` calculado bater — pega de verdade um bug no cálculo (ordem de campo errada, aspas
+faltando etc.), não só "chegou alguma coisa". `ConexaoCameraServiceTest`/`RepositoryTest`
+seguem o padrão de `ConexaoBalanca`. `./gradlew test`: **181 testes, BUILD SUCCESSFUL**.
+
+---
+
 ## 2026-08-19: "Abrir pasta de logs" travava o app inteiro (bloqueava a FX Application Thread)
 
 **Contexto:** usuário reportou o app travando ao clicar em "Abrir pasta de logs" — mesmo depois

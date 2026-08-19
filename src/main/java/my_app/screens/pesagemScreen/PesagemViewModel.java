@@ -8,11 +8,13 @@ import megalodonte.base.async.Async;
 import megalodonte.router.v4.ScreenContext;
 import megalodonte.v2.ListState;
 import my_app.db.models.ClienteModel;
+import my_app.db.models.ConexaoCameraModel;
 import my_app.db.models.DescontoModel;
 import my_app.db.models.PesagemModel;
 import my_app.db.models.ProdutoModel;
 import my_app.db.services.ClienteService;
 import my_app.db.services.ConexaoBalancaService;
+import my_app.db.services.ConexaoCameraService;
 import my_app.db.services.DescontoService;
 import my_app.db.services.EmpresaService;
 import my_app.db.services.PesagemService;
@@ -25,6 +27,8 @@ import my_app.infra.TicketPdfExporter;
 import my_app.infra.balanca.LeitorBalanca;
 import my_app.infra.balanca.LeitorBalancaFactory;
 import my_app.infra.balanca.PesagemCalculo;
+import my_app.infra.camera.CameraSnapshotClient;
+import my_app.infra.camera.FotoPesagemStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +46,9 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
     private final DescontoService descontoService;
     private final ConexaoBalancaService conexaoBalancaService;
     private final EmpresaService empresaService;
+    private final ConexaoCameraService conexaoCameraService;
     private final TicketPdfExporter ticketPdfExporter = new TicketPdfExporter();
+    private final CameraSnapshotClient cameraSnapshotClient = new CameraSnapshotClient();
 
     private LeitorBalanca leitorBalanca;
     final State<String> pesoAoVivo = State.of("—");
@@ -94,6 +100,7 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
         this.descontoService = createOrReport(DescontoService::new);
         this.conexaoBalancaService = createOrReport(ConexaoBalancaService::new);
         this.empresaService = createOrReport(EmpresaService::new);
+        this.conexaoCameraService = createOrReport(ConexaoCameraService::new);
         carregarClientesEProdutos();
 
         // Ao selecionar um produto, carrega o desconto padrão dele no campo "Outros" — só um
@@ -469,7 +476,12 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
                 if (editando) {
                     pesagemService.atualizar(model);
                 } else {
+                    // salvar() seta id/operacao de volta no MESMO model (Persism), então
+                    // capturarFotosAutomaticamente já enxerga os dois logo em seguida. Só em
+                    // pesagem NOVA — reeditar uma pesagem existente não deve disparar as
+                    // câmeras de novo, o caminhão pode nem estar mais lá.
                     pesagemService.salvar(model);
+                    capturarFotosAutomaticamente(model);
                 }
 
                 var comRelacoes = pesagemService.buscarComRelacoes(model.getId());
@@ -496,6 +508,69 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
                 UI.runOnUi(() -> Components.ShowAlertError("Erro inesperado: " + e.getMessage()));
             }
         });
+    }
+
+    /**
+     * Captura foto das duas câmeras Intelbras configuradas (frente/costas), na hora da
+     * pesagem — não na hora de imprimir o ticket, que era o timing errado do app original (ver
+     * docs/TODO.md). "Entrada" preenche o slot 1 de cada câmera, "Saída" o slot 2, mesma regra
+     * que já existe pra Tara sugerida (duas visitas por placa: uma de entrada, uma de saída).
+     * <p>
+     * Câmera não configurada (IP em branco) é pulada, sem erro — as duas são opcionais e
+     * independentes (ver ConexaoCameraService). Falha de rede/autenticação numa câmera não
+     * derruba a pesagem, que já está salva no banco nesse ponto: só fica sem aquela foto.
+     */
+    private void capturarFotosAutomaticamente(PesagemModel pesagem) {
+        ConexaoCameraModel config;
+        try {
+            config = conexaoCameraService.buscarUnico();
+        } catch (Exception e) {
+            log.error("Erro ao carregar conexão das câmeras pra pesagem id={}", pesagem.getId(), e);
+            return;
+        }
+        if (config == null) return;
+
+        boolean isEntrada = "Entrada".equals(pesagem.getOperacao());
+        boolean mudou = false;
+
+        if (config.getFrenteIp() != null && !config.getFrenteIp().isBlank() && config.getFrentePorta() != null) {
+            String uri = capturarUmaCamera(config.getFrenteIp(), config.getFrentePorta(), config.getFrenteCanal(),
+                    config.getFrenteUsuario(), config.getFrenteSenha(), pesagem.getId(), "frente", isEntrada);
+            if (uri != null) {
+                if (isEntrada) pesagem.setFotoFrente1(uri); else pesagem.setFotoFrente2(uri);
+                mudou = true;
+            }
+        }
+
+        if (config.getCostasIp() != null && !config.getCostasIp().isBlank() && config.getCostasPorta() != null) {
+            String uri = capturarUmaCamera(config.getCostasIp(), config.getCostasPorta(), config.getCostasCanal(),
+                    config.getCostasUsuario(), config.getCostasSenha(), pesagem.getId(), "costas", isEntrada);
+            if (uri != null) {
+                if (isEntrada) pesagem.setFotoCostas1(uri); else pesagem.setFotoCostas2(uri);
+                mudou = true;
+            }
+        }
+
+        if (mudou) {
+            try {
+                pesagemService.atualizar(pesagem);
+            } catch (Exception e) {
+                log.error("Erro ao salvar as fotos capturadas na pesagem id={}", pesagem.getId(), e);
+            }
+        }
+    }
+
+    private String capturarUmaCamera(String ip, Integer porta, Integer canal, String usuario, String senha,
+                                      Integer pesagemId, String rotulo, boolean isEntrada) {
+        try {
+            var jpeg = cameraSnapshotClient.capturarSnapshot(ip, porta, usuario == null ? "" : usuario,
+                    senha == null ? "" : senha, canal == null ? 1 : canal);
+            String nomeArquivo = "pesagem_" + pesagemId + "_" + rotulo + "_" + (isEntrada ? "1" : "2") + ".jpg";
+            return FotoPesagemStorage.salvar(jpeg, nomeArquivo);
+        } catch (Exception e) {
+            log.warn("Falha ao capturar foto da câmera de {} pra pesagem id={}", rotulo, pesagemId, e);
+            return null;
+        }
     }
 
 
@@ -534,5 +609,6 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
         this.descontoService.close();
         this.conexaoBalancaService.close();
         this.empresaService.close();
+        this.conexaoCameraService.close();
     }
 }

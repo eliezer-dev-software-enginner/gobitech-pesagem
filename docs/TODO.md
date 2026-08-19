@@ -1,5 +1,23 @@
 # TODO
 
+## Concluído (integração com câmera Intelbras — 2026-08-19)
+- [x] Item de "Fase 2 (adiado)" resolvido — captura de foto automática na pesagem, integrando
+      de verdade com as duas câmeras Intelbras (frente/costas) via HTTP CGI
+      (`/cgi-bin/snapshot.cgi`, autenticação Digest — mesmo endpoint da Dahua, fabricante
+      original das câmeras VIP)
+- [x] `CameraSnapshotClient` — desafio/resposta Digest (RFC 2617) implementado na mão em cima de
+      `java.net.http.HttpClient`, sem lib nova
+- [x] `ConexaoCameraModel`/`Repository`/`Service` (migration `V13`, singleton) + tela "Conexão
+      das câmeras" (menu Gerencial) com botão "Testar câmera" e prévia da foto capturada
+- [x] Timing corrigido: foto capturada na hora da pesagem (`PesagemViewModel.
+      capturarFotosAutomaticamente`, só ao criar, não ao editar), não na hora de imprimir o
+      ticket — esse era o bug de timing do app original
+- [x] Falha numa câmera (rede/autenticação/não configurada) não derruba o salvamento da pesagem
+- [x] `CameraSnapshotClientTest` — servidor HTTP fake (`com.sun.net.httpserver`, já no JDK)
+      exigindo o mesmo desafio Digest de uma câmera real; `ConexaoCameraServiceTest`/
+      `RepositoryTest` seguem o padrão de `ConexaoBalanca`
+- [x] `./gradlew test`: **181 testes, BUILD SUCCESSFUL**
+
 ## Concluído (ticket em PDF, tela de Logs, logging em toda a aplicação — 2026-08-19)
 - [x] `TicketPdfExporter` (PDFBox) — requisito do projeto original que faltava nesta reescrita;
       botão "Imprimir ticket" no modal de detalhes da pesagem + "Salvar e baixar ticket" no
@@ -155,10 +173,4 @@
 - [ ] "Buscar atualização" foi removido da Home porque `my_app.infra.UpdaterService` não existe
       nesta cópia do projeto — se for reintroduzir, é trabalho de infraestrutura de release, não
       de tela
-
-## Fase 2 (decidido, adiado)
-- [ ] Integração com câmera Intelbras — conectar a captura de foto de verdade na tela de
-      pesagem, decidir mapeamento câmera→slot de foto, corrigir timing (foto na hora da pesagem,
-      não na hora de imprimir o ticket) — ver evidência 13 na auditoria do projeto antigo
-      (`/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/DECISIONS.md`)
 
