@@ -72,7 +72,8 @@ public class HomeScreen implements ScreenComponent {
     private Component menuBar() {
         var suporteMenu = new Menu("Suporte")
                 .textColor(Sidebar.TEXT_COLOR)
-                .item("Novidades dessa atualização", () -> ctx.router().spawnWindow(AppRoutes.Screens.INFO_UPDATE.name(), e -> {}));
+                .item("Novidades dessa atualização", () -> ctx.router().spawnWindow(AppRoutes.Screens.INFO_UPDATE.name(), e -> {}))
+                .item("Ver logs da aplicação", () -> ctx.router().spawnWindow(AppRoutes.Screens.LOGS.name(), e -> {}));
 
         var gerencialMenu = new Menu("Gerencial")
                 .textColor(Sidebar.TEXT_COLOR)

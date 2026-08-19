@@ -11,10 +11,14 @@ import my_app.db.services.PesagemService;
 import my_app.db.services.ProdutoService;
 import my_app.domain.components.Components;
 import my_app.utils.DateUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 
 public class DashboardViewModel {
+    private static final Logger log = LoggerFactory.getLogger(DashboardViewModel.class);
+
     private final ProdutoService produtoService;
     private final ClienteService clienteService;
     private final PesagemService pesagemService;
@@ -51,7 +55,7 @@ public class DashboardViewModel {
                     totalPesagensMes.set(String.valueOf(pesagensMes));
                 });
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Erro ao carregar o dashboard", e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro ao carregar o dashboard: " + e.getMessage()));
             }
         });
@@ -72,7 +76,7 @@ public class DashboardViewModel {
             clienteService.close();
             pesagemService.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("Erro ao fechar serviços do dashboard", e);
         }
     }
 }

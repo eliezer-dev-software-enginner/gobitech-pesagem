@@ -4,12 +4,16 @@ import my_app.db.DB;
 import my_app.db.models.ProdutoModel;
 import my_app.db.repositories.ProdutoRepository;
 import net.sf.persism.Session;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 
 public class ProdutoService extends BaseService<ProdutoModel> {
+
+    private static final Logger log = LoggerFactory.getLogger(ProdutoService.class);
 
     private final ProdutoRepository produtoRepository;
 
@@ -28,7 +32,9 @@ public class ProdutoService extends BaseService<ProdutoModel> {
         if (model.getAtivo() == null) model.setAtivo(true);
         if (model.getDesconto() == null) model.setDesconto(BigDecimal.ZERO);
         model.setDataCriacao(LocalDateTime.now());
-        return repository.salvar(model);
+        var salvo = repository.salvar(model);
+        log.info("Produto salvo: id={} nome={}", salvo.getId(), salvo.getNome());
+        return salvo;
     }
 
     @Override
@@ -36,6 +42,7 @@ public class ProdutoService extends BaseService<ProdutoModel> {
         validar(model);
         if (model.getDesconto() == null) model.setDesconto(BigDecimal.ZERO);
         repository.atualizar(model);
+        log.info("Produto atualizado: id={} nome={}", model.getId(), model.getNome());
     }
 
     private void validar(ProdutoModel model) throws SQLException {

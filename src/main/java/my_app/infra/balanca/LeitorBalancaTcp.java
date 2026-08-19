@@ -1,6 +1,8 @@
 package my_app.infra.balanca;
 
 import megalodonte.base.async.Async;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -21,6 +23,8 @@ import java.util.function.Consumer;
  */
 public class LeitorBalancaTcp implements LeitorBalanca {
 
+    private static final Logger log = LoggerFactory.getLogger(LeitorBalancaTcp.class);
+
     private final String ip;
     private final int porta;
     private volatile boolean rodando = false;
@@ -34,10 +38,12 @@ public class LeitorBalancaTcp implements LeitorBalanca {
     @Override
     public void iniciar(Consumer<BigDecimal> onPeso, Consumer<String> onErro) {
         rodando = true;
+        log.info("Conectando na balança via TCP: {}:{}", ip, porta);
         Async.Run(() -> {
             try {
                 socket = new Socket(ip, porta);
                 socket.setSoTimeout(5000);
+                log.info("Conectado na balança via TCP: {}:{}", ip, porta);
                 InputStream in = socket.getInputStream();
                 byte[] buffer = new byte[256];
 
@@ -53,7 +59,10 @@ public class LeitorBalancaTcp implements LeitorBalanca {
                     }
                 }
             } catch (Exception e) {
-                if (rodando) onErro.accept("Erro na conexão TCP com a balança (" + ip + ":" + porta + "): " + e.getMessage());
+                if (rodando) {
+                    log.error("Erro na conexão TCP com a balança ({}:{})", ip, porta, e);
+                    onErro.accept("Erro na conexão TCP com a balança (" + ip + ":" + porta + "): " + e.getMessage());
+                }
             }
         });
     }
@@ -61,9 +70,11 @@ public class LeitorBalancaTcp implements LeitorBalanca {
     @Override
     public void parar() {
         rodando = false;
+        log.info("Encerrando conexão TCP com a balança: {}:{}", ip, porta);
         try {
             if (socket != null && !socket.isClosed()) socket.close();
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            log.warn("Erro ao fechar socket da balança ({}:{})", ip, porta, e);
         }
     }
 }

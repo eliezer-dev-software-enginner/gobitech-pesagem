@@ -11,8 +11,12 @@ import my_app.core.events.EventBus;
 import my_app.domain.Data;
 import my_app.domain.ViewModelScreenContract;
 import my_app.domain.components.Components;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel> {
+    private static final Logger log = LoggerFactory.getLogger(UsuarioScreenViewModel.class);
+
     private final UsuarioService usuarioService;
 
     final State<UsuarioModel> usuarioSelecionado = State.of(null);
@@ -70,7 +74,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
                 var list = usuarioService.listarAtivos();
                 UI.runOnUi(() -> allDataList.set(list));
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Erro ao buscar usuários", e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro ao buscar usuários: " + e.getMessage()));
             }
         });
@@ -90,6 +94,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
                     EventBus.getInstance().publish(EntityEvent.excluido(model.getId()));
                 });
             } catch (Exception e) {
+                log.error("Erro ao inativar usuário id={}", model.getId(), e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro ao tentar inativar: " + e.getMessage()));
             }
         }));
@@ -124,6 +129,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
             } catch (IllegalArgumentException e) {
                 UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
             } catch (Exception e) {
+                log.error("Erro inesperado ao salvar usuário", e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro inesperado: " + e.getMessage()));
             }
         });

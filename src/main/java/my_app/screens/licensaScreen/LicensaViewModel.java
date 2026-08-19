@@ -12,11 +12,15 @@ import my_app.db.services.LicensaService;
 import my_app.domain.Data;
 import my_app.domain.SessaoUsuario;
 import my_app.domain.components.Components;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class LicensaViewModel {
+    private static final Logger log = LoggerFactory.getLogger(LicensaViewModel.class);
+
     private final ScreenContext ctx;
     private final LicensaService licensaService;
 
@@ -64,6 +68,7 @@ public class LicensaViewModel {
                 var lista = licensaService.listar();
                 UI.runOnUi(() -> licensasState.set(lista));
             } catch (Exception e) {
+                log.error("Erro ao listar licenças", e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro ao listar licenças: " + e.getMessage()));
             }
         });
@@ -89,6 +94,7 @@ public class LicensaViewModel {
                     Components.ShowPopup(ctx, "Licença gerada com sucesso");
                 });
             } catch (Exception e) {
+                log.error("Erro ao gerar licença", e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro ao gerar licença: " + e.getMessage()));
             }
         });

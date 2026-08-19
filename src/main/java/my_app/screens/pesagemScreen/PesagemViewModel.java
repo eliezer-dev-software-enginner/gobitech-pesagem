@@ -25,12 +25,16 @@ import my_app.infra.TicketPdfExporter;
 import my_app.infra.balanca.LeitorBalanca;
 import my_app.infra.balanca.LeitorBalancaFactory;
 import my_app.infra.balanca.PesagemCalculo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
+    private static final Logger log = LoggerFactory.getLogger(PesagemViewModel.class);
+
     private final ScreenContext ctx2;
     private final PesagemService pesagemService;
     private final ClienteService clienteService;
@@ -130,7 +134,7 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
                     Components.ShowPopup(ctx2, "Tara preenchida com a última pesagem dessa placa");
                 });
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Erro ao buscar tara sugerida pra placa {}", placaValue, e);
             }
         });
     }
@@ -160,7 +164,7 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
                         })
                 );
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Erro ao conectar com a balança", e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro ao conectar com a balança: " + e.getMessage()));
             }
         });
@@ -219,6 +223,7 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
                     produtosState.set(produtos);
                 });
             } catch (Exception e) {
+                log.error("Erro ao carregar clientes/produtos", e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro ao carregar clientes/produtos: " + e.getMessage()));
             }
         });
@@ -340,10 +345,11 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
             try {
                 var empresa = empresaService.buscarUnico();
                 ticketPdfExporter.gerar(destino, empresa, model);
+                log.info("Ticket de pesagem exportado: pesagemId={} arquivo={}", model.getId(), destino.getAbsolutePath());
                 abrirArquivo(destino);
                 UI.runOnUi(() -> Components.ShowPopup(ctx2, "Ticket salvo em: " + destino.getAbsolutePath()));
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Erro ao gerar ticket da pesagem id={}", model.getId(), e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro ao gerar ticket: " + e.getMessage()));
             }
         });
@@ -362,7 +368,7 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
                 java.awt.Desktop.getDesktop().open(arquivo);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("Erro ao abrir arquivo no visualizador padrão: {}", arquivo.getAbsolutePath(), e);
         }
     }
 
@@ -384,7 +390,7 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
                 var list = pesagemService.listarComRelacoes();
                 UI.runOnUi(() -> allDataList.set(list));
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Erro ao buscar pesagens", e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro ao buscar pesagens: " + e.getMessage()));
             }
         });
@@ -407,6 +413,7 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
                 );
                 UI.runOnUi(() -> allDataList.set(list));
             } catch (Exception e) {
+                log.error("Erro ao filtrar pesagens", e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro ao filtrar: " + e.getMessage()));
             }
         });
@@ -426,6 +433,7 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
                     EventBus.getInstance().publish(EntityEvent.excluido(model.getId()));
                 });
             } catch (Exception e) {
+                log.error("Erro ao excluir pesagem id={}", model.getId(), e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro ao tentar excluir: " + e.getMessage()));
             }
         }));
@@ -484,6 +492,7 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
             } catch (IllegalArgumentException e) {
                 UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
             } catch (Exception e) {
+                log.error("Erro inesperado ao salvar pesagem", e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro inesperado: " + e.getMessage()));
             }
         });

@@ -11,10 +11,14 @@ import my_app.core.events.EventBus;
 import my_app.domain.Data;
 import my_app.domain.ViewModelScreenContract;
 import my_app.domain.components.Components;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 
 public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel> {
+    private static final Logger log = LoggerFactory.getLogger(ProdutoScreenViewModel.class);
+
     private final ProdutoService produtoService;
 
     final State<ProdutoModel> produtoSelecionado = State.of(null);
@@ -75,7 +79,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
                 var list = produtoService.listar();
                 UI.runOnUi(() -> allDataList.set(list));
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Erro ao buscar produtos", e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro ao buscar produtos: " + e.getMessage()));
             }
         });
@@ -95,6 +99,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
                     EventBus.getInstance().publish(EntityEvent.excluido(model.getId()));
                 });
             } catch (Exception e) {
+                log.error("Erro ao excluir produto id={}", model.getId(), e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro ao tentar excluir: " + e.getMessage()));
             }
         }));
@@ -129,6 +134,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
             } catch (IllegalArgumentException e) {
                 UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
             } catch (Exception e) {
+                log.error("Erro inesperado ao salvar produto", e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro inesperado: " + e.getMessage()));
             }
         });

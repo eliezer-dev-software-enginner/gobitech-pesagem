@@ -10,6 +10,8 @@ import my_app.screens.dashboardScreen.DashboardScreen;
 import my_app.screens.produtoScreen.ProdutoScreen;
 import my_app.screens.pesagemScreen.PesagemScreen;
 import my_app.screens.usuarioScreen.UsuarioScreen;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A sidebar é fixa e o conteúdo à direita troca dentro da mesma janela — igual o app original
@@ -17,6 +19,8 @@ import my_app.screens.usuarioScreen.UsuarioScreen;
  * ideia sem recriar janela: uma tela embutida por vez, montada/destruída manualmente).
  */
 public class HomeScreenViewModel {
+
+    private static final Logger log = LoggerFactory.getLogger(HomeScreenViewModel.class);
 
     public enum Secao { HOME, PESAGENS, PRODUTOS, CLIENTES, USUARIOS }
 
@@ -76,6 +80,7 @@ public class HomeScreenViewModel {
             // Dashboard de cara — ver comentário lá). destruirTelaAtual() já limpa os recursos
             // da tela atual; navegarAndCloseOthers troca a Scene inteira por AUTH logo em
             // seguida, então não sobra nenhum render() acontecendo em cima de um telaAtiva nulo.
+            log.info("Logout realizado");
             destruirTelaAtual();
             screenContext.navigateAndCloseOthers(AppRoutes.Screens.AUTH.name());
         });

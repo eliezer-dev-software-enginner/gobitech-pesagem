@@ -2,6 +2,8 @@ package my_app.infra.balanca;
 
 import jssc.SerialPort;
 import jssc.SerialPortException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.function.Consumer;
@@ -12,6 +14,8 @@ import java.util.function.Consumer;
  * dispositivo em vez de escrever num.
  */
 public class LeitorBalancaSerial implements LeitorBalanca {
+
+    private static final Logger log = LoggerFactory.getLogger(LeitorBalancaSerial.class);
 
     private final String portaCom;
     private final int baudRate;
@@ -24,10 +28,12 @@ public class LeitorBalancaSerial implements LeitorBalanca {
 
     @Override
     public void iniciar(Consumer<BigDecimal> onPeso, Consumer<String> onErro) {
+        log.info("Conectando na balança via Serial: {} ({} baud)", portaCom, baudRate);
         try {
             serialPort = new SerialPort(portaCom);
             serialPort.openPort();
             serialPort.setParams(baudRate, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+            log.info("Conectado na balança via Serial: {}", portaCom);
             serialPort.addEventListener(event -> {
                 if (!event.isRXCHAR() || event.getEventValue() <= 0) return;
                 try {
@@ -35,10 +41,12 @@ public class LeitorBalancaSerial implements LeitorBalanca {
                     var peso = PesoParser.parse(new String(bytes));
                     if (peso != null) onPeso.accept(peso);
                 } catch (SerialPortException e) {
+                    log.error("Erro ao ler porta {}", portaCom, e);
                     onErro.accept("Erro ao ler porta " + portaCom + ": " + e.getMessage());
                 }
             });
         } catch (SerialPortException e) {
+            log.error("Erro ao abrir porta {}", portaCom, e);
             onErro.accept("Erro ao abrir porta " + portaCom + ": " + e.getMessage());
         }
     }
@@ -46,10 +54,12 @@ public class LeitorBalancaSerial implements LeitorBalanca {
     @Override
     public void parar() {
         if (serialPort == null || !serialPort.isOpened()) return;
+        log.info("Encerrando conexão Serial com a balança: {}", portaCom);
         try {
             serialPort.removeEventListener();
             serialPort.closePort();
-        } catch (SerialPortException ignored) {
+        } catch (SerialPortException e) {
+            log.warn("Erro ao fechar porta {}", portaCom, e);
         }
     }
 }

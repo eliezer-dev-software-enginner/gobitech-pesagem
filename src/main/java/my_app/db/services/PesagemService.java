@@ -7,6 +7,8 @@ import my_app.db.repositories.DescontoRepository;
 import my_app.db.repositories.PesagemRepository;
 import my_app.db.repositories.ProdutoRepository;
 import net.sf.persism.Session;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -14,6 +16,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class PesagemService extends BaseService<PesagemModel> {
+
+    private static final Logger log = LoggerFactory.getLogger(PesagemService.class);
 
     private final PesagemRepository pesagemRepository;
     private final ClienteRepository clienteRepository;
@@ -39,13 +43,17 @@ public class PesagemService extends BaseService<PesagemModel> {
             model.setOperacao(determinarOperacao(model.getPlaca()));
         }
         model.setDataCriacao(LocalDateTime.now());
-        return repository.salvar(model);
+        var salvo = repository.salvar(model);
+        log.info("Pesagem salva: id={} placa={} operacao={} pesoLiquido={}",
+                salvo.getId(), salvo.getPlaca(), salvo.getOperacao(), salvo.getPesoFinal());
+        return salvo;
     }
 
     @Override
     public void atualizar(PesagemModel model) throws SQLException {
         validarCampos(model);
         repository.atualizar(model);
+        log.info("Pesagem atualizada: id={} placa={} pesoLiquido={}", model.getId(), model.getPlaca(), model.getPesoFinal());
     }
 
     /**

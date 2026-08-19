@@ -4,12 +4,16 @@ import my_app.db.DB;
 import my_app.db.models.LicensaModel;
 import my_app.db.repositories.LicensaRepository;
 import net.sf.persism.Session;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class LicensaService extends BaseService<LicensaModel> {
+
+    private static final Logger log = LoggerFactory.getLogger(LicensaService.class);
 
     private final LicensaRepository licensaRepository;
 
@@ -30,7 +34,10 @@ public class LicensaService extends BaseService<LicensaModel> {
         if (existente != null)
             throw new IllegalArgumentException("Já existe uma licença com esse valor");
         model.setDataCriacao(LocalDateTime.now());
-        return repository.salvar(model);
+        var salvo = repository.salvar(model);
+        // Não loga model.getValor() (a chave em si) — id/validade já bastam pra auditoria.
+        log.info("Licença gerada: id={} expiraEm={}", salvo.getId(), salvo.getExpiraEm());
+        return salvo;
     }
 
     /**

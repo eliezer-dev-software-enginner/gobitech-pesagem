@@ -5,6 +5,8 @@ import my_app.db.models.UsuarioModel;
 import my_app.db.repositories.UsuarioRepository;
 import my_app.security.CryptoManager;
 import net.sf.persism.Session;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -19,6 +21,11 @@ import java.util.List;
  * de texto cifrado sem nunca precisar decriptar o que está armazenado.
  */
 public class UsuarioService extends BaseService<UsuarioModel> {
+
+    // NUNCA logar model.getSenha()/senhaPlain/senhaEnc em lugar nenhum desta classe — só o
+    // login (nome de usuário) pode aparecer no log, mesmo criptografado seria um dado
+    // sensível desnecessário no arquivo (ver docs/DECISIONS.md, vazamento de credenciais).
+    private static final Logger log = LoggerFactory.getLogger(UsuarioService.class);
 
     private final UsuarioRepository usuarioRepository;
 
@@ -52,6 +59,7 @@ public class UsuarioService extends BaseService<UsuarioModel> {
             var salvo = repository.salvar(model);
             salvo.setLogin(loginPlain);
             salvo.setSenha(senhaPlain);
+            log.info("Usuário criado: id={} login={} admin={}", salvo.getId(), loginPlain, salvo.getAdmin());
             return salvo;
         } finally {
             model.setLogin(loginPlain);
@@ -76,6 +84,7 @@ public class UsuarioService extends BaseService<UsuarioModel> {
         model.setSenha(crypto.encrypt(senhaPlain));
         try {
             repository.atualizar(model);
+            log.info("Usuário atualizado: id={} login={}", model.getId(), loginPlain);
         } finally {
             model.setLogin(loginPlain);
             model.setSenha(senhaPlain);
@@ -87,6 +96,7 @@ public class UsuarioService extends BaseService<UsuarioModel> {
         if (usuario == null) throw new IllegalArgumentException("Usuário não encontrado");
         usuario.setAtivo(false);
         repository.atualizar(usuario);
+        log.info("Usuário inativado: id={}", id);
     }
 
     /**
@@ -100,11 +110,18 @@ public class UsuarioService extends BaseService<UsuarioModel> {
         String senhaEnc = crypto.encrypt(senha);
 
         var usuario = usuarioRepository.buscarPorLogin(loginEnc);
-        if (usuario == null || !Boolean.TRUE.equals(usuario.getAtivo())) return null;
-        if (usuario.getSenha() == null || !usuario.getSenha().equals(senhaEnc)) return null;
+        if (usuario == null || !Boolean.TRUE.equals(usuario.getAtivo())) {
+            log.warn("Tentativa de login falhou (usuário inexistente ou inativo): login={}", login);
+            return null;
+        }
+        if (usuario.getSenha() == null || !usuario.getSenha().equals(senhaEnc)) {
+            log.warn("Tentativa de login falhou (senha incorreta): login={}", login);
+            return null;
+        }
 
         usuario.setLogin(login);
         usuario.setSenha(senha);
+        log.info("Login bem-sucedido: login={}", login);
         return usuario;
     }
 

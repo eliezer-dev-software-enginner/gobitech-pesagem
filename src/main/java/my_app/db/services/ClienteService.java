@@ -4,6 +4,8 @@ import my_app.db.DB;
 import my_app.db.models.ClienteModel;
 import my_app.db.repositories.ClienteRepository;
 import net.sf.persism.Session;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -11,6 +13,8 @@ import java.time.LocalDateTime;
 import static my_app.utils.Utils.*;
 
 public class ClienteService extends BaseService<ClienteModel> {
+
+    private static final Logger log = LoggerFactory.getLogger(ClienteService.class);
 
     private final ClienteRepository clienteRepository;
 
@@ -30,13 +34,16 @@ public class ClienteService extends BaseService<ClienteModel> {
         validarCampos(model);
         if (model.getAtivo() == null) model.setAtivo(true);
         model.setDataCriacao(LocalDateTime.now());
-        return repository.salvar(model);
+        var salvo = repository.salvar(model);
+        log.info("Cliente salvo: id={} loja={}", salvo.getId(), salvo.getLoja());
+        return salvo;
     }
 
     @Override
     public void atualizar(ClienteModel model) throws SQLException {
         validarCampos(model);
         repository.atualizar(model);
+        log.info("Cliente atualizado: id={} loja={}", model.getId(), model.getLoja());
     }
 
     private void validarCampos(ClienteModel model) throws SQLException {

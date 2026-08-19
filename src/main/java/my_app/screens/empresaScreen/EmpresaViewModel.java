@@ -9,10 +9,14 @@ import my_app.db.models.EmpresaModel;
 import my_app.db.services.EmpresaService;
 import my_app.domain.Data;
 import my_app.domain.components.Components;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
 public class EmpresaViewModel {
+    private static final Logger log = LoggerFactory.getLogger(EmpresaViewModel.class);
+
     private final ScreenContext ctx;
     private final EmpresaService empresaService;
 
@@ -99,6 +103,7 @@ public class EmpresaViewModel {
                 empresaService.salvarOuAtualizar(model);
                 UI.runOnUi(() -> Components.ShowPopup(ctx, "Empresa atualizada com sucesso"));
             } catch (Exception e) {
+                log.error("Erro ao salvar dados da empresa", e);
                 UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
             }
         });

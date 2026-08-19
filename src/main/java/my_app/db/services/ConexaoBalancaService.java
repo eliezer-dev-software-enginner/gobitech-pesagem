@@ -4,11 +4,15 @@ import my_app.db.DB;
 import my_app.db.models.ConexaoBalancaModel;
 import my_app.db.repositories.ConexaoBalancaRepository;
 import net.sf.persism.Session;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 
 public class ConexaoBalancaService extends BaseService<ConexaoBalancaModel> {
+
+    private static final Logger log = LoggerFactory.getLogger(ConexaoBalancaService.class);
 
     public ConexaoBalancaService() throws SQLException {
         this(DB.getPersismSession());
@@ -27,11 +31,16 @@ public class ConexaoBalancaService extends BaseService<ConexaoBalancaModel> {
         var existente = buscarUnico();
         if (existente == null) {
             model.setDataCriacao(LocalDateTime.now());
-            return repository.salvar(model);
+            var salvo = repository.salvar(model);
+            log.info("Conexão da balança configurada: tipo={} porta/ip={}", salvo.getTipoConexao(),
+                    "Serial".equalsIgnoreCase(salvo.getTipoConexao()) ? salvo.getPortaCom() : salvo.getIpAddress() + ":" + salvo.getIpPort());
+            return salvo;
         }
         model.setId(existente.getId());
         model.setDataCriacao(existente.getDataCriacao());
         repository.atualizar(model);
+        log.info("Conexão da balança atualizada: tipo={} porta/ip={}", model.getTipoConexao(),
+                "Serial".equalsIgnoreCase(model.getTipoConexao()) ? model.getPortaCom() : model.getIpAddress() + ":" + model.getIpPort());
         return model;
     }
 

@@ -74,6 +74,7 @@ public class ConexaoBalancaViewModel {
                     });
                 }
             } catch (Exception e) {
+                log.error("Erro ao carregar conexão da balança", e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro ao carregar conexão da balança: " + e.getMessage()));
             }
         });
@@ -98,6 +99,7 @@ public class ConexaoBalancaViewModel {
             } catch (IllegalArgumentException e) {
                 UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
             } catch (Exception e) {
+                log.error("Erro ao salvar conexão da balança", e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro ao salvar: " + e.getMessage()));
             }
         });
