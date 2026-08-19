@@ -96,9 +96,9 @@ public class PesagemScreen implements ScreenComponent, ContratoTelaCrudV3<Pesage
                                 .c_child(new SpacerVertical(10))
                                 .c_child(new FlowRow(new FlowRowProps().spacingOf(10))
                                         .children(
-                                                Components.InputWithButtonRow("Tara / Peso do veículo (Kg)", "Ex: 8500", "Capturar", vm.pesoVeiculo, vm::capturarTara),
-                                                Components.InputWithButtonRow("Peso bruto / total (Kg)", "Ex: 32000", "Capturar", vm.pesoTotal, vm::capturarPesoBruto),
-                                                Components.InputWithButtonRow("Peso líquido / final (Kg)", "Ex: 23500", "Calcular", vm.pesoFinal, vm::calcularPesoLiquido)
+                                                Components.InputWithButtonRow("Tara (Kg)", "Ex: 8500", "Capturar", vm.pesoVeiculo, vm::capturarTara),
+                                                Components.InputWithButtonRow("Peso bruto (Kg)", "Ex: 32000", "Capturar", vm.pesoTotal, vm::capturarPesoBruto),
+                                                Components.InputWithButtonRow("Peso líquido (Kg)", "Ex: 23500", "Calcular", vm.pesoFinal, vm::calcularPesoLiquido)
                                         )
                                 )
                                 .c_child(new SpacerVertical(10))
