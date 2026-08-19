@@ -121,9 +121,14 @@ lista/formulário — ver seção "Conexão da balança").
 balança — só abre um socket TCP e lê o que vier, então dá pra simular com um script simples
 sem precisar de hardware nem porta serial de verdade:
 
-- **`scripts/simular_balanca_tcp.py [porta] [peso_base]`** — manda um peso a cada ~1s, com um
-  pequeno ruído aleatório em volta do valor base (imita uma balança "tremendo"). Bom pra ver o
-  "Peso na balança agora" atualizando sozinho (útil pro caso #50/#51 em geral).
+- **`scripts/simular_balanca_tcp.py [porta] [peso_tara] [peso_bruto] [duracao_rampa_seg]`** —
+  manda um peso a cada ~1s que **sobe** do piso (peso_tara, padrão 8500) até o teto (peso_bruto,
+  padrão 32000) ao longo da rampa (padrão 20s) e depois se estabiliza lá, com um pequeno ruído
+  aleatório (imita uma balança "tremendo"). Capture Tara logo no início (perto do piso) e Peso
+  bruto depois de esperar a rampa terminar (perto do teto) — assim bruto sempre fica maior que
+  tara, sem risco do ruído aleatório fazer uma leitura posterior vir menor que uma anterior (o
+  que daria peso líquido negativo, sem representar nenhum cenário real). Rampa reinicia a cada
+  nova conexão, dá pra repetir o teste sem reiniciar o script.
 - **`scripts/simular_balanca_tcp_manual.py [porta]`** — só manda um peso quando você digita um
   valor e aperta Enter no terminal (Enter vazio repete o último). Bom pra testar sequências
   exatas — ex.: mandar uma Tara específica, capturar, mandar um Peso bruto específico, capturar,
