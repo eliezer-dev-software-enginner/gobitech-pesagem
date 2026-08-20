@@ -50,6 +50,7 @@ public class Main {
     static void main(String[] args) {
         log.info("Iniciando {} versão {}", APP_NAME, APP_VERSION);
         corrigirArquiteturaNativa();
+        configurarDiretorioNativoJSerialComm();
         MegalodonteApp.appName(APP_NAME);
         // Em Linux, garante um .desktop local pra rodar direto de JVM (IDE, gradle
         // run, dev.py) também ter ícone na dock — sem pacote instalado não existe
@@ -79,6 +80,16 @@ public class Main {
                 System.setProperty("os.arch", "amd64");
             }
         }
+    }
+
+    // jSerialComm por padrão extrai sua DLL nativa em %TEMP% ou ~/.jSerialComm — se
+// esse cache ficar corrompido/travado (ex: DLL de arquitetura errada presa por
+// processo anterior), a extração falha com "Acesso negado" e a lib não sobe.
+// Aponta pra um diretório próprio dentro de ~/.gobitech, sob controle exclusivo
+// do app, evitando conflito com cache global do usuário/sistema.
+    private static void configurarDiretorioNativoJSerialComm() {
+        var nativeDir = Path.of(System.getProperty("user.home"), ".gobitech", "native");
+        System.setProperty("jSerialComm.tmpdir", nativeDir.toString());
     }
 
     public static void handleClose(){
