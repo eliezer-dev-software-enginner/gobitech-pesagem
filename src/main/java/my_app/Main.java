@@ -49,6 +49,7 @@ public class Main {
 
     static void main(String[] args) {
         log.info("Iniciando {} versão {}", APP_NAME, APP_VERSION);
+        corrigirArquiteturaNativa();
         MegalodonteApp.appName(APP_NAME);
         // Em Linux, garante um .desktop local pra rodar direto de JVM (IDE, gradle
         // run, dev.py) também ter ícone na dock — sem pacote instalado não existe
@@ -66,6 +67,18 @@ public class Main {
                 handleClose();
             }
         });
+    }
+
+    private static void corrigirArquiteturaNativa() {
+        var arch = System.getProperty("os.arch");
+        if (arch != null && arch.toLowerCase().contains("aarch64")) {
+            var procArch = System.getenv("PROCESSOR_ARCHITECTURE");
+            var procArchW6432 = System.getenv("PROCESSOR_ARCHITEW6432");
+            if ((procArch != null && procArch.contains("AMD64")) ||
+                    (procArchW6432 != null && procArchW6432.contains("AMD64"))) {
+                System.setProperty("os.arch", "amd64");
+            }
+        }
     }
 
     public static void handleClose(){

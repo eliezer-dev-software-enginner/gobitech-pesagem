@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+import com.fazecast.jSerialComm.SerialPort;
+
 public class ConexaoBalancaViewModel {
     private static final Logger log = LoggerFactory.getLogger(ConexaoBalancaViewModel.class);
 
@@ -54,10 +56,19 @@ public class ConexaoBalancaViewModel {
     public void load() {
         Async.Run(() -> {
             try {
-                String[] portNames = SerialPortList.getPortNames();
-                UI.runOnUi(() -> {
-                    for (String name : portNames) portasComState.add(name);
-                });
+//                String[] portNames = SerialPortList.getPortNames();
+//                UI.runOnUi(() -> {
+//                    for (String name : portNames) portasComState.add(name);
+//                });
+
+                SerialPort[] ports = SerialPort.getCommPorts();
+                System.out.println("Portas encontradas: " + ports.length);
+                for (SerialPort port : ports) {
+                    String name = port.getSystemPortName() + " - " + port.getDescriptivePortName();
+                    System.out.println(name);
+
+
+                }
             } catch (Throwable e) {
                 log.error("Erro ao carregar portas seriais: {}", e.getMessage(), e);
             }

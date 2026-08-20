@@ -153,6 +153,10 @@ def run_jpackage(temp_dir: Path, pkg_type: str, extra_args: list = None):
         # Main.APP_VERSION lê essa property em runtime (mesmo padrão do
         # isMicrosoftStore) — nada mais fica hardcoded no Main.java.
         "--java-options", f"-Dplics.appVersion={APP_VERSION}",
+        # jSerialComm em Java 24+ exige liberar acesso a código nativo
+            # explicitamente — sem isso, a JVM barra o carregamento da lib nativa
+            # de portas seriais em runtime.
+        "--java-options", "--enable-native-access=ALL-UNNAMED",
         "--main-jar", "app.jar",
         "--main-class", MAIN_CLASS,
         "--dest", "dist",

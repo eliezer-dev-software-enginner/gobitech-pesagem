@@ -44,6 +44,10 @@ javafx {
 }
 
 dependencies {
+
+    implementation("com.fazecast:jSerialComm:2.11.0")
+
+
     // Dependências de teste (mantidas)
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
