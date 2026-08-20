@@ -78,8 +78,8 @@ public class HomeScreen implements ScreenComponent {
         var gerencialMenu = new Menu("Gerencial")
                 .textColor(Sidebar.TEXT_COLOR)
                 .item("Empresa", () -> ctx.router().spawnWindow(AppRoutes.Screens.EMPRESA.name(), e -> {}))
-                .item("Conexão da balança", () -> ctx.router().spawnWindow(AppRoutes.Screens.CONEXAO_BALANCA.name(), e -> {}))
-                .item("Conexão das câmeras", () -> ctx.router().spawnWindow(AppRoutes.Screens.CONEXAO_CAMERA.name(), e -> {}));
+                .item("Conexão da balança", () -> ctx.router().spawnWindow(AppRoutes.Screens.CONEXAO_BALANCA.name(), e -> {}));
+               // .item("Conexão das câmeras", () -> ctx.router().spawnWindow(AppRoutes.Screens.CONEXAO_CAMERA.name(), e -> {}));
 
         // Só quem está logado como admin vê a opção de gerar licença — ver
         // SessaoUsuario/DECISIONS.md (André usa seu login de admin em qualquer PC).
