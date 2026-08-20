@@ -66,11 +66,10 @@ public class ConexaoBalancaViewModel {
                 for (SerialPort port : ports) {
                     String name = port.getSystemPortName() + " - " + port.getDescriptivePortName();
                     System.out.println(name);
-
-
                 }
             } catch (Throwable e) {
                 log.error("Erro ao carregar portas seriais: {}", e.getMessage(), e);
+                UI.runOnUi(() -> Components.ShowAlertError("Erro ao carregar portas seriais: " + e.getMessage()));
             }
 
             try {
