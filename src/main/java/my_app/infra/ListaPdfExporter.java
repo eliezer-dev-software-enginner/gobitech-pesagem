@@ -22,7 +22,7 @@ public class ListaPdfExporter {
     private static final float LARGURA_UTIL = PDRectangle.A4.getWidth() - 2 * MARGEM;
 
     public static void exportar(File destino, EmpresaModel empresa, String titulo,
-                                 List<String> headers, List<List<String>> rows) throws IOException {
+                                List<String> headers, List<List<String>> rows) throws IOException {
         try (PDDocument doc = new PDDocument()) {
             var page = new PDPage(PDRectangle.A4);
             doc.addPage(page);
@@ -32,7 +32,11 @@ public class ListaPdfExporter {
             var fonteHeaderTabela = PDType1Font.HELVETICA_BOLD;
             var fonteCell = PDType1Font.HELVETICA;
 
-            try (var cs = new PDPageContentStream(doc, page)) {
+            // cs não é mais final/try-with-resources: precisa ser fechado e reaberto de
+            // verdade a cada quebra de página (antes era fechado e nunca reaberto, o que
+            // lançaria "stream closed" assim que a lista estourasse a primeira página).
+            PDPageContentStream cs = new PDPageContentStream(doc, page);
+            try {
                 float y = page.getMediaBox().getHeight() - MARGEM;
 
                 // --- Cabeçalho da empresa ---
@@ -119,13 +123,28 @@ public class ListaPdfExporter {
                 cs.setNonStrokingColor(0, 0, 0);
 
                 // Rows
-                for (var row : rows) {
+                for (int r = 0; r < rows.size(); r++) {
+                    var row = rows.get(r);
+
                     if (y < MARGEM + LEADING) {
-                        // nova pagina
+                        // nova pagina — fecha o stream atual de verdade e abre um novo pra
+                        // página nova, em vez de continuar escrevendo num stream fechado
                         cs.close();
                         var newPage = new PDPage(PDRectangle.A4);
                         doc.addPage(newPage);
+                        cs = new PDPageContentStream(doc, newPage);
                         y = newPage.getMediaBox().getHeight() - MARGEM;
+                        cs.setNonStrokingColor(0, 0, 0);
+                    }
+
+                    // zebra stripe é desenhado ANTES do texto da linha — antes ficava depois
+                    // do showText() e, como quem desenha por último fica em cima em PDF, o
+                    // fill() cobria o texto de toda linha par (metade da lista "sumia")
+                    if (r % 2 == 0) {
+                        cs.setNonStrokingColor(245, 245, 245);
+                        cs.addRect(MARGEM, y - 2, LARGURA_UTIL, LEADING);
+                        cs.fill();
+                        cs.setNonStrokingColor(0, 0, 0);
                     }
 
                     x = MARGEM;
@@ -139,15 +158,6 @@ public class ListaPdfExporter {
                         x += colWidths[i];
                     }
 
-                    // zebra stripe
-                    int rowIndex = rows.indexOf(row);
-                    if (rowIndex % 2 == 0) {
-                        cs.setNonStrokingColor(245, 245, 245);
-                        cs.addRect(MARGEM, y - 2, LARGURA_UTIL, LEADING);
-                        cs.fill();
-                        cs.setNonStrokingColor(0, 0, 0);
-                    }
-
                     y -= LEADING;
                 }
 
@@ -157,6 +167,8 @@ public class ListaPdfExporter {
                 escreverLinha(cs, fonteTexto, 8, MARGEM, y,
                         "Gerado em " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
                                 + " - " + rows.size() + " registro(s)");
+            } finally {
+                cs.close();
             }
 
             doc.save(destino);
@@ -183,7 +195,7 @@ public class ListaPdfExporter {
     }
 
     private static float[] calcularLarguras(List<String> headers, List<List<String>> rows,
-                                             PDFont fonteH, PDFont fonteC, float fontSize) throws IOException {
+                                            PDFont fonteH, PDFont fonteC, float fontSize) throws IOException {
         int totalCols = headers.size();
         float[] widths = new float[totalCols];
 
@@ -228,7 +240,7 @@ public class ListaPdfExporter {
     }
 
     private static float escreverLinha(PDPageContentStream cs, PDFont fonte, float tamanho,
-                                        float x, float y, String texto) throws IOException {
+                                       float x, float y, String texto) throws IOException {
         cs.beginText();
         cs.setFont(fonte, tamanho);
         cs.newLineAtOffset(x, y);

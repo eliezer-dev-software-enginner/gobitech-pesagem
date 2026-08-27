@@ -1,6 +1,7 @@
 package my_app.domain;
 
 import java.io.File;
+import java.util.List;
 
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -24,15 +25,13 @@ import megalodonte.props.ContainerProps;
 import megalodonte.props.RowProps;
 import megalodonte.router.v4.ScreenContext;
 import megalodonte.v2.Show;
-import my_app.core.AppRoutes;
 import my_app.core.Identifier;
+import my_app.db.models.EmpresaModel;
 import my_app.domain.components.Components;
-import my_app.infra.ListaPdfExporter;
 import my_app.db.services.EmpresaService;
 import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.antdesignicons.AntDesignIconsOutlined;
 import org.kordamp.ikonli.entypo.Entypo;
-import org.kordamp.ikonli.javafx.FontIcon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,12 +62,15 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
         File destino = fileChooser.showSaveDialog(viewModel().ctx.selfStage());
         if (destino == null) return;
 
-        megalodonte.base.async.Async.Run(() -> {
+        // captura ainda na FX thread — mesma thread que escreve filteredList
+        var snapshotFiltrado = viewModel().filteredList.get();
+
+        Async.Run(() -> {
             try {
                 var empresaService = new EmpresaService();
                 var empresa = empresaService.buscarUnico();
                 empresaService.close();
-                exportPdf(destino, empresa);
+                exportPdf(destino, empresa, snapshotFiltrado); // passa o snapshot, não lê vm de novo
                 UI.runOnUi(() -> Components.ShowPopup(viewModel().ctx, "PDF salvo em: " + destino.getAbsolutePath()));
             } catch (Exception e) {
                 log.error("Erro ao exportar PDF", e);
@@ -77,7 +79,30 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
         });
     }
 
-    void exportPdf(java.io.File destino, my_app.db.models.EmpresaModel empresa) throws Exception;
+//    default void handleClickBaixarLista() {
+//        var fileChooser = new FileChooser();
+//        fileChooser.setTitle("Salvar lista em PDF");
+//        fileChooser.setInitialFileName("lista.pdf");
+//        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF", "*.pdf"));
+//        File destino = fileChooser.showSaveDialog(viewModel().ctx.selfStage());
+//        if (destino == null) return;
+//
+//        megalodonte.base.async.Async.Run(() -> {
+//            try {
+//                var empresaService = new EmpresaService();
+//                var empresa = empresaService.buscarUnico();
+//                empresaService.close();
+//                exportPdf(destino, empresa);
+//                UI.runOnUi(() -> Components.ShowPopup(viewModel().ctx, "PDF salvo em: " + destino.getAbsolutePath()));
+//            } catch (Exception e) {
+//                log.error("Erro ao exportar PDF", e);
+//                UI.runOnUi(() -> Components.ShowAlertError("Erro ao exportar: " + e.getMessage()));
+//            }
+//        });
+//    }
+
+    //void exportPdf(java.io.File destino, EmpresaModel empresa) throws Exception;
+    void exportPdf(File destino, EmpresaModel empresa, List<T> snapshotFiltrado) throws Exception;
 
     default void handleClickMenuDelete() {
         if(viewModel().selected.get() == null)throw new IllegalArgumentException("Selecione o item na tabela antes!");

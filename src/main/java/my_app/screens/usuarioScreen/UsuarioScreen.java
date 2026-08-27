@@ -24,6 +24,9 @@ import my_app.db.models.EmpresaModel;
 import my_app.infra.ListaPdfExporter;
 import my_app.utils.DateUtils;
 
+import java.io.File;
+import java.util.List;
+
 public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<UsuarioModel> {
     private final UsuarioScreenViewModel vm;
     private final ScreenContext screenContext;
@@ -94,7 +97,7 @@ public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<Usuari
     }
 
     @Override
-    public void exportPdf(java.io.File destino, EmpresaModel empresa) throws Exception {
+    public void exportPdf(File destino, EmpresaModel empresa, List<UsuarioModel> snapshotFiltrado) throws Exception {
         var headers = java.util.List.of("ID", "Nome", "Login", "Admin", "Data de criacao");
         var rows = vm.filteredList.get().stream().map(u -> java.util.List.of(
                 String.valueOf(u.getId()),

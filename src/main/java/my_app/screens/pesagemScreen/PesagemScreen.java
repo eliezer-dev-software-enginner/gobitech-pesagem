@@ -29,6 +29,9 @@ import my_app.db.models.EmpresaModel;
 import my_app.infra.ListaPdfExporter;
 import my_app.utils.DateUtils;
 
+import java.io.File;
+import java.util.List;
+
 public class PesagemScreen implements ScreenComponent, ContratoTelaCrudV3<PesagemModel> {
     private final PesagemViewModel vm;
     private final ScreenContext screenContext;
@@ -226,7 +229,7 @@ public class PesagemScreen implements ScreenComponent, ContratoTelaCrudV3<Pesage
     }
 
     @Override
-    public void exportPdf(java.io.File destino, EmpresaModel empresa) throws Exception {
+    public void exportPdf(File destino, EmpresaModel empresa, List<PesagemModel> snapshotFiltrado) throws Exception {
         var headers = java.util.List.of("ID", "Placa", "Motorista", "Operacao", "Cliente", "Produto", "Peso liquido (Kg)", "Data");
         var rows = vm.filteredList.get().stream().map(p -> java.util.List.of(
                 String.valueOf(p.getId()),

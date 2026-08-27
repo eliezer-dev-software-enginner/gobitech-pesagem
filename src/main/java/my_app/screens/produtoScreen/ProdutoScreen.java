@@ -3,27 +3,25 @@ package my_app.screens.produtoScreen;
 import megalodonte.base.components.Component;
 import megalodonte.base.components.ScreenComponent;
 import megalodonte.base.theme.ThemeManager;
-import megalodonte.components.Card;
-import megalodonte.components.LineHorizontal;
 import megalodonte.components.SimpleTable;
 import megalodonte.components.SpacerVertical;
 import megalodonte.components.Text;
 import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.Container;
-import megalodonte.components.layout_components.FlowRow;
 import megalodonte.props.ColumnProps;
-import megalodonte.props.FlowRowProps;
 import megalodonte.props.SimpleTableProps;
 import megalodonte.props.TextProps;
 import megalodonte.router.v4.ScreenContext;
 import my_app.db.models.ProdutoModel;
 import my_app.domain.ContratoTelaCrudV3;
-import my_app.domain.Data;
 import my_app.domain.ViewModelScreenContract;
 import my_app.domain.components.Components;
 import my_app.db.models.EmpresaModel;
 import my_app.infra.ListaPdfExporter;
 import my_app.utils.DateUtils;
+
+import java.io.File;
+import java.util.List;
 
 public class ProdutoScreen implements ScreenComponent, ContratoTelaCrudV3<ProdutoModel> {
     private final ProdutoScreenViewModel vm;
@@ -78,7 +76,7 @@ public class ProdutoScreen implements ScreenComponent, ContratoTelaCrudV3<Produt
     }
 
     @Override
-    public void exportPdf(java.io.File destino, EmpresaModel empresa) throws Exception {
+    public void exportPdf(File destino, EmpresaModel empresa, List<ProdutoModel> snapshotFiltrado) throws Exception {
         var headers = java.util.List.of("ID", "Nome", "Unidade", "Desconto (%)", "Data de criacao");
         var rows = vm.filteredList.get().stream().map(p -> java.util.List.of(
                 String.valueOf(p.getId()),
