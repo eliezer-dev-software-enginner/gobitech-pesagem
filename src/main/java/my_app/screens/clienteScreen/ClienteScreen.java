@@ -1,6 +1,5 @@
 package my_app.screens.clienteScreen;
 
-import jdk.jshell.execution.Util;
 import megalodonte.base.components.Component;
 import megalodonte.base.components.ScreenComponent;
 import megalodonte.base.theme.ThemeManager;
@@ -10,6 +9,7 @@ import megalodonte.components.SimpleTable;
 import megalodonte.components.SpacerVertical;
 import megalodonte.components.Text;
 import megalodonte.components.layout_components.Column;
+import megalodonte.components.layout_components.Container;
 import megalodonte.components.layout_components.FlowRow;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.FlowRowProps;
@@ -20,6 +20,7 @@ import my_app.db.models.ClienteModel;
 import my_app.domain.ContratoTelaCrudV3;
 import my_app.domain.ViewModelScreenContract;
 import my_app.domain.components.Components;
+import my_app.infra.CsvExporter;
 import my_app.utils.DateUtils;
 import my_app.utils.Utils;
 
@@ -49,26 +50,7 @@ public class ClienteScreen implements ScreenComponent, ContratoTelaCrudV3<Client
 
     @Override
     public Component form() {
-        return new Card(
-                new Column(new ColumnProps().paddingAll(20))
-                        .c_child(Components.FormTitle("Cadastrar cliente"))
-                        .c_child(new SpacerVertical(20))
-                        .c_child(new FlowRow(new FlowRowProps().spacingOf(10))
-                                .children(
-                                        Components.InputColumn("Loja", vm.loja, "Ex: Fazenda Santa Rita"),
-                                        Components.InputColumn("Razão social", vm.razaoSocial, "Ex: Santa Rita Agropecuária Ltda"),
-                                        Components.InputColumnCpfCnpj("CPF/CNPJ", vm.cnpjCpf),
-                                        Components.InputColumnPhone("Telefone", vm.telefone)
-                                )
-                        )
-                        .c_child(new SpacerVertical(10))
-                        .c_child(Components.enderecoComponent(vm.enderecoState.get()))
-                        .c_child(Components.InputColumn("Complemento", vm.complemento, "Ex: Galpão 2"))
-                        .c_child(new SpacerVertical(20))
-                        .c_child(new LineHorizontal())
-                        .c_child(new SpacerVertical(20))
-                        .c_child(Components.actionButtons(vm.btnText, this::handleAddOrUpdate))
-        );
+        return new Container();
     }
 
     @Override
@@ -92,6 +74,20 @@ public class ClienteScreen implements ScreenComponent, ContratoTelaCrudV3<Client
                 .onItemSelectChange(vm.selected::set);
 
         return simpleTable;
+    }
+
+    @Override
+    public void exportCsv(java.io.File destino) throws Exception {
+        var headers = java.util.List.of("ID", "Loja", "Razao social", "CPF/CNPJ", "Telefone", "Data de criacao");
+        var rows = vm.filteredList.get().stream().map(c -> java.util.List.of(
+                String.valueOf(c.getId()),
+                c.getLoja() != null ? c.getLoja() : "",
+                c.getRazaoSocial() != null ? c.getRazaoSocial() : "",
+                c.getCpfCnpj() != null ? Utils.formatCpfCnpj(c.getCpfCnpj()) : "",
+                c.getTelefone() != null ? Utils.formatPhone(c.getTelefone()) : "",
+                DateUtils.localDateTimeToBrazilianDateTime(c.getDataCriacao())
+        )).toList();
+        CsvExporter.exportar(destino, headers, rows);
     }
 
     public Component itemDetails(ClienteModel model) {

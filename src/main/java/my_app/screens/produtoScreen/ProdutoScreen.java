@@ -21,6 +21,7 @@ import my_app.domain.ContratoTelaCrudV3;
 import my_app.domain.Data;
 import my_app.domain.ViewModelScreenContract;
 import my_app.domain.components.Components;
+import my_app.infra.CsvExporter;
 import my_app.utils.DateUtils;
 
 public class ProdutoScreen implements ScreenComponent, ContratoTelaCrudV3<ProdutoModel> {
@@ -73,6 +74,19 @@ public class ProdutoScreen implements ScreenComponent, ContratoTelaCrudV3<Produt
                 //.onItemDoubleClick(it -> showItemDetailsComAcoes(it, this.screenContext, 350));
 
         return simpleTable;
+    }
+
+    @Override
+    public void exportCsv(java.io.File destino) throws Exception {
+        var headers = java.util.List.of("ID", "Nome", "Unidade", "Desconto (%)", "Data de criacao");
+        var rows = vm.filteredList.get().stream().map(p -> java.util.List.of(
+                String.valueOf(p.getId()),
+                p.getNome() != null ? p.getNome() : "",
+                p.getUnidade() != null ? p.getUnidade() : "",
+                p.getDesconto() != null ? p.getDesconto().toPlainString() : "0",
+                DateUtils.localDateTimeToBrazilianDateTime(p.getDataCriacao())
+        )).toList();
+        CsvExporter.exportar(destino, headers, rows);
     }
 
     public Component itemDetails(ProdutoModel model) {

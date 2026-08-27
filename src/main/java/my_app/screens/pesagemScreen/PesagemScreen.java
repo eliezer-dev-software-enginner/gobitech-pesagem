@@ -25,6 +25,7 @@ import my_app.db.models.PesagemModel;
 import my_app.domain.ContratoTelaCrudV3;
 import my_app.domain.ViewModelScreenContract;
 import my_app.domain.components.Components;
+import my_app.infra.CsvExporter;
 import my_app.utils.DateUtils;
 
 public class PesagemScreen implements ScreenComponent, ContratoTelaCrudV3<PesagemModel> {
@@ -221,6 +222,22 @@ public class PesagemScreen implements ScreenComponent, ContratoTelaCrudV3<Pesage
                 );
 
         modalStage[0] = Components.ShowModal(conteudo, ctx, height);
+    }
+
+    @Override
+    public void exportCsv(java.io.File destino) throws Exception {
+        var headers = java.util.List.of("ID", "Placa", "Motorista", "Operacao", "Cliente", "Produto", "Peso liquido (Kg)", "Data");
+        var rows = vm.filteredList.get().stream().map(p -> java.util.List.of(
+                String.valueOf(p.getId()),
+                p.getPlaca() != null ? p.getPlaca() : "",
+                p.getMotoristaNome() != null ? p.getMotoristaNome() : "",
+                p.getOperacao() != null ? p.getOperacao() : "",
+                p.getCliente() != null ? p.getCliente().getLoja() : "-",
+                p.getProduto() != null ? p.getProduto().getNome() : "-",
+                String.valueOf(p.getPesoFinal()),
+                DateUtils.localDateTimeToBrazilianDateTime(p.getDataCriacao())
+        )).toList();
+        CsvExporter.exportar(destino, headers, rows);
     }
 
     public Component itemDetails(PesagemModel model) {

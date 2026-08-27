@@ -1,7 +1,11 @@
 package my_app.domain;
 
+import java.io.File;
+
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import megalodonte.base.UI;
+import megalodonte.base.async.Async;
 import megalodonte.base.async.RunnableThrowing;
 import megalodonte.base.components.Component;
 import megalodonte.base.theme.ThemeManager;
@@ -23,6 +27,7 @@ import megalodonte.v2.Show;
 import my_app.core.AppRoutes;
 import my_app.core.Identifier;
 import my_app.domain.components.Components;
+import my_app.infra.CsvExporter;
 import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.antdesignicons.AntDesignIconsOutlined;
 import org.kordamp.ikonli.entypo.Entypo;
@@ -46,14 +51,33 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
     ViewModelScreenContract<T> viewModel();
 
     default void handleClickNew() {
-        //viewModel().formIsVisible.set(true);
-        //viewModel().modoEdicaoState().set(false);
-        //clearForm();
-
         viewModel().ctx.router().spawnWindow(viewModel().screenNameSpawn+"/-1/add/");
     }
 
+    default void handleClickBaixarLista() {
+        var fileChooser = new FileChooser();
+        fileChooser.setTitle("Salvar lista em CSV");
+        fileChooser.setInitialFileName("lista.csv");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
+        File destino = fileChooser.showSaveDialog(((Stage) table().getTableView().getScene().getWindow()));
+        if (destino == null) return;
+
+        megalodonte.base.async.Async.Run(() -> {
+            try {
+                exportCsv(destino);
+                UI.runOnUi(() -> Components.ShowPopup(viewModel().ctx, "Lista salva em: " + destino.getAbsolutePath()));
+            } catch (Exception e) {
+                log.error("Erro ao exportar CSV", e);
+                UI.runOnUi(() -> Components.ShowAlertError("Erro ao exportar: " + e.getMessage()));
+            }
+        });
+    }
+
+    void exportCsv(java.io.File destino) throws Exception;
+
     default void handleClickMenuDelete() {
+        if(viewModel().selected.get() == null)throw new IllegalArgumentException("Selecione o item na tabela antes!");
+
         viewModel().modoEdicaoState().set(false);
         viewModel().handleClickMenuDelete();
     }
@@ -144,10 +168,9 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
 
     private Row actionButtonsRow(){
         return new Row(new RowProps().spacingOf(10).hugWidth()).children(
-                //TODO: IMPLEMENTAR
-                actionButton("Baixar lista","black","#CDD7D6", Entypo.DOWNLOAD, this::handleClickNew),
+                actionButton("Baixar lista","black","#CDD7D6", Entypo.DOWNLOAD, this::handleClickBaixarLista),
                 actionButton("Editar","black","#ADA8BE", Entypo.EDIT, this::handleClickMenuEdit),
-                actionButton("Excluir","white","#E55934", Entypo.TRASH, this::handleClickNew),
+                actionButton("Excluir","white","#E55934", Entypo.TRASH, this::handleClickMenuDelete),
                 new SpacerVertical(30),
                 actionButton("Criar novo","black",null, Entypo.ADD_TO_LIST, this::handleClickNew)
         );

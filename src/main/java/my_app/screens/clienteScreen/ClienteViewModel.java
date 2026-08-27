@@ -32,6 +32,11 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
         super(ctx);
         this.clienteService = createOrReport(ClienteService::new);
         screenNameSpawn = AppRoutes.Screens.ADD_OR_EDIT_CLIENTE.name();
+        EventBus.getInstance().subscribe(event -> {
+            if (event instanceof EntityEvent<?> ee && ee.entity() instanceof ClienteModel) {
+                fetchListData();
+            }
+        });
     }
 
     @Override

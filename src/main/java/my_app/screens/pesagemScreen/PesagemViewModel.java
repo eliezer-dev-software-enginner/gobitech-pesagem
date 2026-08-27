@@ -103,6 +103,14 @@ public class PesagemViewModel extends ViewModelScreenContract<PesagemModel> {
         this.conexaoCameraService = createOrReport(ConexaoCameraService::new);
         carregarClientesEProdutos();
 
+        EventBus.getInstance().subscribe(event -> {
+            if (event instanceof EntityEvent<?> ee) {
+                if (ee.entity() instanceof ClienteModel || ee.entity() instanceof ProdutoModel) {
+                    carregarClientesEProdutos();
+                }
+            }
+        });
+
         // Ao selecionar um produto, carrega o desconto padrão dele no campo "Outros" — só um
         // ponto de partida editável pelo operador. Em populateFieldsFromModel() (editar/clonar
         // uma pesagem existente), produtoSelected é setado ANTES do desconto real salvo, então

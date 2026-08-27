@@ -33,6 +33,11 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
         super(ctx);
         this.produtoService = createOrReport(ProdutoService::new);
         screenNameSpawn = AppRoutes.Screens.ADD_OR_EDIT_PRODUTO.name();
+        EventBus.getInstance().subscribe(event -> {
+            if (event instanceof EntityEvent<?> ee && ee.entity() instanceof ProdutoModel) {
+                fetchListData();
+            }
+        });
     }
 
     @Override
