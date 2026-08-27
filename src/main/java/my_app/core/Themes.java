@@ -16,7 +16,7 @@ return new ThemeColors(
                 "#94a3b8",                    // text secondary
                 "#334155",                    // border,
         "#A9A9A9",
-        "#dbeafe",                    // selection (primary with low opacity)
+        "#1e3a5f",                    // selection (escuro o bastante para texto branco)
         "#93c5fd",                    // focusRing (lighter primary)
         "#2d3a4f"                     // hover
             );
