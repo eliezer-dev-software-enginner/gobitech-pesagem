@@ -2,6 +2,7 @@ package my_app.domain;
 
 import javafx.stage.Stage;
 import megalodonte.base.UI;
+import megalodonte.base.async.RunnableThrowing;
 import megalodonte.base.components.Component;
 import megalodonte.base.theme.ThemeManager;
 import megalodonte.components.Button;
@@ -20,7 +21,10 @@ import megalodonte.props.RowProps;
 import megalodonte.router.v4.ScreenContext;
 import megalodonte.v2.Show;
 import my_app.domain.components.Components;
+import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.antdesignicons.AntDesignIconsOutlined;
+import org.kordamp.ikonli.entypo.Entypo;
+import org.kordamp.ikonli.javafx.FontIcon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,19 +111,39 @@ public interface ContratoTelaCrudV3<T> {
                                                         Components.searchInput(viewModel().searchState, "Pesquisar"),
                                                         table()
                                                 ),
-                                        new CardProps().fillWidth().padding(20).bgColor("#ffffff")
+                                        new CardProps().fillWidth().paddingAll(20).bgColor("#ffffff")
                                 )
                         )
         );
 
-        Component botaoCriarNovo = new Button("+ Criar novo", new ButtonProps().height(34)
-                .bgColor(ThemeManager.theme().colors().primary()).textColor("black"))
-                .onClick(this::handleClickNew);
+
 
         return new Stack()
                 .children(conteudo)
-                .childInCorner(botaoCriarNovo, Stack.Corner.BOTTOM_RIGHT, 20)
+                .childInCorner(actionButtonsRow(), Stack.Corner.BOTTOM_RIGHT, 20)
+                //.childInCorner(botaoCriarNovo, Stack.Corner.BOTTOM_RIGHT, 20)
                 .fillHeight();
+    }
+
+    private Row actionButtonsRow(){
+        return new Row(new RowProps().spacingOf(10).hugWidth()).children(
+                actionButton("Baixar lista","black","#CDD7D6", Entypo.DOWNLOAD, this::handleClickNew),
+                actionButton("Editar","black","#ADA8BE", Entypo.EDIT, this::handleClickNew),
+                actionButton("Excluir","white","#E55934", Entypo.TRASH, this::handleClickNew),
+                new SpacerVertical(30),
+                actionButton("Criar novo","black",null, Entypo.ADD_TO_LIST, this::handleClickNew)
+//                botaoCriarNovo,
+//                botaoCriarNovo,
+//                botaoCriarNovo
+        );
+    }
+
+    private Button actionButton(String title, String color, String bgColor, Ikon ikon, RunnableThrowing onclick){
+        return new Button(title, new ButtonProps()
+                .bgColor(bgColor!=null? bgColor : ThemeManager.theme().colors().primary())
+                .textColor(color))
+                .onClick(onclick)
+                .icon(Components.ikon(ikon,10, color));
     }
 
     private Component formPage() {
@@ -130,7 +154,7 @@ public interface ContratoTelaCrudV3<T> {
                                         .textColor("#111"))
                                         .onClick(this::handleClickVoltar)
                                         .icon(Components.ikon(AntDesignIconsOutlined.LEFT, 12, "black")),
-                                new Card(form(), new CardProps().fillWidth().padding(20).bgColor("#ffffff"))
+                                new Card(form(), new CardProps().fillWidth().paddingAll(20).bgColor("#ffffff"))
                         )
         );
     }

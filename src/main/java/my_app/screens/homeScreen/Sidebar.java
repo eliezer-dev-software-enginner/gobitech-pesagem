@@ -7,6 +7,7 @@ import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import megalodonte.ComputedState;
 import megalodonte.base.Animations;
+import megalodonte.base.async.RunnableThrowing;
 import megalodonte.base.components.Component;
 import megalodonte.base.state.State;
 import megalodonte.base.theme.ThemeManager;
@@ -38,7 +39,7 @@ public class Sidebar {
     public static final String TEXT_COLOR = "#ffffff";
     private static final String ICON_COLOR = "#ffffff";
 
-    private static final double LARGURA_EXPANDIDA = 160;
+    private static final double LARGURA_EXPANDIDA = 190;
     private static final double LARGURA_MINIMIZADA = 64;
     private static final double DIAMETRO_TOGGLE = 28;
 
@@ -49,9 +50,11 @@ public class Sidebar {
         filhos.add(logo(minimizada));
         filhos.add(new SpacerVertical(10));
         filhos.add(botaoNav("Início", Entypo.HOME, Secao.HOME, viewModel));
-        filhos.add(botaoNav("Pesagem", AntDesignIconsOutlined.CAR, Secao.PESAGENS, viewModel));
-        filhos.add(botaoNav("Produto", Entypo.BOX, Secao.PRODUTOS, viewModel));
-        filhos.add(botaoNav("Cliente", Entypo.SUITCASE, Secao.CLIENTES, viewModel));
+        filhos.add(botaoNav("Pesagem entrada", Entypo.HOME, Secao.HOME, viewModel));
+        filhos.add(botaoNav("Pesagem de saida", Entypo.HOME, Secao.HOME, viewModel));
+        filhos.add(botaoNav("Pesagem avulsa", Entypo.HOME, Secao.HOME, viewModel));
+        filhos.add(botaoNav("Pesagem manual", Entypo.HOME, Secao.HOME, viewModel));
+        //filhos.add(botaoNav("Pesagem", AntDesignIconsOutlined.CAR, Secao.PESAGENS, viewModel));
         // Gerenciar usuários é ato administrativo — quem não é admin não deve manipular
         // outros usuários, então o item nem aparece (mesmo padrão de "Gerar licença").
         if (SessaoUsuario.isAdmin()) {
@@ -71,7 +74,7 @@ public class Sidebar {
         // aparece pra admin) pode passar da altura da janela. Envolver num ScrollPane garante
         // que o Logout sempre fica alcançável rolando, em vez de ficar cortado sem jeito de
         // clicar — independente de qual monitor a janela está.
-        var scroll = (ScrollPane) Components.ScrollPaneDefault(coluna).getNode();
+        var scroll = (ScrollPane) Components.ScrollPaneDefault(coluna).getJavaFxNode();
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
         aplicarLargura(scroll, minimizada.get());
@@ -111,7 +114,7 @@ public class Sidebar {
         var minimizada = viewModel.sidebarMinimizada;
 
         var icone = Components.ikon(Entypo.CHEVRON_LEFT, 16, "#000000");
-        var iconeNode = icone.getNode();
+        var iconeNode = icone.getJavaFxNode();
         iconeNode.setRotate(minimizada.get() ? 180 : 0);
         minimizada.subscribe(valor ->
                 Animations.rotate(iconeNode, iconeNode.getRotate(), valor ? 180 : 0, Duration.millis(250)).play()
@@ -125,7 +128,7 @@ public class Sidebar {
                 .icon(icone)
                 .onClick(() -> minimizada.set(!minimizada.get()));
 
-        var node = (javafx.scene.control.Button) botao.getNode();
+        var node = (javafx.scene.control.Button) botao.getJavaFxNode();
         node.setPrefSize(DIAMETRO_TOGGLE, DIAMETRO_TOGGLE);
         node.setMinSize(DIAMETRO_TOGGLE, DIAMETRO_TOGGLE);
         node.setMaxSize(DIAMETRO_TOGGLE, DIAMETRO_TOGGLE);
@@ -170,7 +173,7 @@ public class Sidebar {
         return botao;
     }
 
-    private static Component botaoLogout(State<Boolean> minimizada, Runnable onClick) {
+    private static Component botaoLogout(State<Boolean> minimizada, RunnableThrowing onClick) {
         var textoComputado = ComputedState.of(() -> minimizada.get() ? "" : "Logout", minimizada);
 
         var botao = new Button(textoComputado, new ButtonProps().fillWidth().bgColor("transparent").textColor(TEXT_COLOR))
@@ -188,6 +191,6 @@ public class Sidebar {
      * pra todos, texto mais longo ou mais curto só muda o quanto ele se estende à direita.
      */
     private static void alinharEsquerda(Component botao) {
-        ((javafx.scene.control.Button) botao.getNode()).setAlignment(Pos.CENTER_LEFT);
+        ((javafx.scene.control.Button) botao.getJavaFxNode()).setAlignment(Pos.CENTER_LEFT);
     }
 }

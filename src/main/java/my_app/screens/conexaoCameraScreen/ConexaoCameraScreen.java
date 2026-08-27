@@ -1,5 +1,6 @@
 package my_app.screens.conexaoCameraScreen;
 
+import megalodonte.base.async.RunnableThrowing;
 import megalodonte.base.components.Component;
 import megalodonte.base.components.ScreenComponent;
 import megalodonte.base.theme.ThemeManager;
@@ -71,7 +72,7 @@ public class ConexaoCameraScreen implements ScreenComponent {
     private Component secaoCamera(String titulo, megalodonte.base.state.State<String> ip, megalodonte.base.state.State<String> porta,
                                    megalodonte.base.state.State<String> canal, megalodonte.base.state.State<String> usuario,
                                    megalodonte.base.state.State<String> senha, megalodonte.base.state.State<String> preview,
-                                   Runnable onTestar) {
+                                  RunnableThrowing onTestar) {
         return new Row(new RowProps().spacingOf(20))
                 .children(
                         new Column(new ColumnProps().spacingOf(10))

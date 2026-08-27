@@ -29,7 +29,7 @@ public class HomeScreen implements ScreenComponent {
         viewModel.telaAtiva.subscribe(tela -> renderConteudo());
         // Sidebar tem largura fixa — a área de conteúdo precisa esticar pra ocupar o resto
         // da Row; Row só faz isso automaticamente pra SpacerHorizontal, não pra qualquer filho.
-        HBox.setHgrow(contentArea.getNode(), Priority.ALWAYS);
+        HBox.setHgrow(contentArea.getJavaFxNode(), Priority.ALWAYS);
     }
 
     @Override
@@ -54,7 +54,7 @@ public class HomeScreen implements ScreenComponent {
         // mesmo Stack (irmãos numa Row simples pintam na ordem dos filhos, não por
         // sobreposição na tela).
         var corpo = new Stack().children(linha, Sidebar.toggleButton(viewModel));
-        var corpoNode = (StackPane) corpo.getNode();
+        var corpoNode = (StackPane) corpo.getJavaFxNode();
         corpoNode.setMaxHeight(Double.MAX_VALUE);
         VBox.setVgrow(corpoNode, Priority.ALWAYS);
 
@@ -66,7 +66,7 @@ public class HomeScreen implements ScreenComponent {
 
     private void renderConteudo() {
         Component conteudo = viewModel.telaAtiva.get().render();
-        ((VBox) contentArea.getNode()).getChildren().setAll(conteudo.getNode());
+        ((VBox) contentArea.getJavaFxNode()).getChildren().setAll(conteudo.getJavaFxNode());
     }
 
     private Component menuBar() {
@@ -75,10 +75,14 @@ public class HomeScreen implements ScreenComponent {
                 .item("Novidades dessa atualização", () -> ctx.router().spawnWindow(AppRoutes.Screens.INFO_UPDATE.name(), e -> {}))
                 .item("Ver logs da aplicação", () -> ctx.router().spawnWindow(AppRoutes.Screens.LOGS.name(), e -> {}));
 
+        //filhos.add(botaoNav("Produto", Entypo.BOX, Secao.PRODUTOS, viewModel));
+        //filhos.add(botaoNav("Cliente", Entypo.SUITCASE, Secao.CLIENTES, viewModel));
         var gerencialMenu = new Menu("Gerencial")
                 .textColor(Sidebar.TEXT_COLOR)
                 .item("Empresa", () -> ctx.router().spawnWindow(AppRoutes.Screens.EMPRESA.name(), e -> {}))
-                .item("Conexão da balança", () -> ctx.router().spawnWindow(AppRoutes.Screens.CONEXAO_BALANCA.name(), e -> {}));
+                .item("Conexão da balança", () -> ctx.router().spawnWindow(AppRoutes.Screens.CONEXAO_BALANCA.name(), e -> {}))
+                .item("Produtos", () -> ctx.router().spawnWindow(AppRoutes.Screens.PRODUTOS.name(), e -> {}))
+                .item("Clientes", () -> ctx.router().spawnWindow(AppRoutes.Screens.CLIENTES.name(), e -> {}));
                // .item("Conexão das câmeras", () -> ctx.router().spawnWindow(AppRoutes.Screens.CONEXAO_CAMERA.name(), e -> {}));
 
         // Só quem está logado como admin vê a opção de gerar licença — ver
