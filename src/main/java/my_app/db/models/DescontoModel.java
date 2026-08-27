@@ -2,6 +2,7 @@ package my_app.db.models;
 
 import lombok.Getter;
 import lombok.Setter;
+import my_app.core.Identifier;
 import net.sf.persism.annotations.Column;
 import net.sf.persism.annotations.Table;
 
@@ -11,10 +12,7 @@ import java.time.LocalDateTime;
 @Setter
 @Getter
 @Table("descontos")
-public class DescontoModel {
-
-    @Column(primary = true)
-    private Integer id;
+public class DescontoModel extends Identifier {
 
     private BigDecimal avariados;
     private BigDecimal ardidos;

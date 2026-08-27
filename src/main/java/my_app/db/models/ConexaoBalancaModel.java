@@ -2,6 +2,7 @@ package my_app.db.models;
 
 import lombok.Getter;
 import lombok.Setter;
+import my_app.core.Identifier;
 import net.sf.persism.annotations.Column;
 import net.sf.persism.annotations.Table;
 
@@ -10,10 +11,7 @@ import java.time.LocalDateTime;
 @Setter
 @Getter
 @Table("conexao_balanca")
-public class ConexaoBalancaModel {
-
-    @Column(primary = true)
-    private Integer id;
+public class ConexaoBalancaModel extends Identifier {
 
     @Column(name = "tipo_conexao")
     private String tipoConexao; // "Serial" ou "TCP"
