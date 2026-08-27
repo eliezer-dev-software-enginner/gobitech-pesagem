@@ -27,7 +27,8 @@ import megalodonte.v2.Show;
 import my_app.core.AppRoutes;
 import my_app.core.Identifier;
 import my_app.domain.components.Components;
-import my_app.infra.CsvExporter;
+import my_app.infra.ListaPdfExporter;
+import my_app.db.services.EmpresaService;
 import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.antdesignicons.AntDesignIconsOutlined;
 import org.kordamp.ikonli.entypo.Entypo;
@@ -56,24 +57,27 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
 
     default void handleClickBaixarLista() {
         var fileChooser = new FileChooser();
-        fileChooser.setTitle("Salvar lista em CSV");
-        fileChooser.setInitialFileName("lista.csv");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
+        fileChooser.setTitle("Salvar lista em PDF");
+        fileChooser.setInitialFileName("lista.pdf");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF", "*.pdf"));
         File destino = fileChooser.showSaveDialog(viewModel().ctx.selfStage());
         if (destino == null) return;
 
         megalodonte.base.async.Async.Run(() -> {
             try {
-                exportCsv(destino);
-                UI.runOnUi(() -> Components.ShowPopup(viewModel().ctx, "Lista salva em: " + destino.getAbsolutePath()));
+                var empresaService = new EmpresaService();
+                var empresa = empresaService.buscarUnico();
+                empresaService.close();
+                exportPdf(destino, empresa);
+                UI.runOnUi(() -> Components.ShowPopup(viewModel().ctx, "PDF salvo em: " + destino.getAbsolutePath()));
             } catch (Exception e) {
-                log.error("Erro ao exportar CSV", e);
+                log.error("Erro ao exportar PDF", e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro ao exportar: " + e.getMessage()));
             }
         });
     }
 
-    void exportCsv(java.io.File destino) throws Exception;
+    void exportPdf(java.io.File destino, my_app.db.models.EmpresaModel empresa) throws Exception;
 
     default void handleClickMenuDelete() {
         if(viewModel().selected.get() == null)throw new IllegalArgumentException("Selecione o item na tabela antes!");

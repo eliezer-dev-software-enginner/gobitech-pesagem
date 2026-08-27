@@ -21,7 +21,8 @@ import my_app.domain.ContratoTelaCrudV3;
 import my_app.domain.Data;
 import my_app.domain.ViewModelScreenContract;
 import my_app.domain.components.Components;
-import my_app.infra.CsvExporter;
+import my_app.db.models.EmpresaModel;
+import my_app.infra.ListaPdfExporter;
 import my_app.utils.DateUtils;
 
 public class ProdutoScreen implements ScreenComponent, ContratoTelaCrudV3<ProdutoModel> {
@@ -77,7 +78,7 @@ public class ProdutoScreen implements ScreenComponent, ContratoTelaCrudV3<Produt
     }
 
     @Override
-    public void exportCsv(java.io.File destino) throws Exception {
+    public void exportPdf(java.io.File destino, EmpresaModel empresa) throws Exception {
         var headers = java.util.List.of("ID", "Nome", "Unidade", "Desconto (%)", "Data de criacao");
         var rows = vm.filteredList.get().stream().map(p -> java.util.List.of(
                 String.valueOf(p.getId()),
@@ -86,7 +87,7 @@ public class ProdutoScreen implements ScreenComponent, ContratoTelaCrudV3<Produt
                 p.getDesconto() != null ? p.getDesconto().toPlainString() : "0",
                 DateUtils.localDateTimeToBrazilianDateTime(p.getDataCriacao())
         )).toList();
-        CsvExporter.exportar(destino, headers, rows);
+        ListaPdfExporter.exportar(destino, empresa, "Lista de Produtos", headers, rows);
     }
 
     public Component itemDetails(ProdutoModel model) {

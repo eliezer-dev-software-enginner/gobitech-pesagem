@@ -20,7 +20,8 @@ import my_app.domain.ContratoTelaCrudV3;
 import my_app.domain.Data;
 import my_app.domain.ViewModelScreenContract;
 import my_app.domain.components.Components;
-import my_app.infra.CsvExporter;
+import my_app.db.models.EmpresaModel;
+import my_app.infra.ListaPdfExporter;
 import my_app.utils.DateUtils;
 
 public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<UsuarioModel> {
@@ -93,7 +94,7 @@ public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<Usuari
     }
 
     @Override
-    public void exportCsv(java.io.File destino) throws Exception {
+    public void exportPdf(java.io.File destino, EmpresaModel empresa) throws Exception {
         var headers = java.util.List.of("ID", "Nome", "Login", "Admin", "Data de criacao");
         var rows = vm.filteredList.get().stream().map(u -> java.util.List.of(
                 String.valueOf(u.getId()),
@@ -102,7 +103,7 @@ public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<Usuari
                 Boolean.TRUE.equals(u.getAdmin()) ? "Sim" : "Nao",
                 DateUtils.localDateTimeToBrazilianDateTime(u.getDataCriacao())
         )).toList();
-        CsvExporter.exportar(destino, headers, rows);
+        ListaPdfExporter.exportar(destino, empresa, "Lista de Usuarios", headers, rows);
     }
 
     public Component itemDetails(UsuarioModel model) {
