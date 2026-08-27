@@ -59,7 +59,7 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
         fileChooser.setTitle("Salvar lista em CSV");
         fileChooser.setInitialFileName("lista.csv");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
-        File destino = fileChooser.showSaveDialog(((Stage) table().getTableView().getScene().getWindow()));
+        File destino = fileChooser.showSaveDialog(viewModel().ctx.selfStage());
         if (destino == null) return;
 
         megalodonte.base.async.Async.Run(() -> {
