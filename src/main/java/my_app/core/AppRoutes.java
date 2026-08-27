@@ -5,6 +5,7 @@ import megalodonte.router.v4.Router;
 import my_app.Main;
 import my_app.SplashScreen;
 import my_app.screens.acessoBloqueadoScreen.AcessoBloqueadoScreen;
+import my_app.screens.clienteScreen.AddOrEditClienteScreen;
 import my_app.screens.infoUpdateScreen.InfoUpdateScreen;
 import my_app.screens.authScreen.AuthScreen;
 import my_app.screens.clienteScreen.ClienteScreen;
@@ -15,6 +16,7 @@ import my_app.screens.homeScreen.HomeScreen;
 import my_app.screens.licensaScreen.LicensaScreen;
 import my_app.screens.logsScreen.LogsScreen;
 import my_app.screens.pesagemScreen.PesagemScreen;
+import my_app.screens.produtoScreen.AddOrEditProdutoScreen;
 import my_app.screens.produtoScreen.ProdutoScreen;
 import my_app.screens.usuarioScreen.UsuarioScreen;
 
@@ -35,7 +37,9 @@ public class AppRoutes {
         LICENSA,
         INFO_UPDATE,
         LOGS,
-        ACESSO_BLOQUEADO
+        ACESSO_BLOQUEADO,
+        ADD_OR_EDIT_PRODUTO,
+        ADD_OR_EDIT_CLIENTE
     }
 
     final int MIN_WIDTH = 600;
@@ -47,7 +51,6 @@ public class AppRoutes {
     final int MAX_WIDTH = 1200;
     final int MAX_HEIGHT = 620;
 
-
     public Set<Router.Route> routes() {
         return Set.of(
                 new Router.Route(Screens.SPLASH.name(), ctx -> new SplashScreen(),
@@ -55,6 +58,8 @@ public class AppRoutes {
                 new Router.Route(Screens.AUTH.name(), AuthScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Seja muito bem vindo", false)),
                 new Router.Route(Screens.HOME.name(), HomeScreen::new, new RouteProps(MAX_WIDTH, MAX_HEIGHT, Main.BASE_TITLE, true)),
                 new Router.Route(Screens.PRODUTOS.name(), ProdutoScreen::new, new RouteProps(MAX_WIDTH, MEDIUM_HEIGHT, "Cadastro de produtos", true)),
+                new Router.Route(Screens.ADD_OR_EDIT_PRODUTO.name()+"/${id}/${type}", AddOrEditProdutoScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Adicionar produto", true)),
+                new Router.Route(Screens.ADD_OR_EDIT_CLIENTE.name()+"/${id}/${type}", AddOrEditClienteScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Adicionar cliente", true)),
                 new Router.Route(Screens.USUARIOS.name(), UsuarioScreen::new, new RouteProps(MAX_WIDTH, MAX_HEIGHT, "Gerenciamento de usuários", true)),
                 new Router.Route(Screens.EMPRESA.name(), CadastroEmpresaScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Informações da empresa", false)),
                 new Router.Route(Screens.CLIENTES.name(), ClienteScreen::new, new RouteProps(MAX_WIDTH, MEDIUM_HEIGHT, "Gerenciamento de clientes", true)),

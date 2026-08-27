@@ -9,6 +9,7 @@ import megalodonte.components.SimpleTable;
 import megalodonte.components.SpacerVertical;
 import megalodonte.components.Text;
 import megalodonte.components.layout_components.Column;
+import megalodonte.components.layout_components.Container;
 import megalodonte.components.layout_components.FlowRow;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.FlowRowProps;
@@ -48,23 +49,7 @@ public class ProdutoScreen implements ScreenComponent, ContratoTelaCrudV3<Produt
 
     @Override
     public Component form() {
-        return new Card(
-                new Column(new ColumnProps().paddingAll(10))
-                        .c_child(Components.FormTitle("Cadastrar produto"))
-                        .c_child(new SpacerVertical(20))
-                        .c_child(new FlowRow(new FlowRowProps().spacingOf(10))
-                                .children(
-                                        Components.InputColumn("Nome do produto", vm.nome, "Ex: Soja"),
-                                        Components.SelectColumn("Unidade", Data.unidadesDeMedidaList, vm.unidadeSelected, it -> it),
-                                        Components.InputColumnDecimal("Desconto padrão (%)", vm.desconto, "0")
-                                )
-                        )
-                        .c_child(new SpacerVertical(10))
-                        .c_child(new LineHorizontal())
-                        .c_child(Components.TextAreaColumn("Observações", vm.observacoes, "Alguma observação sobre o produto?", 60, 160))
-                        .c_child(new SpacerVertical(20))
-                        .c_child(Components.actionButtons(vm.btnText, this::handleAddOrUpdate))
-        );
+        return new Container();
     }
 
     @Override
@@ -84,8 +69,8 @@ public class ProdutoScreen implements ScreenComponent, ContratoTelaCrudV3<Produt
                 .column("Desconto (%)", it -> it.getDesconto() == null ? "0" : it.getDesconto().toPlainString())
                 .column("Data de criação", it -> DateUtils.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build()
-                .onItemSelectChange(vm.produtoSelecionado::set)
-                .onItemDoubleClick(it -> showItemDetailsComAcoes(it, this.screenContext, 350));
+                .onItemSelectChange(vm.selected::set);
+                //.onItemDoubleClick(it -> showItemDetailsComAcoes(it, this.screenContext, 350));
 
         return simpleTable;
     }

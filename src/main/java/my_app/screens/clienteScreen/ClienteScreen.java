@@ -89,8 +89,7 @@ public class ClienteScreen implements ScreenComponent, ContratoTelaCrudV3<Client
                 .column("Telefone", it->Utils.formatPhone(it.getTelefone()))
                 .column("Data de criação", it -> DateUtils.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build()
-                .onItemSelectChange(vm.clienteSelecionado::set)
-                .onItemDoubleClick(it -> showItemDetailsComAcoes(it, this.screenContext, 400));
+                .onItemSelectChange(vm.selected::set);
 
         return simpleTable;
     }

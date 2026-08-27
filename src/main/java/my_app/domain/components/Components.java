@@ -111,18 +111,10 @@ public class Components {
         return TextWithDetails(label, value, false);
     }
 
-    public static Component parcelaItem(Parcela parcela) {
-        return new Row(new RowProps())
-                .r_child(Components.TextColumn("PARCELA", String.valueOf(parcela.numero())))
-                .r_child(Components.TextColumn("VENCIMENTO", DateUtils.millisToBrazilianDateTime(parcela.dataVencimento())))
-                .r_child(Components.TextColumn("VALOR", String.format("R$ %.2f", parcela.valor())));
-    }
-
     public static Component actionButtons(ComputedState<String> btnText, RunnableThrowing onClick) {
         return new Button(btnText,
                 new ButtonProps()
                         .fillWidth()
-                        .height(31)
                         .fontSize(16)
                         .textColor("black").bgColor(ThemeManager.theme().colors().primary())
         ).onClick(onClick);
@@ -249,6 +241,9 @@ public class Components {
                 .c_child(ButtonCadastro(title, callback));
     }
 
+    public static Component FormTitle(State<String> titleState) {
+        return new Text(titleState, new TextProps().fontSize(ThemeManager.theme().typography().body()).bold());
+    }
     public static Component FormTitle(String title) {
         return new Text(title, new TextProps().fontSize(ThemeManager.theme().typography().body()).bold());
     }

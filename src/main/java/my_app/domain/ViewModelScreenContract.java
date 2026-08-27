@@ -6,10 +6,15 @@ import megalodonte.base.state.State;
 import megalodonte.router.v4.ScreenContext;
 import megalodonte.utils.ThrowingSupplier;
 import megalodonte.v2.ListState;
+import my_app.core.Identifier;
+import net.sf.persism.annotations.Column;
 
-public abstract class ViewModelScreenContract<Model> {
+
+public abstract class ViewModelScreenContract<Model extends Identifier> {
     protected final ScreenContext ctx;
     protected final State<Boolean> modoEdicao = State.of(false);
+
+    public String screenNameSpawn = "";
 
     // Lista e formulário são páginas mutuamente exclusivas (ver ContratoTelaCrudV3) — começa
     // mostrando a lista; "Cadastrar"/"Editar" abre o formulário, "Voltar" fecha.
@@ -20,6 +25,8 @@ public abstract class ViewModelScreenContract<Model> {
     public final State<String> searchState = new State<>("");
     public final ListState<Model> allDataList = ListState.ofEmpty();
     public final ListState<Model> filteredList = ListState.ofEmpty();
+
+    public final State<Model> selected = State.of(null);
 
     public ViewModelScreenContract(ScreenContext ctx) {
         this.ctx = ctx;

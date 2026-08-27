@@ -20,6 +20,8 @@ import megalodonte.props.ContainerProps;
 import megalodonte.props.RowProps;
 import megalodonte.router.v4.ScreenContext;
 import megalodonte.v2.Show;
+import my_app.core.AppRoutes;
+import my_app.core.Identifier;
 import my_app.domain.components.Components;
 import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.antdesignicons.AntDesignIconsOutlined;
@@ -37,16 +39,18 @@ import org.slf4j.LoggerFactory;
  * detalhes (duplo-clique numa linha), também igual o app antigo (clique na linha abre o
  * "Profile", que é de lá que se edita/exclui/clona).
  */
-public interface ContratoTelaCrudV3<T> {
+public interface ContratoTelaCrudV3<T extends Identifier> {
 
     Logger log = LoggerFactory.getLogger(ContratoTelaCrudV3.class);
 
     ViewModelScreenContract<T> viewModel();
 
     default void handleClickNew() {
-        viewModel().formIsVisible.set(true);
-        viewModel().modoEdicaoState().set(false);
-        clearForm();
+        //viewModel().formIsVisible.set(true);
+        //viewModel().modoEdicaoState().set(false);
+        //clearForm();
+
+        viewModel().ctx.router().spawnWindow(viewModel().screenNameSpawn+"/-1/add/");
     }
 
     default void handleClickMenuDelete() {
@@ -61,9 +65,14 @@ public interface ContratoTelaCrudV3<T> {
     }
 
     default void handleClickMenuEdit() {
-        viewModel().formIsVisible.set(true);
-        populateFieldsFromModel();
-        viewModel().modoEdicaoState().set(true);
+//        viewModel().formIsVisible.set(true);
+//        populateFieldsFromModel();
+//        viewModel().modoEdicaoState().set(true);
+
+        if(viewModel().selected.get() == null)throw new IllegalArgumentException("Selecione o item na tabela antes!");
+
+        long id = viewModel().selected.get().getId();
+        viewModel().ctx.router().spawnWindow(viewModel().screenNameSpawn+"/"+id+"/edit/");
     }
 
     default void handleClickVoltar() {
@@ -72,7 +81,18 @@ public interface ContratoTelaCrudV3<T> {
     }
 
     SimpleTable<T> table();
+
+    /**
+     * Mantido por enquanto apenas porque PesagemScreen o utiliza
+     * @return
+     */
+    @Deprecated(forRemoval = true)
     Component form();
+    /**
+     * Mantido por enquanto apenas porque PesagemScreen o utiliza
+     * @return
+     */
+    @Deprecated(forRemoval = true)
     Component itemDetails(T model);
 
     /**
@@ -116,25 +136,20 @@ public interface ContratoTelaCrudV3<T> {
                         )
         );
 
-
-
         return new Stack()
                 .children(conteudo)
                 .childInCorner(actionButtonsRow(), Stack.Corner.BOTTOM_RIGHT, 20)
-                //.childInCorner(botaoCriarNovo, Stack.Corner.BOTTOM_RIGHT, 20)
                 .fillHeight();
     }
 
     private Row actionButtonsRow(){
         return new Row(new RowProps().spacingOf(10).hugWidth()).children(
+                //TODO: IMPLEMENTAR
                 actionButton("Baixar lista","black","#CDD7D6", Entypo.DOWNLOAD, this::handleClickNew),
-                actionButton("Editar","black","#ADA8BE", Entypo.EDIT, this::handleClickNew),
+                actionButton("Editar","black","#ADA8BE", Entypo.EDIT, this::handleClickMenuEdit),
                 actionButton("Excluir","white","#E55934", Entypo.TRASH, this::handleClickNew),
                 new SpacerVertical(30),
                 actionButton("Criar novo","black",null, Entypo.ADD_TO_LIST, this::handleClickNew)
-//                botaoCriarNovo,
-//                botaoCriarNovo,
-//                botaoCriarNovo
         );
     }
 

@@ -4,6 +4,7 @@ import megalodonte.base.state.State;
 import megalodonte.base.UI;
 import megalodonte.base.async.Async;
 import megalodonte.router.v4.ScreenContext;
+import my_app.core.AppRoutes;
 import my_app.db.models.ClienteModel;
 import my_app.db.services.ClienteService;
 import my_app.core.events.EntityEvent;
@@ -19,8 +20,6 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
 
     private final ClienteService clienteService;
 
-    final State<ClienteModel> clienteSelecionado = State.of(null);
-
     final State<String> loja = new State<>("");
     final State<String> razaoSocial = new State<>("");
     final State<String> cnpjCpf = new State<>("");
@@ -32,6 +31,7 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
     public ClienteViewModel(ScreenContext ctx) {
         super(ctx);
         this.clienteService = createOrReport(ClienteService::new);
+        screenNameSpawn = AppRoutes.Screens.ADD_OR_EDIT_CLIENTE.name();
     }
 
     @Override
@@ -48,7 +48,7 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
 
     @Override
     public void populateFieldsFromModel() {
-        final var data = clienteSelecionado.get();
+        final var data = selected.get();
         if (data == null) return;
         loja.set(data.getLoja());
         razaoSocial.set(data.getRazaoSocial());
@@ -60,8 +60,8 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
 
     @Override
     public ClienteModel populateModelFromFields() {
-        var model = modoEdicao.get() && clienteSelecionado.get() != null
-                ? clienteSelecionado.get()
+        var model = modoEdicao.get() && selected.get() != null
+                ? selected.get()
                 : new ClienteModel();
 
         model.setLoja(loja.get().trim());
@@ -96,7 +96,7 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
 
     @Override
     public void handleClickMenuDelete() {
-        final var model = clienteSelecionado.get();
+        final var model = selected.get();
         if (model == null) return;
 
         Components.ShowAlertAdvice("Deseja excluir cliente " + model.getLoja(), () -> Async.Run(() -> {
@@ -116,7 +116,7 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
 
     @Override
     public void handleAddOrUpdate() {
-        if (modoEdicao.get() && clienteSelecionado.get() == null) return;
+        if (modoEdicao.get() && selected.get() == null) return;
 
         // capturado síncrono, antes do Async.Run — ver nota da mesma correção em
         // outras telas (ContratoTelaCrudV3.handleAddOrUpdate reseta modoEdicao logo

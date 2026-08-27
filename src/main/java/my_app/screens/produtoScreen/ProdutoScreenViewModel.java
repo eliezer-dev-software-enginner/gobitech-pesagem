@@ -4,6 +4,7 @@ import megalodonte.base.state.State;
 import megalodonte.base.UI;
 import megalodonte.base.async.Async;
 import megalodonte.router.v4.ScreenContext;
+import my_app.core.AppRoutes;
 import my_app.db.models.ProdutoModel;
 import my_app.db.services.ProdutoService;
 import my_app.core.events.EntityEvent;
@@ -21,8 +22,6 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
 
     private final ProdutoService produtoService;
 
-    final State<ProdutoModel> produtoSelecionado = State.of(null);
-
     final State<String> nome = new State<>("");
     final State<String> unidadeSelected = new State<>(Data.unidadesDeMedidaList.getFirst());
     final State<String> observacoes = new State<>("");
@@ -33,6 +32,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
     public ProdutoScreenViewModel(ScreenContext ctx) {
         super(ctx);
         this.produtoService = createOrReport(ProdutoService::new);
+        screenNameSpawn = AppRoutes.Screens.ADD_OR_EDIT_PRODUTO.name();
     }
 
     @Override
@@ -42,7 +42,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
 
     @Override
     public void populateFieldsFromModel() {
-        final var data = produtoSelecionado.get();
+        final var data = selected.get();
         if (data == null) return;
         nome.set(data.getNome());
         unidadeSelected.set(data.getUnidade() == null ? Data.unidadesDeMedidaList.getFirst() : data.getUnidade());
@@ -52,8 +52,8 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
 
     @Override
     public ProdutoModel populateModelFromFields() {
-        var model = modoEdicao.get() && produtoSelecionado.get() != null
-                ? produtoSelecionado.get()
+        var model = modoEdicao.get() && selected.get() != null
+                ? selected.get()
                 : new ProdutoModel();
 
         model.setNome(nome.get().trim());
@@ -87,7 +87,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
 
     @Override
     public void handleClickMenuDelete() {
-        final var model = produtoSelecionado.get();
+        final var model = selected.get();
         if (model == null) return;
 
         Components.ShowAlertAdvice("Deseja excluir o produto " + model.getNome(), () -> Async.Run(() -> {
@@ -107,7 +107,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
 
     @Override
     public void handleAddOrUpdate() {
-        if (modoEdicao.get() && produtoSelecionado.get() == null) return;
+        if (modoEdicao.get() && selected.get() == null) return;
 
         boolean editando = modoEdicao.get();
         var model = populateModelFromFields();
