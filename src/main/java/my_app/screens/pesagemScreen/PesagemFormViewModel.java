@@ -6,8 +6,10 @@ import megalodonte.base.async.Async;
 import megalodonte.base.state.State;
 import megalodonte.router.v4.ScreenContext;
 import megalodonte.v2.ListState;
-import my_app.core.events.EntityEvent;
+import my_app.core.events.ClienteEvent;
 import my_app.core.events.EventBus;
+import my_app.core.events.PesagemEvent;
+import my_app.core.events.ProdutoEvent;
 import my_app.db.models.ConexaoCameraModel;
 import my_app.db.models.DescontoModel;
 import my_app.db.models.PesagemModel;
@@ -126,11 +128,8 @@ public abstract class PesagemFormViewModel {
     // onDestroy, senão uma ViewModel já destruída (com os services fechados) continuaria
     // processando eventos em vão.
     private void onEntityEvent(Object event) {
-        if (event instanceof EntityEvent<?> ee) {
-            if (ee.entity() instanceof ClienteModel
-                    || ee.entity() instanceof ProdutoModel) {
-                carregarClientesEProdutos();
-            }
+        if (event instanceof ClienteEvent || event instanceof ProdutoEvent) {
+            carregarClientesEProdutos();
         }
     }
 
@@ -317,7 +316,7 @@ public abstract class PesagemFormViewModel {
                         comRelacoes.getId(), comRelacoes.getPlaca(), comRelacoes.getTipoPesagem(), comRelacoes.getPesoFinal());
                 UI.runOnUi(() -> {
                     Components.ShowPopup(ctx, "Pesagem registrada com sucesso");
-                    EventBus.getInstance().publish(EntityEvent.criado(comRelacoes));
+                    EventBus.getInstance().publish(PesagemEvent.criado(comRelacoes));
                     limparFormulario();
                 });
             } catch (IllegalArgumentException e) {

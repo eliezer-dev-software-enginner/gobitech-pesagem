@@ -1,5 +1,27 @@
 # Decisões Arquiteturais
 
+## 2026-08-28: Eventos por entidade — `EntityEvent` virou base abstrata e nasceram eventos concretos
+
+**Contexto:** o `EntityEvent<T>` (um único `record` genérico) tornava o consumo verboso: todo
+listener precisava de `if (event instanceof EntityEvent<?> ee && ee.entity() instanceof XxxModel)`.
+Pedido: um evento por entidade, estendendo uma base.
+
+**Decisão:**
+- `EntityEvent<T>` virou **classe abstrata genérica** com `entity()`, `type()` (CRIADO/EDITADO/
+  EXCLUIDO), `entityId()` e `is(...)`.
+- Eventos concretos por entidade, cada um com fábricas `criado/editado/excluido`:
+  `ClienteEvent`, `ProdutoEvent`, `PesagemEvent`, `UsuarioEvent`.
+- Listeners deixaram de fazer pattern-match genérico: agora `if (event instanceof ClienteEvent)`
+  etc. (`ClienteViewModel`, `ProdutoScreenViewModel`, `PesagemHistoricoViewModel` —
+  `PesagemEvent`). O formulário de pesagem reage a `ClienteEvent`/`ProdutoEvent` (pra recarregar
+  os selects) e publica `PesagemEvent`. Cruds publicam o evento da própria entidade.
+- Mesmo padrão de ciclo de vida do fix anterior: cada listener continua se desinscrevendo no
+  `onDestroy`.
+- **Testado:** `EventBusTest` segue cobrindo subscribe/unsubscribe (os eventos continuam
+  circulando como `Object`). `./gradlew test` → **188 testes, BUILD SUCCESSFUL**.
+
+---
+
 ## 2026-08-28: Bug — error ao salvar pesagem de saída (NPE de session nula no histórico)
 
 **Contexto:** ao salvar uma pesagem de saída, o app estourava

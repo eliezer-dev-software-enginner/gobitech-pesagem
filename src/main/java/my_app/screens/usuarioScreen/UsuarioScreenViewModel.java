@@ -6,7 +6,7 @@ import megalodonte.base.async.Async;
 import megalodonte.router.v4.ScreenContext;
 import my_app.db.models.UsuarioModel;
 import my_app.db.services.UsuarioService;
-import my_app.core.events.EntityEvent;
+import my_app.core.events.UsuarioEvent;
 import my_app.core.events.EventBus;
 import my_app.domain.Data;
 import my_app.domain.ViewModelScreenContract;
@@ -91,7 +91,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
                 UI.runOnUi(() -> {
                     allDataList.removeIf(it -> it.getId().equals(model.getId()));
                     Components.ShowPopup(ctx, "Usuário inativado com sucesso");
-                    EventBus.getInstance().publish(EntityEvent.excluido(model.getId()));
+                    EventBus.getInstance().publish(UsuarioEvent.excluido(model.getId()));
                 });
             } catch (Exception e) {
                 log.error("Erro ao inativar usuário id={}", model.getId(), e);
@@ -115,7 +115,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
                         allDataList.updateIf(it -> it.getId().equals(model.getId()), it -> model);
                         Components.ShowPopup(ctx, "Usuário atualizado com sucesso");
                         voltarParaLista();
-                        EventBus.getInstance().publish(EntityEvent.editado(model));
+                        EventBus.getInstance().publish(UsuarioEvent.editado(model));
                     });
                 } else {
                     usuarioService.salvar(model);
@@ -123,7 +123,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
                         allDataList.add(model);
                         Components.ShowPopup(ctx, "Usuário cadastrado com sucesso");
                         voltarParaLista();
-                        EventBus.getInstance().publish(EntityEvent.criado(model));
+                        EventBus.getInstance().publish(UsuarioEvent.criado(model));
                     });
                 }
             } catch (IllegalArgumentException e) {

@@ -4,7 +4,7 @@ import megalodonte.base.async.Async;
 import megalodonte.base.UI;
 import megalodonte.base.state.State;
 import megalodonte.router.v4.ScreenContext;
-import my_app.core.events.EntityEvent;
+import my_app.core.events.PesagemEvent;
 import my_app.core.events.EventBus;
 import my_app.db.models.PesagemModel;
 import my_app.db.services.EmpresaService;
@@ -52,7 +52,7 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
     // onDestroy, senão uma ViewModel já destruída (com o service fechado) continuaria
     // processando eventos e quebraria com session nula.
     private void onEntityEvent(Object event) {
-        if (event instanceof EntityEvent<?> ee && ee.entity() instanceof PesagemModel) {
+        if (event instanceof PesagemEvent) {
             fetchListData();
         }
     }
@@ -111,7 +111,7 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
                 UI.runOnUi(() -> {
                     allDataList.removeIf(it -> it.getId().equals(model.getId()));
                     Components.ShowPopup(ctx, "Pesagem excluída com sucesso");
-                    EventBus.getInstance().publish(EntityEvent.excluido(model.getId()));
+                    EventBus.getInstance().publish(PesagemEvent.excluido(model.getId()));
                 });
             } catch (Exception e) {
                 log.error("Erro ao excluir pesagem id={}", model.getId(), e);

@@ -7,7 +7,7 @@ import megalodonte.router.v4.ScreenContext;
 import my_app.core.AppRoutes;
 import my_app.db.models.ClienteModel;
 import my_app.db.services.ClienteService;
-import my_app.core.events.EntityEvent;
+import my_app.core.events.ClienteEvent;
 import my_app.core.events.EventBus;
 import my_app.domain.ViewModelScreenContract;
 import my_app.domain.components.Components;
@@ -41,7 +41,7 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
     // onDestroy, senão uma ViewModel já destruída (com o service fechado) continuaria
     // processando eventos e quebraria com session nula.
     private void onEntityEvent(Object event) {
-        if (event instanceof EntityEvent<?> ee && ee.entity() instanceof ClienteModel) {
+        if (event instanceof ClienteEvent) {
             fetchListData();
         }
     }
@@ -117,7 +117,7 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
                 UI.runOnUi(() -> {
                     allDataList.removeIf(it -> it.getId().equals(model.getId()));
                     Components.ShowPopup(ctx, "Cliente excluído com sucesso");
-                    EventBus.getInstance().publish(EntityEvent.excluido(model.getId()));
+                    EventBus.getInstance().publish(ClienteEvent.excluido(model.getId()));
                 });
             } catch (Exception e) {
                 log.error("Erro ao excluir cliente id={}", model.getId(), e);
@@ -144,7 +144,7 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
                         allDataList.updateIf(it -> it.getId().equals(model.getId()), it -> model);
                         Components.ShowPopup(ctx, "Cliente atualizado com sucesso");
                         voltarParaLista();
-                        EventBus.getInstance().publish(EntityEvent.editado(model));
+                        EventBus.getInstance().publish(ClienteEvent.editado(model));
                     });
                 } else {
                     clienteService.salvar(model);
@@ -152,7 +152,7 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
                         allDataList.add(model);
                         Components.ShowPopup(ctx, "Cliente cadastrado com sucesso");
                         voltarParaLista();
-                        EventBus.getInstance().publish(EntityEvent.criado(model));
+                        EventBus.getInstance().publish(ClienteEvent.criado(model));
                     });
                 }
             } catch (IllegalArgumentException e) {

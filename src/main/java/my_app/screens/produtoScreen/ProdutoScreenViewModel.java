@@ -7,7 +7,7 @@ import megalodonte.router.v4.ScreenContext;
 import my_app.core.AppRoutes;
 import my_app.db.models.ProdutoModel;
 import my_app.db.services.ProdutoService;
-import my_app.core.events.EntityEvent;
+import my_app.core.events.ProdutoEvent;
 import my_app.core.events.EventBus;
 import my_app.domain.Data;
 import my_app.domain.ViewModelScreenContract;
@@ -42,7 +42,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
     // onDestroy, senão uma ViewModel já destruída (com o service fechado) continuaria
     // processando eventos e quebraria com session nula.
     private void onEntityEvent(Object event) {
-        if (event instanceof EntityEvent<?> ee && ee.entity() instanceof ProdutoModel) {
+        if (event instanceof ProdutoEvent) {
             fetchListData();
         }
     }
@@ -108,7 +108,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
                 UI.runOnUi(() -> {
                     allDataList.removeIf(it -> it.getId().equals(model.getId()));
                     Components.ShowPopup(ctx, "Produto excluído com sucesso");
-                    EventBus.getInstance().publish(EntityEvent.excluido(model.getId()));
+                    EventBus.getInstance().publish(ProdutoEvent.excluido(model.getId()));
                 });
             } catch (Exception e) {
                 log.error("Erro ao excluir produto id={}", model.getId(), e);
@@ -132,7 +132,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
                         allDataList.updateIf(it -> it.getId().equals(model.getId()), it -> model);
                         Components.ShowPopup(ctx, "Produto atualizado com sucesso");
                         voltarParaLista();
-                        EventBus.getInstance().publish(EntityEvent.editado(model));
+                        EventBus.getInstance().publish(ProdutoEvent.editado(model));
                     });
                 } else {
                     produtoService.salvar(model);
@@ -140,7 +140,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
                         allDataList.add(model);
                         Components.ShowPopup(ctx, "Produto cadastrado com sucesso");
                         voltarParaLista();
-                        EventBus.getInstance().publish(EntityEvent.criado(model));
+                        EventBus.getInstance().publish(ProdutoEvent.criado(model));
                     });
                 }
             } catch (IllegalArgumentException e) {

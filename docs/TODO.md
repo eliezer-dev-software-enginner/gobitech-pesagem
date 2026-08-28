@@ -1,5 +1,14 @@
 # TODO
 
+## Concluído (eventos por entidade — 2026-08-28)
+- [x] `EntityEvent<T>` virou classe abstrata genérica; criados os eventos concretos
+      `ClienteEvent`, `ProdutoEvent`, `PesagemEvent`, `UsuarioEvent` (fábricas criado/editado/
+      excluido) — listeners deixaram de usar `instanceof EntityEvent<?> && entity() instanceof X`
+- [x] ViewModels atualizadas: `ClienteViewModel`/`ProdutoScreenViewModel`/`PesagemHistoricoViewModel`
+      (listener do próprio evento), `PesagemFormViewModel` (escuta `ClienteEvent`/`ProdutoEvent`,
+      publica `PesagemEvent`), `UsuarioScreenViewModel` (publica `UsuarioEvent`)
+- [x] `./gradlew test`: **188 testes, BUILD SUCCESSFUL**
+
 ## Concluído (bug — NPE session nula ao salvar pesagem de saída — 2026-08-28)
 - [x] `EventBus.unsubscribe` novo + as 4 ViewModels que se inscreviam (histórico, formulário de
       pesagem, Cliente, Produto) agora se desinscrevem no `onDestroy`, antes de fechar o Service
