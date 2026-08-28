@@ -108,7 +108,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
                 UI.runOnUi(() -> {
                     allDataList.removeIf(it -> it.getId().equals(model.getId()));
                     Components.ShowPopup(ctx, "Produto excluído com sucesso");
-                    EventBus.getInstance().publish(ProdutoEvent.excluido(model.getId()));
+                    EventBus.getInstance().publish(ProdutoEvent.excluido());
                 });
             } catch (Exception e) {
                 log.error("Erro ao excluir produto id={}", model.getId(), e);

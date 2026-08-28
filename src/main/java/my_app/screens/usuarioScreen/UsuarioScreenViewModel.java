@@ -91,7 +91,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
                 UI.runOnUi(() -> {
                     allDataList.removeIf(it -> it.getId().equals(model.getId()));
                     Components.ShowPopup(ctx, "Usuário inativado com sucesso");
-                    EventBus.getInstance().publish(UsuarioEvent.excluido(model.getId()));
+                    EventBus.getInstance().publish(UsuarioEvent.excluido());
                 });
             } catch (Exception e) {
                 log.error("Erro ao inativar usuário id={}", model.getId(), e);

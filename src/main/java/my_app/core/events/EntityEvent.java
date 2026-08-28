@@ -13,12 +13,10 @@ public abstract class EntityEvent<T> {
 
     private final T entity;
     private final EventType type;
-    private final long entityId;
 
-    protected EntityEvent(T entity, EventType type, long entityId) {
+    protected EntityEvent(T entity, EventType type) {
         this.entity = entity;
         this.type = type;
-        this.entityId = entityId;
     }
 
     /** A entidade envolvida no evento — {@code null} quando o tipo é {@link EventType#EXCLUIDO}. */
@@ -28,11 +26,6 @@ public abstract class EntityEvent<T> {
 
     public EventType type() {
         return type;
-    }
-
-    /** Id da entidade — usado no {@link EventType#EXCLUIDO}, quando não há mais o objeto. */
-    public long entityId() {
-        return entityId;
     }
 
     public boolean is(EventType eventType) {

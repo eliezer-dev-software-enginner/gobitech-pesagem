@@ -117,7 +117,7 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
                 UI.runOnUi(() -> {
                     allDataList.removeIf(it -> it.getId().equals(model.getId()));
                     Components.ShowPopup(ctx, "Cliente excluído com sucesso");
-                    EventBus.getInstance().publish(ClienteEvent.excluido(model.getId()));
+                    EventBus.getInstance().publish(ClienteEvent.excluido());
                 });
             } catch (Exception e) {
                 log.error("Erro ao excluir cliente id={}", model.getId(), e);

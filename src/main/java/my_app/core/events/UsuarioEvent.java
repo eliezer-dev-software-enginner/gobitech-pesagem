@@ -5,19 +5,19 @@ import my_app.db.models.UsuarioModel;
 /** Evento de Usuário — cadastrado, alterado ou inativado. */
 public class UsuarioEvent extends EntityEvent<UsuarioModel> {
 
-    public UsuarioEvent(UsuarioModel entity, EventType type, long entityId) {
-        super(entity, type, entityId);
+    public UsuarioEvent(UsuarioModel entity, EventType type) {
+        super(entity, type);
     }
 
     public static UsuarioEvent criado(UsuarioModel entity) {
-        return new UsuarioEvent(entity, EventType.CRIADO, 0);
+        return new UsuarioEvent(entity, EventType.CRIADO);
     }
 
     public static UsuarioEvent editado(UsuarioModel entity) {
-        return new UsuarioEvent(entity, EventType.EDITADO, 0);
+        return new UsuarioEvent(entity, EventType.EDITADO);
     }
 
-    public static UsuarioEvent excluido(long id) {
-        return new UsuarioEvent(null, EventType.EXCLUIDO, id);
+    public static UsuarioEvent excluido() {
+        return new UsuarioEvent(null, EventType.EXCLUIDO);
     }
 }

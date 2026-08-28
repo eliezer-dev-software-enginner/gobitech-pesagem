@@ -111,7 +111,7 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
                 UI.runOnUi(() -> {
                     allDataList.removeIf(it -> it.getId().equals(model.getId()));
                     Components.ShowPopup(ctx, "Pesagem excluída com sucesso");
-                    EventBus.getInstance().publish(PesagemEvent.excluido(model.getId()));
+                    EventBus.getInstance().publish(PesagemEvent.excluido());
                 });
             } catch (Exception e) {
                 log.error("Erro ao excluir pesagem id={}", model.getId(), e);
