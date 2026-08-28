@@ -5,19 +5,17 @@ import my_app.db.models.PesagemModel;
 /** Evento de Pesagem — cadastrada, alterada ou excluída. */
 public class PesagemEvent extends EntityEvent<PesagemModel> {
 
-    public PesagemEvent(PesagemModel entity, EventType type) {
-        super(entity, type);
+    private PesagemEvent() {}
+
+    public static PesagemEvent criado() {
+        return new PesagemEvent();
     }
 
-    public static PesagemEvent criado(PesagemModel entity) {
-        return new PesagemEvent(entity, EventType.CRIADO);
-    }
-
-    public static PesagemEvent editado(PesagemModel entity) {
-        return new PesagemEvent(entity, EventType.EDITADO);
+    public static PesagemEvent editado() {
+        return new PesagemEvent();
     }
 
     public static PesagemEvent excluido() {
-        return new PesagemEvent(null, EventType.EXCLUIDO);
+        return new PesagemEvent();
     }
 }

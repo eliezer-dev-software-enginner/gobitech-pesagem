@@ -316,7 +316,7 @@ public abstract class PesagemFormViewModel {
                         comRelacoes.getId(), comRelacoes.getPlaca(), comRelacoes.getTipoPesagem(), comRelacoes.getPesoFinal());
                 UI.runOnUi(() -> {
                     Components.ShowPopup(ctx, "Pesagem registrada com sucesso");
-                    EventBus.getInstance().publish(PesagemEvent.criado(comRelacoes));
+                    EventBus.getInstance().publish(PesagemEvent.criado());
                     limparFormulario();
                 });
             } catch (IllegalArgumentException e) {

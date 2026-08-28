@@ -7,10 +7,11 @@ listener precisava de `if (event instanceof EntityEvent<?> ee && ee.entity() ins
 Pedido: um evento por entidade, estendendo uma base.
 
 **Decisão:**
-- `EntityEvent<T>` virou **classe abstrata genérica** com `entity()`, `type()` (CRIADO/EDITADO/
-  EXCLUIDO) e `is(...)`. Um `entityId()` que chegou a existir era dead code (nenhum listener o
-  consumia) e foi removido — o `EXCLUIDO` vira evento sem id (`excluido()`), quem se inscreve só
-  recarrega a lista.
+- `EntityEvent<T>` virou **classe abstrata genérica mantida apenas como marcador** do tipo da
+  entidade. Os acessors `entity()`, `type()`, `is()` e `entityId()` eram dead code (nenhum
+  listener/teste os lia) e foram removidos; o enum `EventType` também saiu. A intenção
+  (criado/editado/excluido) é comunicada pelo nome da fábrica estática de cada evento — quem se
+  inscreve só casa no tipo concreto (`instanceof ClienteEvent`) e recarrega a lista.
 - Eventos concretos por entidade, cada um com fábricas `criado/editado/excluido`:
   `ClienteEvent`, `ProdutoEvent`, `PesagemEvent`, `UsuarioEvent`.
 - Listeners deixaram de fazer pattern-match genérico: agora `if (event instanceof ClienteEvent)`

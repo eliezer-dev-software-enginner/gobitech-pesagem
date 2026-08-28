@@ -132,7 +132,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
                         allDataList.updateIf(it -> it.getId().equals(model.getId()), it -> model);
                         Components.ShowPopup(ctx, "Produto atualizado com sucesso");
                         voltarParaLista();
-                        EventBus.getInstance().publish(ProdutoEvent.editado(model));
+                        EventBus.getInstance().publish(ProdutoEvent.editado());
                     });
                 } else {
                     produtoService.salvar(model);
@@ -140,7 +140,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
                         allDataList.add(model);
                         Components.ShowPopup(ctx, "Produto cadastrado com sucesso");
                         voltarParaLista();
-                        EventBus.getInstance().publish(ProdutoEvent.criado(model));
+                        EventBus.getInstance().publish(ProdutoEvent.criado());
                     });
                 }
             } catch (IllegalArgumentException e) {

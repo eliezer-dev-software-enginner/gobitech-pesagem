@@ -3,8 +3,9 @@
 ## Concluído (eventos por entidade — 2026-08-28)
 - [x] `EntityEvent<T>` virou classe abstrata genérica; criados os eventos concretos
       `ClienteEvent`, `ProdutoEvent`, `PesagemEvent`, `UsuarioEvent` (fábricas criado/editado/
-      excluido) — listeners deixaram de usar `instanceof EntityEvent<?> && entity() instanceof X`;
-      `entityId()` era dead code e foi removido (excluido virou sem id)
+      excluido, sem `EventType`) — listeners casam no tipo concreto em vez de
+      `instanceof EntityEvent<?> && entity() instanceof X`; os acessors `entity()`, `type()`,
+      `is()` e `entityId()` eram dead code e foram removidos (classe virou marcador puro)
 - [x] ViewModels atualizadas: `ClienteViewModel`/`ProdutoScreenViewModel`/`PesagemHistoricoViewModel`
       (listener do próprio evento), `PesagemFormViewModel` (escuta `ClienteEvent`/`ProdutoEvent`,
       publica `PesagemEvent`), `UsuarioScreenViewModel` (publica `UsuarioEvent`)

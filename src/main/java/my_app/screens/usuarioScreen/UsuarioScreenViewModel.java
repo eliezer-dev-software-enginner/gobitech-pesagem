@@ -115,7 +115,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
                         allDataList.updateIf(it -> it.getId().equals(model.getId()), it -> model);
                         Components.ShowPopup(ctx, "Usuário atualizado com sucesso");
                         voltarParaLista();
-                        EventBus.getInstance().publish(UsuarioEvent.editado(model));
+                        EventBus.getInstance().publish(UsuarioEvent.editado());
                     });
                 } else {
                     usuarioService.salvar(model);
@@ -123,7 +123,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
                         allDataList.add(model);
                         Components.ShowPopup(ctx, "Usuário cadastrado com sucesso");
                         voltarParaLista();
-                        EventBus.getInstance().publish(UsuarioEvent.criado(model));
+                        EventBus.getInstance().publish(UsuarioEvent.criado());
                     });
                 }
             } catch (IllegalArgumentException e) {

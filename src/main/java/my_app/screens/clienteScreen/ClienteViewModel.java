@@ -144,7 +144,7 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
                         allDataList.updateIf(it -> it.getId().equals(model.getId()), it -> model);
                         Components.ShowPopup(ctx, "Cliente atualizado com sucesso");
                         voltarParaLista();
-                        EventBus.getInstance().publish(ClienteEvent.editado(model));
+                        EventBus.getInstance().publish(ClienteEvent.editado());
                     });
                 } else {
                     clienteService.salvar(model);
@@ -152,7 +152,7 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
                         allDataList.add(model);
                         Components.ShowPopup(ctx, "Cliente cadastrado com sucesso");
                         voltarParaLista();
-                        EventBus.getInstance().publish(ClienteEvent.criado(model));
+                        EventBus.getInstance().publish(ClienteEvent.criado());
                     });
                 }
             } catch (IllegalArgumentException e) {
