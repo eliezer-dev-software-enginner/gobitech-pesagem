@@ -50,16 +50,12 @@ public class Sidebar {
         filhos.add(logo(minimizada));
         filhos.add(new SpacerVertical(10));
         filhos.add(botaoNav("Início", Entypo.HOME, Secao.HOME, viewModel));
-        filhos.add(botaoNav("Pesagem entrada", Entypo.HOME, Secao.HOME, viewModel));
-        filhos.add(botaoNav("Pesagem de saida", Entypo.HOME, Secao.HOME, viewModel));
-        filhos.add(botaoNav("Pesagem avulsa", Entypo.HOME, Secao.HOME, viewModel));
-        filhos.add(botaoNav("Pesagem manual", Entypo.HOME, Secao.HOME, viewModel));
-        //filhos.add(botaoNav("Pesagem", AntDesignIconsOutlined.CAR, Secao.PESAGENS, viewModel));
-        // Gerenciar usuários é ato administrativo — quem não é admin não deve manipular
-        // outros usuários, então o item nem aparece (mesmo padrão de "Gerar licença").
-        if (SessaoUsuario.isAdmin()) {
-            filhos.add(botaoNav("Usuários", Entypo.USERS, Secao.USUARIOS, viewModel));
-        }
+        filhos.add(botaoNav("Pesagem entrada", Entypo.HOME, Secao.PESAGENS_ENTRADA, viewModel));
+        filhos.add(botaoNav("Pesagem de saida", Entypo.HOME, Secao.PESAGENS_SAIDA, viewModel));
+        filhos.add(botaoNav("Pesagem avulsa", Entypo.HOME, Secao.PESAGENS_AVULSA, viewModel));
+        filhos.add(botaoNav("Pesagem manual", Entypo.HOME, Secao.PESAGEM_MANUAL, viewModel));
+        filhos.add(botaoNav("Histórico de pesagens", Entypo.LIST, Secao.PESAGEM_HISTORICO, viewModel));
+
         filhos.add(new SpacerVertical().fill());
         filhos.add(botaoLogout(minimizada, viewModel::logout));
 

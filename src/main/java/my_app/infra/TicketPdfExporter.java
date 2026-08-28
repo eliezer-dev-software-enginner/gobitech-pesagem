@@ -63,7 +63,7 @@ public class TicketPdfExporter {
 
                 y = escreverLinha(cs, fonteTitulo, 14, MARGEM, y, "TICKET DE PESAGEM Nº " + zeroPad(pesagem.getId()));
                 y = escreverLinha(cs, fonteTexto, 11, MARGEM, y,
-                        "Operação: " + valorOu(pesagem.getOperacao(), "-") + "    Data: " + DateUtils.localDateTimeToBrazilianDateTime(pesagem.getDataCriacao()));
+                        "Tipo: " + valorOu(pesagem.getTipoPesagem(), "-") + "    Data: " + DateUtils.localDateTimeToBrazilianDateTime(pesagem.getDataCriacao()));
                 y -= LEADING / 2;
 
                 y = escreverLinha(cs, fonteSecao, 12, MARGEM, y, "VEÍCULO E MOTORISTA");

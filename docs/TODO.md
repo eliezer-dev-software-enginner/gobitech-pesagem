@@ -1,5 +1,23 @@
 # TODO
 
+## Concluído (pesagem — formulários separados por tipo + `tipo_pesagem` — 2026-08-28)
+- [x] `tipo_pesagem` (valores `entrada`/`saida`/`avulsa`/`manual`) no lugar de `operacao` —
+      migration `V14`; o tipo passou a ser decidido pela tela aberta, não mais por paridade de
+      placa
+- [x] `PesagemService.salvar()` exige `tipoPesagem` (não infere); removido `determinarOperacao`;
+      `buscarTaraSugerida` agora vem da **última entrada** da placa (`buscarUltimaEntrada`) —
+      novo `PesagemRepository.buscarPorPlacaETipo`
+- [x] Telas de formulário por tipo, sem `ContratoTelaCrudV3` (fluxo próprio):
+      `PesagemEntrada/Saida/Avulsa/Manual{Screen,ViewModel}` sobre a base `PesagemForm{Screen,
+      ViewModel}` — semântica por tipo (ver `DECISIONS.md`)
+- [x] `PesagemHistorico{Screen,ViewModel}` — tela única de histórico usando `ContratoTelaCrudV3`
+      (lista, filtro, excluir, baixar lista, imprimir ticket no modal de detalhes)
+- [x] Navegação: `Secao.PESAGEM_HISTORICO` + botão "Histórico de pesagens" na sidebar; rota/enum
+      `PESAGENS` removidos de `AppRoutes`; `PesagemScreen`/`PesagemViewModel` antigos deletados
+- [x] `TicketPdfExporter` atualizado: "Tipo: ..." em vez de "Operação: ..."
+- [x] Testes atualizados (`PesagemServiceTest`/`PesagemRepositoryTest`/`TicketPdfExporterTest`) —
+      `./gradlew test`: **182 testes, BUILD SUCCESSFUL**
+
 ## Concluído (integração com câmera Intelbras — 2026-08-19)
 - [x] Item de "Fase 2 (adiado)" resolvido — captura de foto automática na pesagem, integrando
       de verdade com as duas câmeras Intelbras (frente/costas) via HTTP CGI

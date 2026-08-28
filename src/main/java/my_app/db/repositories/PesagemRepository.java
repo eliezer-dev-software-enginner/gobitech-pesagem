@@ -29,6 +29,14 @@ public class PesagemRepository extends BaseRepository<PesagemModel> {
         );
     }
 
+    public List<PesagemModel> buscarPorPlacaETipo(String placa, String tipoPesagem) throws SQLException {
+        return session().query(
+                modelClass(),
+                sql("SELECT * FROM pesagens WHERE placa = ? AND tipo_pesagem = ? ORDER BY dataCriacao ASC"),
+                params(placa, tipoPesagem)
+        );
+    }
+
     /**
      * Todos os campos filtram por AND (cada um preenchido restringe mais o resultado) —
      * corrigindo o bug do app original, que misturava AND/OR sem agrupar e fazia um filtro

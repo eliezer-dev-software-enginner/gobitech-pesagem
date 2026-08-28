@@ -55,7 +55,7 @@ class PesagemRepositoryTest extends BaseRepositoryTest {
         model.setMotoristaNome("José da Silva");
         model.setMotoristaDocumento("123.456.789-00");
         model.setPlaca(placa);
-        model.setOperacao("Entrada");
+        model.setTipoPesagem("entrada");
         model.setPesoVeiculo(BigDecimal.valueOf(8500));
         model.setPesoTotal(BigDecimal.valueOf(32000));
         model.setPesoFinal(BigDecimal.valueOf(23500));
@@ -113,14 +113,14 @@ class PesagemRepositoryTest extends BaseRepositoryTest {
         var primeira = repository.salvar(novaPesagem("ABC1D23"));
         var segunda = novaPesagem("ABC1D23");
         segunda.setDataCriacao(primeira.getDataCriacao().plusHours(2));
-        segunda.setOperacao("Saída");
+        segunda.setTipoPesagem("saida");
         repository.salvar(segunda);
 
         var lista = repository.buscarPorPlaca("ABC1D23");
 
         assertEquals(2, lista.size());
-        assertEquals("Entrada", lista.get(0).getOperacao());
-        assertEquals("Saída", lista.get(1).getOperacao());
+        assertEquals("entrada", lista.get(0).getTipoPesagem());
+        assertEquals("saida", lista.get(1).getTipoPesagem());
     }
 
     @Test
@@ -167,5 +167,21 @@ class PesagemRepositoryTest extends BaseRepositoryTest {
         var resultado = repository.filtrar(null, null, null, null, null, null);
 
         assertEquals(2, resultado.size());
+    }
+
+    @Test
+    void buscarPorPlacaETipoFiltraPeloTipo() throws SQLException {
+        repository.salvar(novaPesagem("ABC1D23")); // entrada
+        var saida = novaPesagem("ABC1D23");
+        saida.setTipoPesagem("saida");
+        repository.salvar(saida);
+
+        var entradas = repository.buscarPorPlacaETipo("ABC1D23", "entrada");
+        var saidas = repository.buscarPorPlacaETipo("ABC1D23", "saida");
+
+        assertEquals(1, entradas.size());
+        assertEquals("entrada", entradas.get(0).getTipoPesagem());
+        assertEquals(1, saidas.size());
+        assertEquals("saida", saidas.get(0).getTipoPesagem());
     }
 }

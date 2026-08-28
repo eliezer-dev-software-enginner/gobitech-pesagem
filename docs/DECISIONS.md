@@ -1,5 +1,46 @@
 # Decisões Arquiteturais
 
+## 2026-08-28: Pesagem — telas de formulário separadas por tipo + `tipo_pesagem` no lugar de `operacao`
+
+**Contexto:** a tela única de Pesagem (`PesagemScreen`, baseada em `ContratoTelaCrudV3`) misturava
+entrada, saída, pesagem avulsa e pesagem manual num formulário só, e o tipo era decidido por
+paridade de placa (`PesagemService.determinarOperacao`: ímpares viram "Entrada", pares "Saída").
+Isso forcava a tela de Pesagem num formato genérico de CRUD que não refletia os fluxos reais do
+operador. Pedido: separar em telas por tipo, com semântica própria em cada uma, e parar de inferir
+tipo por placa.
+
+**Decisões (confirmadas com o usuário):**
+- **Formulários separados por tipo**, sem ligação com `ContratoTelaCrudV3` (não estendem
+  `ViewModelScreenContract` nem o contrato de CRUD genérico — é um fluxo próprio de formulário),
+  criados como telas independentes em `my_app/screens/pesagemScreen/`: `PesagemEntradaScreen`,
+  `PesagemSaidaScreen`, `PesagemAvulsaScreen`, `PesagemManualScreen`, + `PesagemHistoricoScreen`
+  (esta última **usa** o `ContratoTelaCrudV3` para a lista/modal de detalhes).
+- **`tipo_pesagem` substitui `operacao`**: valores `entrada`/`saida`/`avulsa`/`manual`; o tipo
+  passa a ser decidido pela tela que o operador abriu, não mais inferido por paridade de placa.
+  Migration `V14__troca_operacao_por_tipo_pesagem.sql` (rename+popula+drop com suporte SQLite).
+- **Base compartilhada:** `PesagemFormViewModel` (abstrata: services, states do form, lambda da
+  balança, descontos, fotos, `montarModel`/`salvar`/`capturarFotos`) e `PesagemFormScreen` (layout
+  base com hooks) — cada tipo sobrescreve o que tem de específico.
+- **Semântica por tipo:** Entrada = formulário cheio + balança; Saída = digita a placa → puxa a
+  última Entrada daquela placa (dados + Tara via `PesagemService.buscarTaraSugerida`, que agora
+  é baseada na **última entrada** `tipo=entrada` — não mais "entrada em aberto"), Tara não
+  capturável, Bruto capturável; Avulsa = formulário cheio, Tara digitada manualmente, Bruto
+  capturável; Manual = sem balança, Tara e Bruto digitados, Líquido calculado.
+- **`PesagemService.salvar()` exige `tipoPesagem` não-blank** e não infere mais nada; removido
+  `determinarOperacao`. Novo `PesagemRepository.buscarPorPlacaETipo(placa, tipo)` e
+  `PesagemService.buscarUltimaEntrada(placa)`.
+- **Navegação:** `Secao.PESAGEM_HISTORICO` novo em `HomeScreenViewModel` (switch instancia as 5
+  telas novas) + botão "Histórico de pesagens" na Sidebar; `AppRoutes` perdeu a rota/enum
+  `PESAGENS` antiga (apontava pra `PesagemScreen`, deletada).
+- Registro histórico da "tara sugerida por entrada em aberto" (2026-08-19) deixou de valer: agora
+  a tara sugerida vem da última entrada, independente de a placa estar "aberta" ou "fechada".
+
+**Testado:** `PesagemServiceTest`/`PesagemRepositoryTest`/`TicketPdfExporterTest` atualizados
+(tipo em vez de operação, `buscarPorPlacaETipo`, `buscarUltimaEntrada`); `./gradlew test` →
+**182 testes, BUILD SUCCESSFUL**.
+
+---
+
 ## 2026-08-19: Integração com câmera Intelbras — captura automática de foto na pesagem
 
 **Contexto:** item adiado desde a auditoria do app antigo ("Fase 2" em `TODO.md`) — a

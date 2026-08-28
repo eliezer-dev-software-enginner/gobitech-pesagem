@@ -82,7 +82,9 @@ public class HomeScreen implements ScreenComponent {
                 .item("Empresa", () -> ctx.router().spawnWindow(AppRoutes.Screens.EMPRESA.name(), e -> {}))
                 .item("Conexão da balança", () -> ctx.router().spawnWindow(AppRoutes.Screens.CONEXAO_BALANCA.name(), e -> {}))
                 .item("Produtos", () -> ctx.router().spawnWindow(AppRoutes.Screens.PRODUTOS.name(), e -> {}))
-                .item("Clientes", () -> ctx.router().spawnWindow(AppRoutes.Screens.CLIENTES.name(), e -> {}));
+                .item("Clientes", () -> ctx.router().spawnWindow(AppRoutes.Screens.CLIENTES.name(), e -> {}))
+                //TODO: Só deve liverar se admin SessaoUsuario.isAdmin()
+                .item("Usuários do sistema", () -> ctx.router().spawnWindow(AppRoutes.Screens.USUARIOS.name(), e -> {}));
                // .item("Conexão das câmeras", () -> ctx.router().spawnWindow(AppRoutes.Screens.CONEXAO_CAMERA.name(), e -> {}));
 
         // Só quem está logado como admin vê a opção de gerar licença — ver

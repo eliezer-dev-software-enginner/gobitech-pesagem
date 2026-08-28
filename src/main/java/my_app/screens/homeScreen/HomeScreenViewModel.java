@@ -5,11 +5,12 @@ import megalodonte.base.state.State;
 import megalodonte.router.v4.ScreenContext;
 import my_app.core.AppRoutes;
 import my_app.domain.components.Components;
-import my_app.screens.clienteScreen.ClienteScreen;
 import my_app.screens.dashboardScreen.DashboardScreen;
-import my_app.screens.produtoScreen.ProdutoScreen;
-import my_app.screens.pesagemScreen.PesagemScreen;
-import my_app.screens.usuarioScreen.UsuarioScreen;
+import my_app.screens.pesagemScreen.PesagemAvulsaScreen;
+import my_app.screens.pesagemScreen.PesagemEntradaScreen;
+import my_app.screens.pesagemScreen.PesagemHistoricoScreen;
+import my_app.screens.pesagemScreen.PesagemManualScreen;
+import my_app.screens.pesagemScreen.PesagemSaidaScreen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +23,7 @@ public class HomeScreenViewModel {
 
     private static final Logger log = LoggerFactory.getLogger(HomeScreenViewModel.class);
 
-    public enum Secao { HOME, PESAGENS, PRODUTOS, CLIENTES, USUARIOS }
+    public enum Secao { HOME, PESAGENS_ENTRADA, PESAGENS_SAIDA, PESAGENS_AVULSA, PESAGEM_MANUAL, PESAGEM_HISTORICO }
 
     private final ScreenContext screenContext;
 
@@ -52,10 +53,11 @@ public class HomeScreenViewModel {
         var ctx = new ScreenContext(screenContext.selfStage(), screenContext.router());
         ScreenComponent tela = switch (secao) {
             case HOME -> new DashboardScreen(ctx);
-            case PESAGENS -> new PesagemScreen(ctx);
-            case PRODUTOS -> new ProdutoScreen(ctx);
-            case CLIENTES -> new ClienteScreen(ctx);
-            case USUARIOS -> new UsuarioScreen(ctx);
+            case PESAGENS_ENTRADA -> new PesagemEntradaScreen(ctx);
+            case PESAGENS_SAIDA -> new PesagemSaidaScreen(ctx);
+            case PESAGENS_AVULSA -> new PesagemAvulsaScreen(ctx);
+            case PESAGEM_MANUAL -> new PesagemManualScreen(ctx);
+            case PESAGEM_HISTORICO -> new PesagemHistoricoScreen(ctx);
         };
 
         this.ctxTelaAtiva = ctx;

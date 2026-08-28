@@ -15,7 +15,6 @@ import my_app.screens.empresaScreen.CadastroEmpresaScreen;
 import my_app.screens.homeScreen.HomeScreen;
 import my_app.screens.licensaScreen.LicensaScreen;
 import my_app.screens.logsScreen.LogsScreen;
-import my_app.screens.pesagemScreen.PesagemScreen;
 import my_app.screens.produtoScreen.AddOrEditProdutoScreen;
 import my_app.screens.produtoScreen.ProdutoScreen;
 import my_app.screens.usuarioScreen.UsuarioScreen;
@@ -31,7 +30,6 @@ public class AppRoutes {
         USUARIOS,
         EMPRESA,
         CLIENTES,
-        PESAGENS,
         CONEXAO_BALANCA,
         CONEXAO_CAMERA,
         LICENSA,
@@ -63,7 +61,6 @@ public class AppRoutes {
                 new Router.Route(Screens.USUARIOS.name(), UsuarioScreen::new, new RouteProps(MAX_WIDTH, MAX_HEIGHT, "Gerenciamento de usuários", true)),
                 new Router.Route(Screens.EMPRESA.name(), CadastroEmpresaScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Informações da empresa", false)),
                 new Router.Route(Screens.CLIENTES.name(), ClienteScreen::new, new RouteProps(MAX_WIDTH, MEDIUM_HEIGHT, "Gerenciamento de clientes", true)),
-                new Router.Route(Screens.PESAGENS.name(), PesagemScreen::new, new RouteProps(MAX_WIDTH, MAX_HEIGHT, "Pesagens", true)),
                 new Router.Route(Screens.CONEXAO_BALANCA.name(), ConexaoBalancaScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Conexão com a balança", false)),
                 new Router.Route(Screens.CONEXAO_CAMERA.name(), ConexaoCameraScreen::new, new RouteProps(MAX_WIDTH, MEDIUM_HEIGHT, "Conexão das câmeras", false)),
                 new Router.Route(Screens.LICENSA.name(), LicensaScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Gerar licença", false)),

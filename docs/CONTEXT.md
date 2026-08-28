@@ -38,7 +38,7 @@ ver `DECISIONS.md` pras decisões específicas de cada troca.
 | Usuário | `usuarios` | `UsuarioScreen` |
 | Cliente | `clientes` | `ClienteScreen` |
 | Produto | `produtos` | `ProdutoScreen` |
-| Pesagem | `pesagens` | `PesagemScreen` |
+| Pesagem | `pesagens` | `PesagemEntrada/Saida/Avulsa/ManualScreen` (formulários por tipo) + `PesagemHistoricoScreen` (lista) |
 | Desconto | `descontos` | (sem tela própria — editado dentro da Pesagem) |
 | Empresa | `empresas` | `CadastroEmpresaScreen` (dados/logo pro cabeçalho do ticket) |
 | Preferências | `preferencias` | `PreferenciasScreen` (config única do app) |
@@ -61,6 +61,15 @@ criada ainda). Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTRE
   bug real nas migrations (`dataCriacao REAL` quebrava qualquer releitura do banco — ver
   `DECISIONS.md`), inclusive num banco real já em uso (corrigido via `V11`, com auto-correção
   no próximo boot do app).
+
+## Estado atual (2026-08-28)
+- A **pesagem** deixou de ser uma tela única de CRUD (`PesagemScreen` removida). Viraram telas
+  separadas por tipo — `PesagemEntrada`, `PesagemSaida`, `PesagemAvulsa`, `PesagemManual`
+  (formulários independentes, **sem** `ContratoTelaCrudV3`) + `PesagemHistorico` (lista com
+  `ContratoTelaCrudV3`). O campo `operacao` virou `tipo_pesagem` (`entrada`/`saida`/`avulsa`/
+  `manual`), decidido pela tela aberta, não mais por paridade de placa. Migration `V14`. Ver
+  `DECISIONS.md`.
+- Testes: **182 testes**, `./gradlew test` → **BUILD SUCCESSFUL**.
 
 ## Modelo de licenciamento — confirmado com o Guilherme (2026-08-17)
 O André vai poder gerar quantas licenças precisar, ele mesmo — sem API nem backend. Ele tem

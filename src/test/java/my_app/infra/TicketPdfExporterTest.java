@@ -28,7 +28,7 @@ class TicketPdfExporterTest {
         pesagem.setPlaca("ABC1D23");
         pesagem.setMotoristaNome("José da Silva");
         pesagem.setMotoristaDocumento("123.456.789-00");
-        pesagem.setOperacao("Saída");
+        pesagem.setTipoPesagem("saida");
         pesagem.setNotaFiscal("987");
         pesagem.setPesoVeiculo(new BigDecimal("8500.00"));
         pesagem.setPesoTotal(new BigDecimal("32000.00"));

@@ -41,6 +41,7 @@ class PesagemServiceTest extends BaseServiceTest {
         var p = new PesagemModel();
         p.setMotoristaNome("José da Silva");
         p.setPlaca("ABC1D23");
+        p.setTipoPesagem("entrada");
         p.setClienteId(clienteId);
         p.setProdutoId(produtoId);
         return p;
@@ -83,32 +84,18 @@ class PesagemServiceTest extends BaseServiceTest {
     }
 
     @Test
-    void primeiraPesagemDaPlacaVirarEntradaAutomaticamente() throws Exception {
-        var salvo = pesagemService.salvar(pesagemValida());
-        assertEquals("Entrada", salvo.getOperacao());
-    }
-
-    @Test
-    void segundaPesagemDaMesmaPlacaVirarSaidaAutomaticamente() throws Exception {
-        pesagemService.salvar(pesagemValida());
-        var segunda = pesagemService.salvar(pesagemValida());
-        assertEquals("Saída", segunda.getOperacao());
-    }
-
-    @Test
-    void terceiraPesagemDaMesmaPlacaVoltaASerEntrada() throws Exception {
-        pesagemService.salvar(pesagemValida());
-        pesagemService.salvar(pesagemValida());
-        var terceira = pesagemService.salvar(pesagemValida());
-        assertEquals("Entrada", terceira.getOperacao());
-    }
-
-    @Test
-    void operacaoInformadaExplicitamenteNaoEhSobrescrita() throws Exception {
+    void deveLancarExcecaoQuandoTipoPesagemVazio() {
         var p = pesagemValida();
-        p.setOperacao("Saída");
+        p.setTipoPesagem(null);
+        assertThrows(IllegalArgumentException.class, () -> pesagemService.salvar(p));
+    }
+
+    @Test
+    void tipoPesagemInformadoEhPreservado() throws Exception {
+        var p = pesagemValida();
+        p.setTipoPesagem("avulsa");
         var salvo = pesagemService.salvar(p);
-        assertEquals("Saída", salvo.getOperacao());
+        assertEquals("avulsa", salvo.getTipoPesagem());
     }
 
     @Test
@@ -144,15 +131,42 @@ class PesagemServiceTest extends BaseServiceTest {
     }
 
     @Test
+    void buscarUltimaEntradaEhNullQuandoPlacaNuncaFoiPesada() throws Exception {
+        assertNull(pesagemService.buscarUltimaEntrada("XYZ9Z99"));
+    }
+
+    @Test
+    void buscarUltimaEntradaRetornaMesmoComPesagensDeSaidaDepois() throws Exception {
+        var entrada = pesagemValida();
+        entrada.setTipoPesagem("entrada");
+        pesagemService.salvar(entrada);
+
+        var saida = pesagemValida();
+        saida.setTipoPesagem("saida");
+        pesagemService.salvar(saida);
+
+        var ultima = pesagemService.buscarUltimaEntrada("ABC1D23");
+
+        assertNotNull(ultima);
+        assertEquals("entrada", ultima.getTipoPesagem());
+    }
+
+    @Test
     void taraSugeridaEhNullQuandoPlacaNuncaFoiPesada() throws Exception {
         assertNull(pesagemService.buscarTaraSugerida("XYZ9Z99"));
     }
 
     @Test
-    void taraSugeridaVemDaEntradaEmAbertoDaPlaca() throws Exception {
+    void taraSugeridaVemDaUltimaEntradaDaPlaca() throws Exception {
         var entrada = pesagemValida();
+        entrada.setTipoPesagem("entrada");
         entrada.setPesoVeiculo(new java.math.BigDecimal("8500"));
         pesagemService.salvar(entrada);
+
+        // uma saída depois não deve tirar a tara sugerida (entrada continua existindo)
+        var saida = pesagemValida();
+        saida.setTipoPesagem("saida");
+        pesagemService.salvar(saida);
 
         var tara = pesagemService.buscarTaraSugerida("ABC1D23");
 
@@ -160,11 +174,10 @@ class PesagemServiceTest extends BaseServiceTest {
     }
 
     @Test
-    void taraSugeridaEhNullQuandoNaoHaEntradaEmAberto() throws Exception {
-        // Entrada + Saída: placa fica "fechada", a próxima pesagem seria uma Entrada nova —
-        // sem entrada em aberto, não tem tara pra sugerir.
-        pesagemService.salvar(pesagemValida());
-        pesagemService.salvar(pesagemValida());
+    void taraSugeridaEhNullQuandoNemTemEntrada() throws Exception {
+        var avulsa = pesagemValida();
+        avulsa.setTipoPesagem("avulsa");
+        pesagemService.salvar(avulsa);
 
         assertNull(pesagemService.buscarTaraSugerida("ABC1D23"));
     }

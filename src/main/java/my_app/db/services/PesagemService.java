@@ -39,13 +39,13 @@ public class PesagemService extends BaseService<PesagemModel> {
     @Override
     public PesagemModel salvar(PesagemModel model) throws SQLException {
         validarCampos(model);
-        if (model.getOperacao() == null || model.getOperacao().isBlank()) {
-            model.setOperacao(determinarOperacao(model.getPlaca()));
+        if (model.getTipoPesagem() == null || model.getTipoPesagem().isBlank()) {
+            throw new IllegalArgumentException("Tipo de pesagem é obrigatório");
         }
         model.setDataCriacao(LocalDateTime.now());
         var salvo = repository.salvar(model);
-        log.info("Pesagem salva: id={} placa={} operacao={} pesoLiquido={}",
-                salvo.getId(), salvo.getPlaca(), salvo.getOperacao(), salvo.getPesoFinal());
+        log.info("Pesagem salva: id={} placa={} tipo={} pesoLiquido={}",
+                salvo.getId(), salvo.getPlaca(), salvo.getTipoPesagem(), salvo.getPesoFinal());
         return salvo;
     }
 
@@ -57,28 +57,25 @@ public class PesagemService extends BaseService<PesagemModel> {
     }
 
     /**
-     * "Entrada" se não houver pesagem em aberto pra essa placa; "Saída" se houver
-     * (número ímpar de pesagens já registradas pra ela) — mesma regra do app original,
-     * só que isolada aqui em vez de espalhada na tela.
+     * Última pesagem de tipo "entrada" daquela placa — a base pra pesagem de "saída"
+     * (aplica-se sempre, não por paridade de visita): a tela de Saída puxa dela os dados do
+     * caminhão/motorista/cliente/produto e a Tara, sem precisar redigitar nem repesar vazio.
+     * {@code null} se a placa nunca teve uma Entrada registrada.
      */
-    public String determinarOperacao(String placa) throws SQLException {
-        var anteriores = pesagemRepository.buscarPorPlaca(placa);
-        boolean temPesagemEmAberto = !anteriores.isEmpty() && anteriores.size() % 2 != 0;
-        return temPesagemEmAberto ? "Saída" : "Entrada";
+    public PesagemModel buscarUltimaEntrada(String placa) throws SQLException {
+        if (placa == null || placa.isBlank()) return null;
+        var anteriores = pesagemRepository.buscarPorPlacaETipo(placa, "entrada");
+        return anteriores.isEmpty() ? null : anteriores.getLast();
     }
 
     /**
-     * Tara sugerida pra uma pesagem de "Saída": a que já foi capturada na última pesagem
-     * "Entrada" em aberto pra essa placa — na prática o caminhão não muda de peso vazio entre a
-     * entrada e a saída da mesma visita, então não precisa pesar vazio de novo. `null` se essa
-     * placa não tem entrada em aberto (a próxima pesagem seria "Entrada", sem sugestão) ou se a
-     * entrada em aberto não tinha Tara preenchida.
+     * Tara sugerida pra uma pesagem de "saída": a da última Entrada daquela placa. {@code null}
+     * se a placa não tem Entrada (a próxima pesagem seria uma Entrada, sem sugestão) ou se essa
+     * Entrada não tinha Tara preenchida.
      */
     public BigDecimal buscarTaraSugerida(String placa) throws SQLException {
-        if (placa == null || placa.isBlank()) return null;
-        var anteriores = pesagemRepository.buscarPorPlaca(placa);
-        boolean temPesagemEmAberto = !anteriores.isEmpty() && anteriores.size() % 2 != 0;
-        return temPesagemEmAberto ? anteriores.getLast().getPesoVeiculo() : null;
+        var entrada = buscarUltimaEntrada(placa);
+        return entrada == null ? null : entrada.getPesoVeiculo();
     }
 
     public PesagemModel buscarComRelacoes(long id) throws SQLException {

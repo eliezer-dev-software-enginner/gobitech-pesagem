@@ -21,7 +21,7 @@ public class PesagemModel extends Identifier {
     private String motoristaDocumento;
 
     private String placa;
-    private String operacao;
+    private String tipoPesagem;
 
     @Column(name = "nota_fiscal")
     private String notaFiscal;
