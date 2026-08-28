@@ -74,9 +74,7 @@ public class HomeScreen implements ScreenComponent {
                 .textColor(Sidebar.TEXT_COLOR)
                 .item("Novidades dessa atualização", () -> ctx.router().spawnWindow(AppRoutes.Screens.INFO_UPDATE.name(), e -> {}))
                 .item("Ver logs da aplicação", () -> ctx.router().spawnWindow(AppRoutes.Screens.LOGS.name(), e -> {}));
-
-        //filhos.add(botaoNav("Produto", Entypo.BOX, Secao.PRODUTOS, viewModel));
-        //filhos.add(botaoNav("Cliente", Entypo.SUITCASE, Secao.CLIENTES, viewModel));
+        
         var gerencialMenu = new Menu("Gerencial")
                 .textColor(Sidebar.TEXT_COLOR)
                 .item("Empresa", () -> ctx.router().spawnWindow(AppRoutes.Screens.EMPRESA.name(), e -> {}))
