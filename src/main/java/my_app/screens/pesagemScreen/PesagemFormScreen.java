@@ -96,7 +96,7 @@ public abstract class PesagemFormScreen implements ScreenComponent {
                         .children(
                                 Components.InputColumn("Placa", vm.placa, "Ex: ABC1D23"),
                                 Components.InputColumn("Nome do motorista", vm.motoristaNome, "Ex: José da Silva"),
-                                Components.InputColumn("Documento do motorista", vm.motoristaDocumento, "CPF/RG"),
+                                Components.InputRgCpf("Documento do motorista", vm.motoristaDocumento),
                                 Components.SelectColumn("Cliente", vm.clientesState, vm.clienteSelected,
                                         c -> c.getLoja(), true),
                                 Components.SelectColumn("Produto", vm.produtosState, vm.produtoSelected,
@@ -119,11 +119,11 @@ public abstract class PesagemFormScreen implements ScreenComponent {
         var linha = new FlowRow(new FlowRowProps().spacingOf(10));
         linha.children(
                 permitirCapturarTara()
-                        ? Components.InputWithButtonRow("Tara (Kg)", "Ex: 8500", "Capturar", vm.pesoVeiculo, vm::capturarTara)
-                        : Components.InputColumn("Tara (Kg)", vm.pesoVeiculo, "Ex: 8500"),
+                        ? Components.InputWithButtonRowDecimal("Tara (Kg)", "Ex: 8500", "Capturar", vm.pesoVeiculo, vm::capturarTara)
+                        : Components.InputColumnDecimal("Tara (Kg)", vm.pesoVeiculo, "Ex: 8500"),
                 permitirCapturarBruto()
-                        ? Components.InputWithButtonRow("Peso bruto (Kg)", "Ex: 32000", "Capturar", vm.pesoTotal, vm::capturarPesoBruto)
-                        : Components.InputColumn("Peso bruto (Kg)", vm.pesoTotal, "Ex: 32000"),
+                        ? Components.InputWithButtonRowDecimal("Peso bruto (Kg)", "Ex: 32000", "Capturar", vm.pesoTotal, vm::capturarPesoBruto)
+                        : Components.InputColumnDecimal("Peso bruto (Kg)", vm.pesoTotal, "Ex: 32000"),
                 Components.InputColumn("Peso líquido (Kg)", vm.pesoFinal, "", true)
         );
 

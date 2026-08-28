@@ -97,4 +97,29 @@ class UtilsTest {
         assertEquals("", Utils.formatCpfCnpj(""));
         assertEquals("", Utils.formatCpfCnpj(null));
     }
+
+    @Test
+    void formatRgCpf_formataComoRgAte9Caracteres() {
+        assertEquals("12", Utils.formatRgCpf("12"));
+        assertEquals("12.345", Utils.formatRgCpf("12345"));
+        assertEquals("12.345.678", Utils.formatRgCpf("12345678"));
+        assertEquals("12.345.678-9", Utils.formatRgCpf("123456789"));
+    }
+
+    @Test
+    void formatRgCpf_formataComoCpfAPartirDe10Caracteres() {
+        assertEquals("123.456.789-0", Utils.formatRgCpf("1234567890"));
+        assertEquals("123.456.789-01", Utils.formatRgCpf("12345678901"));
+    }
+
+    @Test
+    void formatRgCpf_removeLetras() {
+        assertEquals("12.345.678", Utils.formatRgCpf("1A2B3C4D5E6F7G8"));
+    }
+
+    @Test
+    void formatRgCpf_vazioOuNuloRetornaVazio() {
+        assertEquals("", Utils.formatRgCpf(""));
+        assertEquals("", Utils.formatRgCpf(null));
+    }
 }

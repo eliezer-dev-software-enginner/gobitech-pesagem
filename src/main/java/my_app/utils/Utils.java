@@ -251,6 +251,43 @@ public static BigDecimal deCentavosParaReal(String centavos){
         return formatCnpj(cleaned);
     }
 
+    /**
+     * Formata um campo combinado RG-ou-CPF: até 9 caracteres assume RG (máscara
+     * {@code ##.###.###-#}), a partir do 10º assume CPF ({@code ###.###.###-##}). O
+     * reagrupamento dos separadores ao cruzar esse limiar é esperado — sem perguntar de antemão
+     * qual documento é, não tem como saber os grupos certos antes de ver o tamanho final.
+     */
+    public static String formatRgCpf(String cleaned) {
+        if (cleaned == null || cleaned.isEmpty()) return "";
+        String numeric = cleaned.replaceAll("[^0-9]", "");
+        if (numeric.length() <= 9) {
+            return formatRg(numeric);
+        }
+        return formatCpf(numeric);
+    }
+
+    private static String formatRg(String numeric) {
+        if (numeric == null || numeric.isEmpty()) return "";
+
+        StringBuilder sb = new StringBuilder();
+        int len = numeric.length();
+
+        if (len <= 2) {
+            sb.append(numeric);
+        } else if (len <= 5) {
+            sb.append(numeric, 0, 2).append(".").append(numeric.substring(2));
+        } else if (len <= 8) {
+            sb.append(numeric, 0, 2).append(".").append(numeric, 2, 5).append(".").append(numeric.substring(5));
+        } else {
+            sb.append(numeric, 0, 2).append(".")
+                    .append(numeric, 2, 5).append(".")
+                    .append(numeric, 5, 8).append("-")
+                    .append(numeric.substring(8));
+        }
+
+        return sb.toString();
+    }
+
     @Deprecated(forRemoval = true)
     public static <T> void updateItemOnObservableList(
             ObservableList<T> observableList, T modelSelected, T modelAtualizada

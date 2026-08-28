@@ -451,6 +451,36 @@ public class Components {
                 .c_child(input);
     }
 
+    /**
+     * Campo combinado RG-ou-CPF com máscara dinâmica: até 9 dígitos assume RG
+     * ({@code ##.###.###-#}), a partir do 10º assume CPF ({@code ###.###.###-##}). Devolve no
+     * state só os dígitos, sem os separadores — ver {@code Utils.formatRgCpf}.
+     */
+    public static Component InputRgCpf(String label, State<String> inputState) {
+        var inputProps = getInputPropsV2("RG ou CPF").width(170);
+
+        var input = new Input(inputState, inputProps)
+                .onInitialize(value -> {
+                    String formatted = formatRgCpf(value);
+                    return OnChangeResult.of(formatted, value);
+                })
+                .onChange(value -> {
+                    String numeric = value.replaceAll("[^0-9]", "");
+
+                    if (numeric.length() > 11) {
+                        numeric = numeric.substring(0, 11);
+                    }
+
+                    String formatted = formatRgCpf(numeric);
+                    return OnChangeResult.of(formatted, numeric);
+                })
+                .lockCursorToEnd();
+
+        return new Column()
+                .c_child(new Text(label, new TextProps().fontSize(ThemeManager.theme().typography().small())))
+                .c_child(input);
+    }
+
     public static Component InputColumnPhone(String label, State<String> inputState) {
         var inputProps = getInputPropsV2("(00) 00000-0000").width(160);
 
@@ -583,6 +613,18 @@ public class Components {
     public static Component InputWithButtonRow(String label, String placeholder, String btnTitle, State<String> inputState, RunnableThrowing onClick) {
         return new Row(new RowProps().bottomVertically())
                 .r_child(Components.InputColumn(label, inputState, placeholder))
+                .r_child(new Button(btnTitle, new ButtonProps().height(32).textColor("black")
+                                .bgColor(ThemeManager.theme().colors().primary())
+                                .borderRadius(ThemeManager.theme().border().radiusSm()).borderWidth(ThemeManager.theme().border().width()).borderColor(ThemeManager.theme().colors().primary())
+                        )
+                                .onClick(onClick)
+                );
+    }
+
+    /** Igual a {@link #InputWithButtonRow}, mas com o input formatado em decimal (vírgula). */
+    public static Component InputWithButtonRowDecimal(String label, String placeholder, String btnTitle, State<String> inputState, RunnableThrowing onClick) {
+        return new Row(new RowProps().bottomVertically())
+                .r_child(Components.InputColumnDecimal(label, inputState, placeholder))
                 .r_child(new Button(btnTitle, new ButtonProps().height(32).textColor("black")
                                 .bgColor(ThemeManager.theme().colors().primary())
                                 .borderRadius(ThemeManager.theme().border().radiusSm()).borderWidth(ThemeManager.theme().border().width()).borderColor(ThemeManager.theme().colors().primary())

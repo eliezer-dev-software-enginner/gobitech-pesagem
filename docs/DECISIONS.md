@@ -1,5 +1,27 @@
 # Decisões Arquiteturais
 
+## 2026-08-28: Formulário de pesagem — `InputRgCpf` (RG/CPF) + pesos com `InputColumnDecimal`
+
+**Contexto:** polimento do formulário de pesagem (base `PesagemFormScreen`). O "Documento do
+motorista" era um campo de texto cru; os campos de tara/bruto também eram texto cru, sem máscara
+nem formatação decimal.
+
+**Decisão:**
+- **`InputRgCpf(label, state)` novo em `Components`** — campo combinado RG-ou-CPF com máscara
+  dinâmica: até 9 dígitos assume RG (`##.###.###-#`), a partir do 10º assume CPF
+  (`###.###.###-##`), devolvendo no state só os dígitos. Usado no lugar do campo cru
+  "Documento do motorista". Formatação em `Utils.formatRgCpf` (testável isoladamente).
+- **Pesos com `InputColumnDecimal`:** tara e peso bruto passaram a formatar em decimal
+  (milhar com `.` e vírgula decimal), via novo `Components.InputWithButtonRowDecimal` (mesmo
+  padrão de `InputWithButtonRow`, mas com o input decimal) quando há botão "Capturar", e
+  `InputColumnDecimal` puro quando não há. O peso líquido continua só-leitura (calculado).
+  O state continua guardando valor em ponto decimal (`32000.50`), então `parseDecimal` do
+  ViewModel segue funcionando na montagem do model.
+- **Testado:** `UtilsTest` ganhou 4 casos de `formatRgCpf` (RG 9 dígitos, CPF 10/11, letras,
+  vazio/nulo). `./gradlew test` → **186 testes, BUILD SUCCESSFUL**.
+
+---
+
 ## 2026-08-28: Peso líquido calculado dinamicamente — botão "Calcular" removido
 
 **Contexto:** pedido do usuário — o campo "Peso líquido (Kg)" da pesagem dependia de um botão

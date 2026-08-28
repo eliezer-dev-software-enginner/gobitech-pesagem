@@ -1,5 +1,14 @@
 # TODO
 
+## Concluído (pesagem — formatação de campos do formulário — 2026-08-28)
+- [x] `Components.InputRgCpf` novo (RG/CPF combinado com máscara dinâmica) — usado no
+      "Documento do motorista"; formatação em `Utils.formatRgCpf`
+- [x] Pesos (tara/bruto) formatados em decimal via `InputColumnDecimal` /
+      `InputWithButtonRowDecimal` novo (mantém o botão "Capturar"); peso líquido continua
+      só-leitura
+- [x] `UtilsTest`: 4 casos novos de `formatRgCpf` — `./gradlew test`: **186 testes,
+      BUILD SUCCESSFUL**
+
 ## Concluído (pesagem — peso líquido dinâmico — 2026-08-28)
 - [x] "Peso líquido" recalculado dinamicamente a cada mudança de bruto/tara/desconto —
       `PesagemFormViewModel` se inscreve nos states e reaproveita `PesagemCalculo`; botão
