@@ -1,5 +1,11 @@
 # TODO
 
+## Concluído (pesagem — peso líquido dinâmico — 2026-08-28)
+- [x] "Peso líquido" recalculado dinamicamente a cada mudança de bruto/tara/desconto —
+      `PesagemFormViewModel` se inscreve nos states e reaproveita `PesagemCalculo`; botão
+      "Calcular" removido e campo virou só-leitura (vale pras 4 telas de formulário)
+- [x] `./gradlew test`: **182 testes, BUILD SUCCESSFUL**
+
 ## Concluído (pesagem — formulários separados por tipo + `tipo_pesagem` — 2026-08-28)
 - [x] `tipo_pesagem` (valores `entrada`/`saida`/`avulsa`/`manual`) no lugar de `operacao` —
       migration `V14`; o tipo passou a ser decidido pela tela aberta, não mais por paridade de

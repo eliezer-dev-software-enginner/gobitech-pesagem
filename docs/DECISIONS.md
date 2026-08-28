@@ -1,5 +1,21 @@
 # Decisões Arquiteturais
 
+## 2026-08-28: Peso líquido calculado dinamicamente — botão "Calcular" removido
+
+**Contexto:** pedido do usuário — o campo "Peso líquido (Kg)" da pesagem dependia de um botão
+"Calcular" (`PesagemFormScreen` → `vm::calcularPesoLiquido`); o operador tinha que lembrar de
+clicar, e o valor podia ficar desatualizado se mudasse bruto/tara/desconto depois.
+
+**Decisão:** `pesoFinal` passou a ser recalculado automaticamente a cada mudança de peso bruto,
+tara ou de qualquer um dos 8 descontos (`PesagemFormViewModel` se inscreve nesses states e chama
+`recalcularPesoLiquido()`, que reaproveita `PesagemCalculo.calcularPesoLiquido`). O campo virou
+de exibição (só-leitura, `InputColumn(..., disableInput=true)`) e o botão "Calcular" foi removido
+do `PesagemFormScreen` — vale automaticamente pras 4 telas de formulário (Entrada, Saída, Avulsa,
+Manual), já que a base é compartilhada. Sem loop de notificação: `pesoFinal` não tem subscriber.
+`./gradlew test` → **182 testes, BUILD SUCCESSFUL**.
+
+---
+
 ## 2026-08-28: Pesagem — telas de formulário separadas por tipo + `tipo_pesagem` no lugar de `operacao`
 
 **Contexto:** a tela única de Pesagem (`PesagemScreen`, baseada em `ContratoTelaCrudV3`) misturava

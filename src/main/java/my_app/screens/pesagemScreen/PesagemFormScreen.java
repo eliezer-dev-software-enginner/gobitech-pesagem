@@ -124,7 +124,7 @@ public abstract class PesagemFormScreen implements ScreenComponent {
                 permitirCapturarBruto()
                         ? Components.InputWithButtonRow("Peso bruto (Kg)", "Ex: 32000", "Capturar", vm.pesoTotal, vm::capturarPesoBruto)
                         : Components.InputColumn("Peso bruto (Kg)", vm.pesoTotal, "Ex: 32000"),
-                Components.InputWithButtonRow("Peso líquido (Kg)", "Ex: 23500", "Calcular", vm.pesoFinal, vm::calcularPesoLiquido)
+                Components.InputColumn("Peso líquido (Kg)", vm.pesoFinal, "", true)
         );
 
         return pesos.c_child(linha);

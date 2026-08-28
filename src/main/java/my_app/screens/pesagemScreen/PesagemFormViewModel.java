@@ -112,6 +112,19 @@ public abstract class PesagemFormViewModel {
             if (produto == null) return;
             outros.set(produto.getDesconto() == null ? "" : produto.getDesconto().toPlainString());
         });
+
+        // Peso líquido recalculado dinamicamente a cada mudança de bruto, tara ou de qualquer
+        // desconto — dispensa o botão "Calcular" (o campo é de exibição, não editável).
+        pesoTotal.subscribe(v -> recalcularPesoLiquido());
+        pesoVeiculo.subscribe(v -> recalcularPesoLiquido());
+        avariados.subscribe(v -> recalcularPesoLiquido());
+        ardidos.subscribe(v -> recalcularPesoLiquido());
+        quebraArdidos.subscribe(v -> recalcularPesoLiquido());
+        impurezas.subscribe(v -> recalcularPesoLiquido());
+        quebraImpurezas.subscribe(v -> recalcularPesoLiquido());
+        umidade.subscribe(v -> recalcularPesoLiquido());
+        quebraUmidade.subscribe(v -> recalcularPesoLiquido());
+        outros.subscribe(v -> recalcularPesoLiquido());
     }
 
     /**
@@ -204,9 +217,11 @@ public abstract class PesagemFormViewModel {
     }
 
     /**
-     * Cálculo do peso líquido, delegando pra {@link PesagemCalculo} (testável isoladamente).
+     * Recalcula o peso líquido em tempo real a partir de bruto, tara e descontos, delegando
+     * pra {@link PesagemCalculo} (testável isoladamente). Chamado a cada mudança desses
+     * campos, então o valor exibido está sempre atualizado sem botão "Calcular".
      */
-    public void calcularPesoLiquido() {
+    private void recalcularPesoLiquido() {
         var bruto = parseDecimal(pesoTotal.get());
         var tara = parseDecimal(pesoVeiculo.get());
         var percentualDesconto = parseDecimal(avariados.get())
