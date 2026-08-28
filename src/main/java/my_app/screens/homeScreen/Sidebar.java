@@ -50,10 +50,10 @@ public class Sidebar {
         filhos.add(logo(minimizada));
         filhos.add(new SpacerVertical(10));
         filhos.add(botaoNav("Início", Entypo.HOME, Secao.HOME, viewModel));
-        filhos.add(botaoNav("Pesagem entrada", Entypo.HOME, Secao.PESAGENS_ENTRADA, viewModel));
-        filhos.add(botaoNav("Pesagem de saida", Entypo.HOME, Secao.PESAGENS_SAIDA, viewModel));
-        filhos.add(botaoNav("Pesagem avulsa", Entypo.HOME, Secao.PESAGENS_AVULSA, viewModel));
-        filhos.add(botaoNav("Pesagem manual", Entypo.HOME, Secao.PESAGEM_MANUAL, viewModel));
+        filhos.add(botaoNav("Pesagem entrada", AntDesignIconsOutlined.CAR, Secao.PESAGENS_ENTRADA, viewModel));
+        filhos.add(botaoNav("Pesagem de saida", AntDesignIconsOutlined.CAR, Secao.PESAGENS_SAIDA, viewModel));
+        filhos.add(botaoNav("Pesagem avulsa", AntDesignIconsOutlined.CAR, Secao.PESAGENS_AVULSA, viewModel));
+        filhos.add(botaoNav("Pesagem manual", AntDesignIconsOutlined.CAR, Secao.PESAGEM_MANUAL, viewModel));
         filhos.add(botaoNav("Histórico de pesagens", Entypo.LIST, Secao.PESAGEM_HISTORICO, viewModel));
 
         filhos.add(new SpacerVertical().fill());
@@ -162,7 +162,10 @@ public class Sidebar {
                 selecionado
         );
 
-        var botao = new Button(textoComputado, new ButtonProps().fillWidth().bgColor(bgComputado).textColor(corComputada))
+        var botao = new Button(textoComputado, new ButtonProps().fillWidth().bgColor(bgComputado).textColor(corComputada)
+                .paddingTop(ThemeManager.theme().padding().sm())
+                .paddingDown(ThemeManager.theme().padding().sm())
+                )
                 .icon(iconeComputado)
                 .onClick(() -> viewModel.navegarPara(secao));
         alinharEsquerda(botao);
