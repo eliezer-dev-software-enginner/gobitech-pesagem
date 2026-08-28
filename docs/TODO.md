@@ -1,5 +1,12 @@
 # TODO
 
+## Concluído (bug — NPE session nula ao salvar pesagem de saída — 2026-08-28)
+- [x] `EventBus.unsubscribe` novo + as 4 ViewModels que se inscreviam (histórico, formulário de
+      pesagem, Cliente, Produto) agora se desinscrevem no `onDestroy`, antes de fechar o Service
+      — antes, uma ViewModel já destruída continuava reagindo ao evento com a `Session` nula e
+      estourava NPE (ver `DECISIONS.md`)
+- [x] `EventBusTest` novo — `./gradlew test`: **188 testes, BUILD SUCCESSFUL**
+
 ## Concluído (pesagem — formatação de campos do formulário — 2026-08-28)
 - [x] `Components.InputRgCpf` novo (RG/CPF combinado com máscara dinâmica) — usado no
       "Documento do motorista"; formatação em `Utils.formatRgCpf`

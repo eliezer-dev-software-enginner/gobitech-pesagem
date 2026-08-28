@@ -21,6 +21,8 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
     private static final Logger log = LoggerFactory.getLogger(ProdutoScreenViewModel.class);
 
     private final ProdutoService produtoService;
+    @SuppressWarnings("rawtypes")
+    private final java.util.function.Consumer<Object> eventListener = this::onEntityEvent;
 
     final State<String> nome = new State<>("");
     final State<String> unidadeSelected = new State<>(Data.unidadesDeMedidaList.getFirst());
@@ -33,11 +35,16 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
         super(ctx);
         this.produtoService = createOrReport(ProdutoService::new);
         screenNameSpawn = AppRoutes.Screens.ADD_OR_EDIT_PRODUTO.name();
-        EventBus.getInstance().subscribe(event -> {
-            if (event instanceof EntityEvent<?> ee && ee.entity() instanceof ProdutoModel) {
-                fetchListData();
-            }
-        });
+        EventBus.getInstance().subscribe(eventListener);
+    }
+
+    // Mantém a lista sincronizada quando um produto é salvo/alterado — desinscrito no
+    // onDestroy, senão uma ViewModel já destruída (com o service fechado) continuaria
+    // processando eventos e quebraria com session nula.
+    private void onEntityEvent(Object event) {
+        if (event instanceof EntityEvent<?> ee && ee.entity() instanceof ProdutoModel) {
+            fetchListData();
+        }
     }
 
     @Override
@@ -155,6 +162,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
 
     @Override
     public void onDestroy() throws Exception {
+        EventBus.getInstance().unsubscribe(eventListener);
         this.produtoService.close();
     }
 }

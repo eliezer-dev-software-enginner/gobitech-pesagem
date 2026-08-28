@@ -1,5 +1,32 @@
 # Decisões Arquiteturais
 
+## 2026-08-28: Bug — error ao salvar pesagem de saída (NPE de session nula no histórico)
+
+**Contexto:** ao salvar uma pesagem de saída, o app estourava
+`NullPointerException ... BaseRepository.session() is null` dentro de
+`PesagemHistoricoViewModel.fetchListData`. A pesagem em si salvava; o erro vinha da reação ao
+evento de "pesagem criada".
+
+**Causa raiz:** vazamento de listener no `EventBus` (singleton global). As ViewModels de
+listagem se inscrevem no `EventBus` no construtor (pra recarregar a lista ao salvar/excluir),
+mas **nunca se desinscreviam no `onDestroy()`** — que, ali, fecha o Service (e, por baixo, a
+`Session` do Persism vira `null`). Sequência: abriu o histórico → saiu (Service fechado,
+listener ficou no bus global) → salvou a saída → o evento disparou o `fetchListData()` da
+ViewModel **já destruída** → `Session` nula → NPE.
+
+**Decisão:**
+- `EventBus` ganhou `unsubscribe(Consumer)` (e o `publish` atual continuou igual) — antes não
+  existia como sair do bus.
+- As 4 ViewModels que se inscrevem passaram a guardar o listener num campo
+  (`Consumer<Object> eventListener = this::onEntityEvent`) e a chamar
+  `EventBus.getInstance().unsubscribe(eventListener)` no `onDestroy()`, antes de fechar os
+  services: `PesagemHistoricoViewModel`, `PesagemFormViewModel` (e por herança as 4 telas de
+  formulário), `ClienteViewModel`, `ProdutoScreenViewModel`.
+- **Testado:** novo `EventBusTest` (recebe evento; após `unsubscribe` não recebe mais).
+  `./gradlew test` → **188 testes, BUILD SUCCESSFUL**.
+
+---
+
 ## 2026-08-28: Formulário de pesagem — `InputRgCpf` (RG/CPF) + pesos com `InputColumnDecimal`
 
 **Contexto:** polimento do formulário de pesagem (base `PesagemFormScreen`). O "Documento do

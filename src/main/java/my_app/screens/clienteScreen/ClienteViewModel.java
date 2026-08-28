@@ -19,6 +19,8 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
     private static final Logger log = LoggerFactory.getLogger(ClienteViewModel.class);
 
     private final ClienteService clienteService;
+    @SuppressWarnings("rawtypes")
+    private final java.util.function.Consumer<Object> eventListener = this::onEntityEvent;
 
     final State<String> loja = new State<>("");
     final State<String> razaoSocial = new State<>("");
@@ -32,11 +34,16 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
         super(ctx);
         this.clienteService = createOrReport(ClienteService::new);
         screenNameSpawn = AppRoutes.Screens.ADD_OR_EDIT_CLIENTE.name();
-        EventBus.getInstance().subscribe(event -> {
-            if (event instanceof EntityEvent<?> ee && ee.entity() instanceof ClienteModel) {
-                fetchListData();
-            }
-        });
+        EventBus.getInstance().subscribe(eventListener);
+    }
+
+    // Mantém a lista sincronizada quando um cliente é salvo/alterado — desinscrito no
+    // onDestroy, senão uma ViewModel já destruída (com o service fechado) continuaria
+    // processando eventos e quebraria com session nula.
+    private void onEntityEvent(Object event) {
+        if (event instanceof EntityEvent<?> ee && ee.entity() instanceof ClienteModel) {
+            fetchListData();
+        }
     }
 
     @Override
@@ -169,6 +176,7 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
 
     @Override
     public void onDestroy() throws Exception {
+        EventBus.getInstance().unsubscribe(eventListener);
         this.clienteService.close();
     }
 }

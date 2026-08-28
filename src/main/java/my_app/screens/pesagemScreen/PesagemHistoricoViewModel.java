@@ -32,6 +32,8 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
     private final PesagemService pesagemService;
     private final EmpresaService empresaService;
     private final TicketPdfExporter ticketPdfExporter = new TicketPdfExporter();
+    @SuppressWarnings("rawtypes")
+    private final java.util.function.Consumer<Object> eventListener = this::onEntityEvent;
 
     final State<String> filtroPlaca = new State<>("");
     final State<String> filtroMotorista = new State<>("");
@@ -43,11 +45,16 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
         this.pesagemService = createOrReport(PesagemService::new);
         this.empresaService = createOrReport(EmpresaService::new);
 
-        EventBus.getInstance().subscribe(event -> {
-            if (event instanceof EntityEvent<?> ee && ee.entity() instanceof PesagemModel) {
-                fetchListData();
-            }
-        });
+        EventBus.getInstance().subscribe(eventListener);
+    }
+
+    // Reage a pesagem criada/excluída pra manter a lista atualizada — desinscrito no
+    // onDestroy, senão uma ViewModel já destruída (com o service fechado) continuaria
+    // processando eventos e quebraria com session nula.
+    private void onEntityEvent(Object event) {
+        if (event instanceof EntityEvent<?> ee && ee.entity() instanceof PesagemModel) {
+            fetchListData();
+        }
     }
 
     @Override
@@ -134,6 +141,7 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
 
     @Override
     public void onDestroy() throws Exception {
+        EventBus.getInstance().unsubscribe(eventListener);
         this.pesagemService.close();
         this.empresaService.close();
     }

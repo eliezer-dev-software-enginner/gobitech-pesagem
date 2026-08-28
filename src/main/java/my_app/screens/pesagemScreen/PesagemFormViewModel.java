@@ -57,6 +57,8 @@ public abstract class PesagemFormViewModel {
     private LeitorBalanca leitorBalanca;
     protected final State<String> pesoAoVivo = State.of("—");
     protected final State<Boolean> lendoBalanca = State.of(false);
+    @SuppressWarnings("rawtypes")
+    private final java.util.function.Consumer<Object> eventListener = this::onEntityEvent;
 
     protected final State<String> motoristaNome = new State<>("");
     protected final State<String> motoristaDocumento = new State<>("");
@@ -97,14 +99,7 @@ public abstract class PesagemFormViewModel {
         this.conexaoCameraService = createOrReport(ConexaoCameraService::new);
         carregarClientesEProdutos();
 
-        EventBus.getInstance().subscribe(event -> {
-            if (event instanceof EntityEvent<?> ee) {
-                if (ee.entity() instanceof ClienteModel
-                        || ee.entity() instanceof ProdutoModel) {
-                    carregarClientesEProdutos();
-                }
-            }
-        });
+        EventBus.getInstance().subscribe(eventListener);
 
         // Ao selecionar um produto, carrega o desconto padrão dele no campo "Outros" — só um
         // ponto de partida editável pelo operador.
@@ -125,6 +120,18 @@ public abstract class PesagemFormViewModel {
         umidade.subscribe(v -> recalcularPesoLiquido());
         quebraUmidade.subscribe(v -> recalcularPesoLiquido());
         outros.subscribe(v -> recalcularPesoLiquido());
+    }
+
+    // Reage a cliente/produto alterado pra manter os selects atualizados — desinscrito no
+    // onDestroy, senão uma ViewModel já destruída (com os services fechados) continuaria
+    // processando eventos em vão.
+    private void onEntityEvent(Object event) {
+        if (event instanceof EntityEvent<?> ee) {
+            if (ee.entity() instanceof ClienteModel
+                    || ee.entity() instanceof ProdutoModel) {
+                carregarClientesEProdutos();
+            }
+        }
     }
 
     /**
@@ -418,6 +425,7 @@ public abstract class PesagemFormViewModel {
     }
 
     public void onDestroy() throws Exception {
+        EventBus.getInstance().unsubscribe(eventListener);
         pararLeituraBalanca();
         this.pesagemService.close();
         this.clienteService.close();
