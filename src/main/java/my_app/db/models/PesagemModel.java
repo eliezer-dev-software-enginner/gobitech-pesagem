@@ -58,6 +58,9 @@ public class PesagemModel extends Identifier {
     @Column(name = "desconto_id")
     private Integer descontoId;
 
+    @Column(name = "entrada_id")
+    private Integer entradaId;
+
     @Column(name = "dataCriacao")
     private LocalDateTime dataCriacao;
 

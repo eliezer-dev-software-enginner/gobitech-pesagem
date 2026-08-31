@@ -17,6 +17,8 @@ public class PesagemSaidaViewModel extends PesagemFormViewModel {
 
     private static final Logger log = LoggerFactory.getLogger(PesagemSaidaViewModel.class);
 
+    private Integer entradaIdVinculada;
+
     public PesagemSaidaViewModel(ScreenContext ctx) {
         super(ctx);
 
@@ -36,9 +38,11 @@ public class PesagemSaidaViewModel extends PesagemFormViewModel {
                 UI.runOnUi(() -> {
                     if (!placa.get().trim().equals(placaAtual)) return; // placa já mudou
                     if (entrada == null) {
+                        entradaIdVinculada = null;
                         Components.ShowPopup(ctx, "Nenhuma pesagem de entrada encontrada para essa placa");
                         return;
                     }
+                    entradaIdVinculada = entrada.getId();
                     preencherDaEntrada(entrada);
                 });
             } catch (Exception e) {
@@ -73,6 +77,11 @@ public class PesagemSaidaViewModel extends PesagemFormViewModel {
     @Override
     protected String tipoPesagem() {
         return "saida";
+    }
+
+    @Override
+    protected void aoMontarModel(PesagemModel model) {
+        model.setEntradaId(entradaIdVinculada);
     }
 
     @Override

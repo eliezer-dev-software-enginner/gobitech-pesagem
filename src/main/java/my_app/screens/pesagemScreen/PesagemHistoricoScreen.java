@@ -28,6 +28,7 @@ import my_app.domain.ContratoTelaCrudV3;
 import my_app.domain.ViewModelScreenContract;
 import my_app.domain.components.Components;
 import my_app.infra.ListaPdfExporter;
+import my_app.infra.RelatorioPesagemPdfExporter;
 import my_app.utils.DateUtils;
 import org.kordamp.ikonli.entypo.Entypo;
 
@@ -171,7 +172,7 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
 
     private Row acoesLista() {
         return new Row(new RowProps().spacingOf(10).hugWidth()).children(
-                botaoAcao("Baixar lista", "black", "#CDD7D6", Entypo.DOWNLOAD, this::handleClickBaixarLista),
+                botaoAcao("Exportar relatório", "black", "#CDD7D6", Entypo.DOWNLOAD, this::handleClickBaixarLista),
                 botaoAcao("Excluir", "white", "#E55934", Entypo.TRASH, this::handleClickMenuDelete)
         );
     }
@@ -215,17 +216,109 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
 
     @Override
     public void exportPdf(File destino, EmpresaModel empresa, List<PesagemModel> snapshotFiltrado) throws Exception {
-        var headers = java.util.List.of("ID", "Placa", "Motorista", "Tipo", "Cliente", "Produto", "Peso liquido (Kg)", "Data");
-        var rows = snapshotFiltrado.stream().map(p -> java.util.List.of(
+        // Uma linha por par Entrada+Saída (mesma placa/visita), igual ao relatório do André.
+        // Tara = peso veículo da entrada; bruto/líquido do registro consolidado (a saída, quando
+        // há par). Avulsas/manuais e saídas sem a entrada no snapshot entram como linha própria
+        // na coluna Entrada (são eventos únicos) — nada some do relatório.
+        var porId = new java.util.HashMap<Integer, PesagemModel>();
+        for (var p : snapshotFiltrado) porId.put(p.getId(), p);
+
+        var consumidas = new java.util.HashSet<Integer>();
+        var rows = new java.util.ArrayList<List<String>>();
+
+        var saidas = snapshotFiltrado.stream()
+                .filter(p -> "saida".equals(p.getTipoPesagem()))
+                .sorted(java.util.Comparator.comparing(PesagemModel::getDataCriacao))
+                .toList();
+
+        for (var saida : saidas) {
+            var entradaId = saida.getEntradaId();
+            var entrada = entradaId != null ? porId.get(entradaId) : null;
+            if (entrada != null && "entrada".equals(entrada.getTipoPesagem()) && !consumidas.contains(entradaId)) {
+                consumidas.add(entradaId);
+                consumidas.add(saida.getId());
+                rows.add(linhaPar(entrada, saida));
+            } else {
+                consumidas.add(saida.getId());
+                rows.add(linhaEventoUnico(saida));
+            }
+        }
+
+        for (var p : snapshotFiltrado) {
+            if (consumidas.contains(p.getId())) continue;
+            rows.add(linhaEventoUnico(p));
+        }
+
+        var totalLiquido = rows.isEmpty() ? java.math.BigDecimal.ZERO
+                : rows.stream()
+                .map(r -> r.get(10))
+                .map(s -> s.isBlank() ? java.math.BigDecimal.ZERO : new java.math.BigDecimal(s))
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+        var observacoes = snapshotFiltrado.stream()
+                .map(PesagemModel::getObservacoes)
+                .filter(o -> o != null && !o.isBlank())
+                .distinct()
+                .reduce((a, b) -> a + "; " + b)
+                .orElse("----");
+
+        var rodape = List.of(
+                "Observação (todas as linhas): " + observacoes,
+                "Quantidade total entradas: " + rows.size(),
+                "Total peso líquido: " + totalLiquido.stripTrailingZeros().toPlainString()
+        );
+
+        var headers = List.of("Ticket", "Tara (Kg)", "Entrada", "Horário", "Saída", "Horário",
+                "Placa", "Produto", "Cliente", "Peso bruto", "Peso líquido");
+        RelatorioPesagemPdfExporter.exportar(destino, "Relatório resumo de entradas e saídas", headers, rows, rodape);
+    }
+
+    private List<String> linhaPar(PesagemModel entrada, PesagemModel saida) {
+        return List.of(
+                String.valueOf(entrada.getId()),
+                pesoStr(entrada.getPesoVeiculo()),
+                dataHora(entrada.getDataCriacao(), false),
+                dataHora(entrada.getDataCriacao(), true),
+                dataHora(saida.getDataCriacao(), false),
+                dataHora(saida.getDataCriacao(), true),
+                entrada.getPlaca() != null ? entrada.getPlaca() : "",
+                entrada.getProduto() != null ? entrada.getProduto().getNome() : "---",
+                entrada.getCliente() != null ? entrada.getCliente().getLoja() : "",
+                pesoStr(saida.getPesoTotal()),
+                pesoStr(saida.getPesoFinal())
+        );
+    }
+
+    private List<String> linhaEventoUnico(PesagemModel p) {
+        return List.of(
                 String.valueOf(p.getId()),
+                pesoStr(p.getPesoVeiculo()),
+                dataHora(p.getDataCriacao(), false),
+                dataHora(p.getDataCriacao(), true),
+                "", "",
                 p.getPlaca() != null ? p.getPlaca() : "",
-                p.getMotoristaNome() != null ? p.getMotoristaNome() : "",
-                p.getTipoPesagem() != null ? p.getTipoPesagem() : "",
-                p.getCliente() != null ? p.getCliente().getLoja() : "-",
-                p.getProduto() != null ? p.getProduto().getNome() : "-",
-                String.valueOf(p.getPesoFinal()),
-                DateUtils.localDateTimeToBrazilianDateTime(p.getDataCriacao())
-        )).toList();
-        ListaPdfExporter.exportar(destino, empresa, "Lista de Pesagens", headers, rows);
+                p.getProduto() != null ? p.getProduto().getNome() : "---",
+                p.getCliente() != null ? p.getCliente().getLoja() : "",
+                pesoStr(p.getPesoTotal()),
+                pesoStr(p.getPesoFinal())
+        );
+    }
+
+    /**
+     * Formata um valor de peso (Tara/Peso bruto/Peso líquido) como número inteiro, sem casas
+     * decimais — o relatório não deve exibir frações de Kg, e valores de ponto flutuante
+     * (ex: 31999.900390625, resultado de imprecisão de double) nunca devem ir pro PDF como
+     * estão, porque inflam a largura das colunas e derrubam o layout da tabela.
+     */
+    private String pesoStr(Number valor) {
+        if (valor == null) return "0";
+        return String.valueOf(Math.round(valor.doubleValue()));
+    }
+
+    /** data (dd/MM/yyyy) ou hora (HH:mm:ss) de um LocalDateTime. */
+    private String dataHora(java.time.LocalDateTime dataHora, boolean soHora) {
+        if (dataHora == null) return "";
+        if (soHora) return dataHora.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
+        return dataHora.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
 }

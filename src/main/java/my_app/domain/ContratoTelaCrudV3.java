@@ -197,7 +197,7 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
 
     private Row actionButtonsRow(){
         return new Row(new RowProps().spacingOf(10).hugWidth()).children(
-                actionButton("Baixar lista","black","#CDD7D6", Entypo.DOWNLOAD, this::handleClickBaixarLista),
+                actionButton("Exportar","black","#CDD7D6", Entypo.DOWNLOAD, this::handleClickBaixarLista),
                 actionButton("Editar","black","#ADA8BE", Entypo.EDIT, this::handleClickMenuEdit),
                 actionButton("Excluir","white","#E55934", Entypo.TRASH, this::handleClickMenuDelete),
                 new SpacerVertical(30),
@@ -208,6 +208,10 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
     private Button actionButton(String title, String color, String bgColor, Ikon ikon, RunnableThrowing onclick){
         return new Button(title, new ButtonProps()
                 .bgColor(bgColor!=null? bgColor : ThemeManager.theme().colors().primary())
+                .paddingTop(ThemeManager.theme().padding().md())
+                .paddingDown(ThemeManager.theme().padding().md())
+                .paddingLeft(ThemeManager.theme().padding().md())
+                .paddingRight(ThemeManager.theme().padding().md())
                 .textColor(color))
                 .onClick(onclick)
                 .icon(Components.ikon(ikon,10, color));
@@ -265,10 +269,6 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
 
     default void populateFieldsFromModel() {
         viewModel().populateFieldsFromModel();
-    }
-
-    default void clearForm() {
-        viewModel().clearForm();
     }
 
     default void handleAddOrUpdate() {

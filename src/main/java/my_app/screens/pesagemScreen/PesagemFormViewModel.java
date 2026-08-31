@@ -266,7 +266,16 @@ public abstract class PesagemFormViewModel {
         if (clienteSelected.get() != null) model.setClienteId(clienteSelected.get().getId());
         if (produtoSelected.get() != null) model.setProdutoId(produtoSelected.get().getId());
 
+        aoMontarModel(model);
+
         return model;
+    }
+
+    /**
+     * Hook vazio por padrão, sobrescrito por subtipos que precisam enriquecer o model antes de
+     * salvar (ex.: a Saída grava {@code entradaId} apontando pra Entrada que a originou).
+     */
+    protected void aoMontarModel(PesagemModel model) {
     }
 
     private DescontoModel montarDesconto() {

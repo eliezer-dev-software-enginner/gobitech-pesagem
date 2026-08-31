@@ -24,10 +24,11 @@ public class HomeScreenViewModel {
     private static final Logger log = LoggerFactory.getLogger(HomeScreenViewModel.class);
 
     public enum Secao { HOME, PESAGENS_ENTRADA, PESAGENS_SAIDA, PESAGENS_AVULSA, PESAGEM_MANUAL, PESAGEM_HISTORICO }
+    //public enum Secao { PESAGENS_ENTRADA, PESAGENS_SAIDA, PESAGENS_AVULSA, PESAGEM_MANUAL, PESAGEM_HISTORICO }
 
     private final ScreenContext screenContext;
 
-    public final State<Secao> secaoAtiva = State.of(Secao.HOME);
+    public final State<Secao> secaoAtiva = State.of(Secao.PESAGEM_HISTORICO);
     public final State<ScreenComponent> telaAtiva = State.of(null);
     public final State<Boolean> sidebarMinimizada = State.of(false);
 
