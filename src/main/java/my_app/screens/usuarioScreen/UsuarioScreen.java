@@ -90,7 +90,7 @@ public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<Usuari
                 .column("Admin", it -> Boolean.TRUE.equals(it.getAdmin()) ? "Sim" : "Não")
                 .column("Data de criação", it -> DateUtils.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build()
-                .onItemSelectChange(vm.usuarioSelecionado::set)
+                .onItemSelectChange(vm.selected::set)
                 .onItemDoubleClick(it -> showItemDetailsComAcoes(it, this.screenContext, 350));
 
         return simpleTable;

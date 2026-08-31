@@ -16,13 +16,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.util.function.Consumer;
 
 public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel> {
     private static final Logger log = LoggerFactory.getLogger(ProdutoScreenViewModel.class);
 
     private final ProdutoService produtoService;
     @SuppressWarnings("rawtypes")
-    private final java.util.function.Consumer<Object> eventListener = this::onEntityEvent;
+    private final Consumer<Object> eventListener = this::onEntityEvent;
 
     final State<String> nome = new State<>("");
     final State<String> unidadeSelected = new State<>(Data.unidadesDeMedidaList.getFirst());

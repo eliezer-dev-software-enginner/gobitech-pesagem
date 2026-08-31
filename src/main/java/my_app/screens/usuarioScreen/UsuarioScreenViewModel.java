@@ -4,6 +4,8 @@ import megalodonte.base.state.State;
 import megalodonte.base.UI;
 import megalodonte.base.async.Async;
 import megalodonte.router.v4.ScreenContext;
+import my_app.core.AppRoutes;
+import my_app.core.events.ProdutoEvent;
 import my_app.db.models.UsuarioModel;
 import my_app.db.services.UsuarioService;
 import my_app.core.events.UsuarioEvent;
@@ -14,12 +16,15 @@ import my_app.domain.components.Components;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.function.Consumer;
+
 public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel> {
     private static final Logger log = LoggerFactory.getLogger(UsuarioScreenViewModel.class);
 
     private final UsuarioService usuarioService;
 
-    final State<UsuarioModel> usuarioSelecionado = State.of(null);
+    @SuppressWarnings("rawtypes")
+    private final Consumer<Object> eventListener = this::onEntityEvent;
 
     final State<String> login = new State<>("");
     final State<String> senha = new State<>("");
@@ -30,6 +35,15 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
     public UsuarioScreenViewModel(ScreenContext ctx) {
         super(ctx);
         this.usuarioService = createOrReport(UsuarioService::new);
+        screenNameSpawn = AppRoutes.Screens.ADD_OR_EDIT_USUARIO.name();
+
+        EventBus.getInstance().subscribe(eventListener);
+    }
+
+    private void onEntityEvent(Object event) {
+        if (event instanceof UsuarioEvent) {
+            fetchListData();
+        }
     }
 
     @Override
@@ -43,7 +57,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
 
     @Override
     public void populateFieldsFromModel() {
-        final var data = usuarioSelecionado.get();
+        final var data = selected.get();
         if (data == null) return;
         login.set(data.getLogin());
         senha.set(data.getSenha());
@@ -54,8 +68,8 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
 
     @Override
     public UsuarioModel populateModelFromFields() {
-        var model = modoEdicao.get() && usuarioSelecionado.get() != null
-                ? usuarioSelecionado.get()
+        var model = modoEdicao.get() && selected.get() != null
+                ? selected.get()
                 : new UsuarioModel();
 
         model.setLogin(login.get().trim());
@@ -82,7 +96,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
 
     @Override
     public void handleClickMenuDelete() {
-        final var model = usuarioSelecionado.get();
+        final var model = selected.get();
         if (model == null) return;
 
         Components.ShowAlertAdvice("Deseja inativar o usuário " + model.getNome(), () -> Async.Run(() -> {
@@ -102,7 +116,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
 
     @Override
     public void handleAddOrUpdate() {
-        if (modoEdicao.get() && usuarioSelecionado.get() == null) return;
+        if (modoEdicao.get() && selected.get() == null) return;
 
         boolean editando = modoEdicao.get();
         var model = populateModelFromFields();
@@ -114,7 +128,6 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
                     UI.runOnUi(() -> {
                         allDataList.updateIf(it -> it.getId().equals(model.getId()), it -> model);
                         Components.ShowPopup(ctx, "Usuário atualizado com sucesso");
-                        voltarParaLista();
                         EventBus.getInstance().publish(UsuarioEvent.editado());
                     });
                 } else {
@@ -122,7 +135,6 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
                     UI.runOnUi(() -> {
                         allDataList.add(model);
                         Components.ShowPopup(ctx, "Usuário cadastrado com sucesso");
-                        voltarParaLista();
                         EventBus.getInstance().publish(UsuarioEvent.criado());
                     });
                 }
@@ -147,5 +159,6 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
     @Override
     public void onDestroy() throws Exception {
         this.usuarioService.close();
+        EventBus.getInstance().unsubscribe(eventListener);
     }
 }
