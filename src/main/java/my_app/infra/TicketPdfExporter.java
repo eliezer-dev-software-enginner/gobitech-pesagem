@@ -1,10 +1,8 @@
 package my_app.infra;
 
-import my_app.db.models.DescontoModel;
 import my_app.db.models.EmpresaModel;
 import my_app.db.models.PesagemModel;
-import my_app.utils.DateUtils;
-import my_app.utils.Utils;
+import my_app.db.models.UsuarioModel;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -15,156 +13,174 @@ import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Gera o ticket de pesagem em PDF (mesma família de libs do RelatorioPdfExporter do
- * plics-sw — Apache PDFBox). O app original imprimia um ticket parecido, mas direto pra
- * impressora térmica via ESC/POS; aqui, como em plics-sw, o caminho é exportar um PDF que
- * o operador abre e imprime pelo visualizador padrão — sem depender de porta/spooler de
- * impressora (ver docs/DECISIONS.md, "Recursos específicos de varejo... removidos").
+ * Gera o ticket de pesagem em PDF no layout exato do ticket do André (app antigo): texto
+ * monoespaçado com cabeçalho da empresa, "Ticket de Pesagem Nº", placa, data/hora de entrada
+ * e saída, operador/motorista/produto/fornecedor/cliente, pesos de entrada/saída/líquido,
+ * observação e assinaturas. Cada PDF traz o ticket impresso 2 vezes (duas vias) na MESMA
+ * folha, separadas por uma linha longa. Usa o mesmo Apache PDFBox do restante do app.
  */
 public class TicketPdfExporter {
 
-    private static final DateTimeFormatter DATA_HORA_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final DateTimeFormatter DATA_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter HORA_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
     private static final float MARGEM = 50;
-    private static final float LEADING = 18;
-    private static final float LARGURA_UTIL = PDRectangle.A4.getWidth() - 2 * MARGEM;
+    private static final float LEADING = 16;
 
-    public void gerar(File destino, EmpresaModel empresa, PesagemModel pesagem) throws IOException {
+    /**
+     * @param entrada pesagem de entrada vinculada à saída (pode ser {@code null} para
+     *                entrada/avulsa/manual sem par) — fornece data/hora e peso de entrada.
+     */
+    public void gerar(File destino, EmpresaModel empresa, PesagemModel pesagem, PesagemModel entrada) throws IOException {
         try (PDDocument doc = new PDDocument()) {
+            var fonte = PDType1Font.COURIER;
+            float tamanho = 11;
+
+            var linhas = montarLinhas(empresa, pesagem, entrada);
+            var pagina = montarPagina(linhas);
+
             var page = new PDPage(PDRectangle.A4);
             doc.addPage(page);
-
-            var fonteTitulo = PDType1Font.HELVETICA_BOLD;
-            var fonteSecao = PDType1Font.HELVETICA_BOLD;
-            var fonteTexto = PDType1Font.HELVETICA;
-
             try (var cs = new PDPageContentStream(doc, page)) {
                 float y = page.getMediaBox().getHeight() - MARGEM;
-
-                y = escreverLinha(cs, fonteTitulo, 16, MARGEM, y, empresa != null && empresa.getNome() != null ? empresa.getNome() : "Gobitech");
-                if (empresa != null) {
-                    if (empresa.getCpfCnpj() != null && !empresa.getCpfCnpj().isBlank()) {
-                        y = escreverLinha(cs, fonteTexto, 10, MARGEM, y, "CNPJ/CPF: " + Utils.formatCpfCnpj(empresa.getCpfCnpj()));
-                    }
-                    String endereco = formatarEndereco(empresa);
-                    if (!endereco.isBlank()) {
-                        y = escreverLinha(cs, fonteTexto, 10, MARGEM, y, endereco);
-                    }
-                    String contato = formatarContato(empresa);
-                    if (!contato.isBlank()) {
-                        y = escreverLinha(cs, fonteTexto, 10, MARGEM, y, contato);
-                    }
+                for (String linha : pagina) {
+                    y = escreverLinha(cs, fonte, tamanho, MARGEM, y, linha);
                 }
-                y -= LEADING / 2;
-
-                y = escreverLinha(cs, fonteTitulo, 14, MARGEM, y, "TICKET DE PESAGEM Nº " + zeroPad(pesagem.getId()));
-                y = escreverLinha(cs, fonteTexto, 11, MARGEM, y,
-                        "Tipo: " + valorOu(pesagem.getTipoPesagem(), "-") + "    Data: " + DateUtils.localDateTimeToBrazilianDateTime(pesagem.getDataCriacao()));
-                y -= LEADING / 2;
-
-                y = escreverLinha(cs, fonteSecao, 12, MARGEM, y, "VEÍCULO E MOTORISTA");
-                y = escreverLinha(cs, fonteTexto, 11, MARGEM, y, "Placa: " + valorOu(pesagem.getPlaca(), "-"));
-                y = escreverLinha(cs, fonteTexto, 11, MARGEM, y, "Motorista: " + valorOu(pesagem.getMotoristaNome(), "-")
-                        + (pesagem.getMotoristaDocumento() != null && !pesagem.getMotoristaDocumento().isBlank()
-                        ? " (Doc: " + pesagem.getMotoristaDocumento() + ")" : ""));
-                y -= LEADING / 2;
-
-                y = escreverLinha(cs, fonteSecao, 12, MARGEM, y, "CLIENTE E PRODUTO");
-                y = escreverLinha(cs, fonteTexto, 11, MARGEM, y, "Cliente: " + (pesagem.getCliente() != null ? valorOu(pesagem.getCliente().getLoja(), "-") : "-"));
-                y = escreverLinha(cs, fonteTexto, 11, MARGEM, y, "Produto: " + (pesagem.getProduto() != null ? valorOu(pesagem.getProduto().getNome(), "-") : "-"));
-                if (pesagem.getNotaFiscal() != null && !pesagem.getNotaFiscal().isBlank()) {
-                    y = escreverLinha(cs, fonteTexto, 11, MARGEM, y, "Nota fiscal: " + pesagem.getNotaFiscal());
-                }
-                y -= LEADING / 2;
-
-                y = escreverLinha(cs, fonteSecao, 12, MARGEM, y, "PESAGEM");
-                y = escreverLinha(cs, fonteTexto, 11, MARGEM, y, "Tara: " + formatarKg(pesagem.getPesoVeiculo()));
-                y = escreverLinha(cs, fonteTexto, 11, MARGEM, y, "Peso bruto: " + formatarKg(pesagem.getPesoTotal()));
-                y = escreverLinha(cs, fonteTitulo, 12, MARGEM, y, "Peso líquido: " + formatarKg(pesagem.getPesoFinal()));
-                y -= LEADING / 2;
-
-                var desconto = pesagem.getDesconto();
-                if (desconto != null && desconto.somaPercentuais().compareTo(BigDecimal.ZERO) > 0) {
-                    y = escreverLinha(cs, fonteSecao, 12, MARGEM, y, "DESCONTOS APLICADOS");
-                    y = escreverPercentualSeExistir(cs, fonteTexto, MARGEM, y, "Avariados", desconto.getAvariados());
-                    y = escreverPercentualSeExistir(cs, fonteTexto, MARGEM, y, "Ardidos", desconto.getArdidos());
-                    y = escreverPercentualSeExistir(cs, fonteTexto, MARGEM, y, "Quebra (ardidos)", desconto.getQuebraArdidos());
-                    y = escreverPercentualSeExistir(cs, fonteTexto, MARGEM, y, "Impurezas", desconto.getImpurezas());
-                    y = escreverPercentualSeExistir(cs, fonteTexto, MARGEM, y, "Quebra (impurezas)", desconto.getQuebraImpurezas());
-                    y = escreverPercentualSeExistir(cs, fonteTexto, MARGEM, y, "Umidade", desconto.getUmidade());
-                    y = escreverPercentualSeExistir(cs, fonteTexto, MARGEM, y, "Quebra (umidade)", desconto.getQuebraUmidade());
-                    y = escreverPercentualSeExistir(cs, fonteTexto, MARGEM, y, "Outros", desconto.getOutros());
-                    y = escreverLinha(cs, fonteSecao, 11, MARGEM, y, "Total de desconto: " + formatarPercentual(desconto.somaPercentuais()));
-                    y -= LEADING / 2;
-                }
-
-                if (pesagem.getObservacoes() != null && !pesagem.getObservacoes().isBlank()) {
-                    y = escreverLinha(cs, fonteSecao, 12, MARGEM, y, "OBSERVAÇÕES");
-                    for (String linha : quebrarLinhas(fonteTexto, 10, pesagem.getObservacoes(), LARGURA_UTIL)) {
-                        y = escreverLinha(cs, fonteTexto, 10, MARGEM, y, linha);
-                    }
-                    y -= LEADING / 2;
-                }
-
-                y -= LEADING * 2;
-                float xAssinaturaDireita = MARGEM + LARGURA_UTIL / 2 + 20;
-                escreverLinha(cs, fonteTexto, 10, MARGEM, y, "____________________________");
-                escreverLinha(cs, fonteTexto, 10, xAssinaturaDireita, y, "____________________________");
-                y -= LEADING;
-                escreverLinha(cs, fonteTexto, 9, MARGEM, y, "Assinatura do Balanceiro");
-                escreverLinha(cs, fonteTexto, 9, xAssinaturaDireita, y, "Assinatura do Motorista");
-                y -= LEADING * 2;
-
-                escreverLinha(cs, fonteTexto, 8, MARGEM, y,
-                        "Gerado em " + java.time.LocalDateTime.now().format(DATA_HORA_FMT) + " pelo Gobitech");
             }
 
             doc.save(destino);
         }
     }
 
-    private String formatarEndereco(EmpresaModel empresa) {
-        var partes = new ArrayList<String>();
-        if (naoVazio(empresa.getRua())) partes.add(empresa.getRua() + (naoVazio(empresa.getNumero()) ? ", " + empresa.getNumero() : ""));
-        if (naoVazio(empresa.getBairro())) partes.add(empresa.getBairro());
-        if (naoVazio(empresa.getCidade())) partes.add(empresa.getCidade() + (naoVazio(empresa.getEstado()) ? "/" + empresa.getEstado() : ""));
-        return String.join(" - ", partes);
+    /**
+     * As duas vias na MESMA folha, separadas por uma linha longa — essa linha é o corte que
+     * indica o fim do primeiro ticket e o começo do segundo (por isso não pertence a nenhuma via).
+     */
+    List<String> montarPagina(List<String> via) {
+        var pagina = new ArrayList<String>();
+        pagina.addAll(via);
+        pagina.add("----------------------------------------------------------------------");
+        pagina.addAll(via);
+        return pagina;
     }
 
-    private String formatarContato(EmpresaModel empresa) {
-        var partes = new ArrayList<String>();
-        if (naoVazio(empresa.getTelefone())) partes.add("Tel: " + Utils.formatPhone(empresa.getTelefone()));
-        if (naoVazio(empresa.getEmail())) partes.add(empresa.getEmail());
-        return String.join("    ", partes);
+    /**
+     * Monta o ticket como lista de linhas monoespaçadas, reproduzindo o layout do André.
+     */
+    List<String> montarLinhas(EmpresaModel empresa, PesagemModel pesagem, PesagemModel entrada) {
+        var linhas = new ArrayList<String>();
+
+        // Cabeçalho da empresa
+        String nomeEmpresa = empresa != null && valor(empresa.getNome()) != null ? empresa.getNome() : "Gobitech";
+        linhas.add(nomeEmpresa);
+        linhas.add("Cnpj:              " + (empresa != null ? nulo(empresa.getCpfCnpj()) : "") + "          Insc.est:");
+        linhas.add("End:             " + (empresa != null ? nulo(montarEnd(empresa)) : ""));
+        linhas.add("Bairro:          " + (empresa != null ? nulo(empresa.getBairro()) : ""));
+        linhas.add("Cidade: " + (empresa != null ? nulo(montarCidade(empresa)) : ""));
+        linhas.add("Fone:    " + (empresa != null ? nulo(empresa.getTelefone()) : ""));
+        linhas.add("");
+
+        // Título + número
+        linhas.add(String.format("                         Ticket de Pesagem                         Nº: %d",
+                pesagem.getId() == null ? 0 : pesagem.getId()));
+        linhas.add("");
+
+        boolean temEntrada = entrada != null && entrada.getDataCriacao() != null;
+
+        // Placa / Uf
+        linhas.add(String.format("Placa:                %-16s Uf:", nulo(pesagem.getPlaca())));
+
+        // Data/Hora entrada
+        if (temEntrada) {
+            linhas.add("Data Entrada:         " + DATA_FMT.format(entrada.getDataCriacao())
+                    + "     Hora entrada: " + HORA_FMT.format(entrada.getDataCriacao()));
+        } else {
+            linhas.add("Data Entrada:         " + "     Hora entrada: ");
+        }
+
+        // Data/Hora saida (a própria pesagem)
+        if (pesagem.getDataCriacao() != null) {
+            linhas.add("Data saida:           " + DATA_FMT.format(pesagem.getDataCriacao())
+                    + "     Hora saida:    " + HORA_FMT.format(pesagem.getDataCriacao()));
+        } else {
+            linhas.add("Data saida:           " + "     Hora saida:    ");
+        }
+
+        // Operador / Motorista / Produto / Fornecedor / Cliente
+        linhas.add("Operador:             " + nomeOperador(pesagem));
+        linhas.add("Motorista:            " + valorOu(pesagem.getMotoristaNome(), "---"));
+        linhas.add("Produto:              " + (pesagem.getProduto() != null ? valorOu(pesagem.getProduto().getNome(), "---") : "---"));
+        linhas.add("Fornecedor:");
+        linhas.add("Cliente:              " + (pesagem.getCliente() != null ? valorOu(pesagem.getCliente().getLoja(), "") : ""));
+
+        // Pesos
+        linhas.add("Peso entrada:         " + pesoSemLegenda(entrada != null ? entrada.getPesoTotal() : null) + " Kg");
+        linhas.add("Peso saida:           " + pesoSemLegenda(pesagem.getPesoTotal()) + " Kg");
+        linhas.add("Peso liquido:         " + pesoSemLegenda(pesagem.getPesoFinal()) + " Kg");
+        linhas.add("Observacao:");
+
+        // Observação (quebrada em linhas)
+        if (pesagem.getObservacoes() != null && !pesagem.getObservacoes().isBlank()) {
+            for (String linha : quebrar(pesagem.getObservacoes())) {
+                linhas.add("  " + linha);
+            }
+        }
+        linhas.add("");
+
+        // Assinaturas à mão: uma linha de assinatura ACIMA do nome do operador (à esquerda) e
+        // do motorista (à direita) — depois de imprimir, quem faz a pesagem assina sobre a linha.
+        String operador = nomeOperador(pesagem);
+        linhas.add(String.format("%-30s %50s", "______________________", "______________________"));
+        linhas.add(String.format("%-30s %50s", operador, "Motorista"));
+
+        return linhas;
     }
 
+    private String nomeOperador(PesagemModel pesagem) {
+        UsuarioModel usuario = pesagem.getUsuario();
+        if (usuario != null && valor(usuario.getNome()) != null) return usuario.getNome();
+        return "---";
+    }
+
+    private String pesoSemLegenda(BigDecimal valor) {
+        return valor == null ? "0" : valor.setScale(0, java.math.RoundingMode.HALF_UP).toBigInteger().toString();
+    }
+
+    private String montarEnd(EmpresaModel empresa) {
+        if (!naoVazio(empresa.getRua())) return null;
+        return empresa.getRua() + (naoVazio(empresa.getNumero()) ? ", " + empresa.getNumero() : "");
+    }
+
+    private String montarCidade(EmpresaModel empresa) {
+        if (!naoVazio(empresa.getCidade())) return null;
+        return empresa.getCidade() + (naoVazio(empresa.getEstado()) ? " - " + empresa.getEstado() : "");
+    }
+
+    /**
+     * Preenche um valor ajustado à largura de formato do ticket (com espaços à direita),
+     * para manter o alinhamento monoespaçado; {@code null} vira espaços.
+     */
     private boolean naoVazio(String valor) {
         return valor != null && !valor.isBlank();
+    }
+
+    /** Valor cru, ou string vazia se {@code null}/em branco (mantém o alinhamento do layout). */
+    private String nulo(String v) {
+        return (v == null || v.isBlank()) ? "" : v;
     }
 
     private String valorOu(String valor, String fallback) {
         return naoVazio(valor) ? valor : fallback;
     }
 
-    private String formatarKg(BigDecimal valor) {
-        return (valor == null ? BigDecimal.ZERO : valor).setScale(2, java.math.RoundingMode.HALF_UP) + " Kg";
-    }
-
-    private String formatarPercentual(BigDecimal valor) {
-        return (valor == null ? BigDecimal.ZERO : valor).setScale(2, java.math.RoundingMode.HALF_UP) + "%";
-    }
-
-    private String zeroPad(Integer id) {
-        return id == null ? "-" : String.format("%06d", id);
-    }
-
-    private float escreverPercentualSeExistir(PDPageContentStream cs, PDFont fonte, float x, float y, String label, BigDecimal valor) throws IOException {
-        if (valor == null || valor.compareTo(BigDecimal.ZERO) == 0) return y;
-        return escreverLinha(cs, fonte, 11, x, y, label + ": " + formatarPercentual(valor));
+    /** Retorna o próprio valor se não vazio, senão {@code null} (pra ajudar a decidir vazio). */
+    private String valor(String v) {
+        return (v == null || v.isBlank()) ? null : v;
     }
 
     private float escreverLinha(PDPageContentStream cs, PDFont fonte, float tamanho, float x, float y, String texto) throws IOException {
@@ -176,19 +192,19 @@ public class TicketPdfExporter {
         return y - LEADING;
     }
 
-    private List<String> quebrarLinhas(PDFont fonte, float tamanho, String texto, float larguraMax) throws IOException {
+    private List<String> quebrar(String texto) {
         var linhas = new ArrayList<String>();
-        var linhaAtual = new StringBuilder();
+        var atual = new StringBuilder();
         for (String palavra : texto.split("\\s+")) {
-            String candidata = linhaAtual.isEmpty() ? palavra : linhaAtual + " " + palavra;
-            if (fonte.getStringWidth(candidata) / 1000 * tamanho > larguraMax && !linhaAtual.isEmpty()) {
-                linhas.add(linhaAtual.toString());
-                linhaAtual = new StringBuilder(palavra);
+            String candidata = atual.isEmpty() ? palavra : atual + " " + palavra;
+            if (candidata.length() > 66 && !atual.isEmpty()) {
+                linhas.add(atual.toString());
+                atual = new StringBuilder(palavra);
             } else {
-                linhaAtual = new StringBuilder(candidata);
+                atual = new StringBuilder(candidata);
             }
         }
-        if (!linhaAtual.isEmpty()) linhas.add(linhaAtual.toString());
+        if (!atual.isEmpty()) linhas.add(atual.toString());
         return linhas;
     }
 }

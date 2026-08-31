@@ -3,6 +3,7 @@ package my_app.db.services;
 import my_app.db.models.ClienteModel;
 import my_app.db.models.PesagemModel;
 import my_app.db.models.ProdutoModel;
+import my_app.db.models.UsuarioModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -13,6 +14,7 @@ class PesagemServiceTest extends BaseServiceTest {
     private PesagemService pesagemService;
     private ClienteService clienteService;
     private ProdutoService produtoService;
+    private UsuarioService usuarioService;
 
     private Integer clienteId;
     private Integer produtoId;
@@ -22,6 +24,7 @@ class PesagemServiceTest extends BaseServiceTest {
         pesagemService = new PesagemService(session);
         clienteService = new ClienteService(session);
         produtoService = new ProdutoService(session);
+        usuarioService = new UsuarioService(session);
     }
 
     @BeforeEach
@@ -198,5 +201,63 @@ class PesagemServiceTest extends BaseServiceTest {
 
         assertNotNull(relida);
         assertEquals(entradaSalva.getId(), relida.getEntradaId());
+    }
+
+    @Test
+    void usuarioIdDaPesagemEhPersistido() throws Exception {
+        var usuario = new UsuarioModel();
+        usuario.setNome("Maria");
+        usuario.setLogin("maria");
+        usuario.setSenha("x1234567!");
+        var usuarioSalvo = usuarioService.salvar(usuario);
+
+        var p = pesagemValida();
+        p.setUsuarioId(usuarioSalvo.getId());
+        var salvo = pesagemService.salvar(p);
+
+        var relida = pesagemService.buscarById(salvo.getId());
+        assertEquals(usuarioSalvo.getId(), relida.getUsuarioId());
+    }
+
+    @Test
+    void buscarComRelacoesAnexaOperador() throws Exception {
+        var usuario = new UsuarioModel();
+        usuario.setNome("Maria");
+        usuario.setLogin("maria");
+        usuario.setSenha("x1234567!");
+        var usuarioSalvo = usuarioService.salvar(usuario);
+
+        var p = pesagemValida();
+        p.setUsuarioId(usuarioSalvo.getId());
+        var salvo = pesagemService.salvar(p);
+
+        var comRelacoes = pesagemService.buscarComRelacoes(salvo.getId());
+        assertNotNull(comRelacoes.getUsuario());
+        assertEquals("Maria", comRelacoes.getUsuario().getNome());
+    }
+
+    @Test
+    void buscarEntradaVinculadaRetornaAEntradaDaSaida() throws Exception {
+        var entrada = pesagemValida();
+        entrada.setTipoPesagem("entrada");
+        var entradaSalva = pesagemService.salvar(entrada);
+
+        var saida = pesagemValida();
+        saida.setTipoPesagem("saida");
+        saida.setEntradaId(entradaSalva.getId());
+        var saidaSalva = pesagemService.salvar(saida);
+
+        var vinculada = pesagemService.buscarEntradaVinculada(saidaSalva);
+        assertNotNull(vinculada);
+        assertEquals(entradaSalva.getId(), vinculada.getId());
+    }
+
+    @Test
+    void buscarEntradaVinculadaEhNullQuandoNaoHaVinculo() throws Exception {
+        var avulsa = pesagemValida();
+        avulsa.setTipoPesagem("avulsa");
+        var salva = pesagemService.salvar(avulsa);
+
+        assertNull(pesagemService.buscarEntradaVinculada(salva));
     }
 }

@@ -28,7 +28,8 @@ public class HomeScreenViewModel {
 
     private final ScreenContext screenContext;
 
-    public final State<Secao> secaoAtiva = State.of(Secao.PESAGEM_HISTORICO);
+    public final State<Secao> secaoAtiva = State.of(Secao.HOME);
+    //public final State<Secao> secaoAtiva = State.of(Secao.PESAGEM_HISTORICO);
     public final State<ScreenComponent> telaAtiva = State.of(null);
     public final State<Boolean> sidebarMinimizada = State.of(false);
 

@@ -266,6 +266,9 @@ public abstract class PesagemFormViewModel {
         if (clienteSelected.get() != null) model.setClienteId(clienteSelected.get().getId());
         if (produtoSelected.get() != null) model.setProdutoId(produtoSelected.get().getId());
 
+        var operador = my_app.domain.SessaoUsuario.usuarioLogado();
+        if (operador != null) model.setUsuarioId(operador.getId());
+
         aoMontarModel(model);
 
         return model;

@@ -2,10 +2,12 @@ package my_app.db.services;
 
 import my_app.db.DB;
 import my_app.db.models.PesagemModel;
+import my_app.db.models.UsuarioModel;
 import my_app.db.repositories.ClienteRepository;
 import my_app.db.repositories.DescontoRepository;
 import my_app.db.repositories.PesagemRepository;
 import my_app.db.repositories.ProdutoRepository;
+import my_app.db.repositories.UsuarioRepository;
 import net.sf.persism.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +25,7 @@ public class PesagemService extends BaseService<PesagemModel> {
     private final ClienteRepository clienteRepository;
     private final ProdutoRepository produtoRepository;
     private final DescontoRepository descontoRepository;
+    private final UsuarioRepository usuarioRepository;
 
     public PesagemService() throws SQLException {
         this(DB.getPersismSession());
@@ -34,6 +37,7 @@ public class PesagemService extends BaseService<PesagemModel> {
         this.clienteRepository = new ClienteRepository(session);
         this.produtoRepository = new ProdutoRepository(session);
         this.descontoRepository = new DescontoRepository(session);
+        this.usuarioRepository = new UsuarioRepository(session);
     }
 
     @Override
@@ -107,6 +111,20 @@ public class PesagemService extends BaseService<PesagemModel> {
         if (pesagem.getDescontoId() != null) {
             pesagem.setDesconto(descontoRepository.buscarById(pesagem.getDescontoId()));
         }
+        if (pesagem.getUsuarioId() != null) {
+            pesagem.setUsuario(usuarioRepository.buscarById(pesagem.getUsuarioId()));
+        }
+    }
+
+    /**
+     * A pesagem de entrada vinculada a uma saída (via {@code entrada_id}) — traz data/hora e
+     * peso entrada pro ticket. {@code null} se não houver (entrada/avulsa/manual sem par).
+     */
+    public PesagemModel buscarEntradaVinculada(PesagemModel pesagem) throws SQLException {
+        if (pesagem.getEntradaId() == null) return null;
+        var entrada = repository.buscarById(pesagem.getEntradaId());
+        if (entrada != null) anexarRelacoes(entrada);
+        return entrada;
     }
 
     private void validarCampos(PesagemModel model) {

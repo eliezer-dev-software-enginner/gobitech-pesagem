@@ -1,10 +1,10 @@
 package my_app.infra;
 
 import my_app.db.models.ClienteModel;
-import my_app.db.models.DescontoModel;
 import my_app.db.models.EmpresaModel;
 import my_app.db.models.PesagemModel;
 import my_app.db.models.ProdutoModel;
+import my_app.db.models.UsuarioModel;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.Test;
@@ -24,26 +24,27 @@ class TicketPdfExporterTest {
 
     private PesagemModel pesagemBasica() {
         var pesagem = new PesagemModel();
-        pesagem.setId(42);
-        pesagem.setPlaca("ABC1D23");
-        pesagem.setMotoristaNome("José da Silva");
-        pesagem.setMotoristaDocumento("123.456.789-00");
+        pesagem.setId(1);
+        pesagem.setPlaca("RED1234");
+        pesagem.setMotoristaNome(null);
         pesagem.setTipoPesagem("saida");
-        pesagem.setNotaFiscal("987");
-        pesagem.setPesoVeiculo(new BigDecimal("8500.00"));
-        pesagem.setPesoTotal(new BigDecimal("32000.00"));
-        pesagem.setPesoFinal(new BigDecimal("23500.00"));
-        pesagem.setDataCriacao(LocalDateTime.of(2026, 8, 19, 14, 30));
+        pesagem.setPesoTotal(new BigDecimal("9980.00"));
+        pesagem.setPesoFinal(new BigDecimal("7440.00"));
+        pesagem.setDataCriacao(LocalDateTime.of(2025, 8, 17, 14, 15, 56));
 
-        var cliente = new ClienteModel();
-        cliente.setLoja("Fazenda Boa Vista");
-        pesagem.setCliente(cliente);
-
-        var produto = new ProdutoModel();
-        produto.setNome("Milho");
-        pesagem.setProduto(produto);
+        var usuario = new UsuarioModel();
+        usuario.setNome("ADMINISTRADOR");
+        pesagem.setUsuario(usuario);
 
         return pesagem;
+    }
+
+    private PesagemModel entradaBasica() {
+        var entrada = new PesagemModel();
+        entrada.setId(1);
+        entrada.setPesoTotal(new BigDecimal("2540.00"));
+        entrada.setDataCriacao(LocalDateTime.of(2025, 8, 17, 14, 15, 7));
+        return entrada;
     }
 
     private String extrairTexto(File pdf) throws IOException {
@@ -53,64 +54,68 @@ class TicketPdfExporterTest {
     }
 
     @Test
-    void geraPdfComDadosDaPesagemEDaEmpresa(@TempDir Path tempDir) throws IOException {
+    void geraTicketNoFormatoDoAndreComDuasViasNaMesmaFolha(@TempDir Path tempDir) throws IOException {
         var empresa = new EmpresaModel();
-        empresa.setNome("Balanças Gobitech");
+        empresa.setNome("BALANÇAS GOBITECH");
         empresa.setCpfCnpj("12345678000199");
+        empresa.setCidade("FORMOSA");
+        empresa.setEstado("GO");
+        empresa.setTelefone("61-99653-2857");
 
         var destino = tempDir.resolve("ticket.pdf").toFile();
-        exporter.gerar(destino, empresa, pesagemBasica());
+        exporter.gerar(destino, empresa, pesagemBasica(), entradaBasica());
 
         assertTrue(destino.exists());
         assertTrue(destino.length() > 0);
 
+        // As duas vias ficam na MESMA folha (uma página única)
+        try (var doc = PDDocument.load(destino)) {
+            assertEquals(1, doc.getNumberOfPages());
+        }
+
         String texto = extrairTexto(destino);
-        assertTrue(texto.contains("Balanças Gobitech"));
-        assertTrue(texto.contains("ABC1D23"));
-        assertTrue(texto.contains("José da Silva"));
-        assertTrue(texto.contains("Fazenda Boa Vista"));
-        assertTrue(texto.contains("Milho"));
-        assertTrue(texto.contains("8500.00 Kg"));
-        assertTrue(texto.contains("32000.00 Kg"));
-        assertTrue(texto.contains("23500.00 Kg"));
-        assertTrue(texto.contains("987"));
+        assertTrue(texto.contains("BALANÇAS GOBITECH"));
+        assertTrue(texto.contains("Cidade: FORMOSA - GO"));
+        assertTrue(texto.contains("Ticket de Pesagem"));
+        assertTrue(texto.contains("Nº: 1"));
+        assertTrue(texto.contains("Placa:                RED1234"));
+        assertTrue(texto.contains("Data Entrada:         17/08/2025"));
+        assertTrue(texto.contains("Data saida:           17/08/2025"));
+        assertTrue(texto.contains("Operador:             ADMINISTRADOR"));
+        assertTrue(texto.contains("Motorista:            ---"));
+        assertTrue(texto.contains("Produto:              ---"));
+        assertTrue(texto.contains("Peso entrada:         2540 Kg"));
+        assertTrue(texto.contains("Peso saida:           9980 Kg"));
+        assertTrue(texto.contains("Peso liquido:         7440 Kg"));
+
+        // As duas vias estão na mesma folha: o conteúdo aparece duas vezes, com linha de
+        // separação entre elas. Cada nome aparece no campo E na linha de assinatura → 2×via × 2 = 4.
+        assertEquals(2, ocorrencias(texto, "Ticket de Pesagem"));
+        assertEquals(4, ocorrencias(texto, "ADMINISTRADOR"));
+        assertEquals(4, ocorrencias(texto, "Motorista"));
+
+        // Linhas de assinatura acima dos nomes (operador e motorista)
+        assertTrue(texto.contains("______________________"));
     }
 
     @Test
-    void funcionaSemEmpresaCadastrada(@TempDir Path tempDir) throws IOException {
+    void funcionaSemEmpresaSemEntradaESemRelacoes(@TempDir Path tempDir) throws IOException {
         var destino = tempDir.resolve("ticket_sem_empresa.pdf").toFile();
-        exporter.gerar(destino, null, pesagemBasica());
+        assertDoesNotThrow(() -> exporter.gerar(destino, null, pesagemBasica(), null));
 
         assertTrue(destino.exists());
         String texto = extrairTexto(destino);
         assertTrue(texto.contains("Gobitech"));
-        assertTrue(texto.contains("ABC1D23"));
+        assertTrue(texto.contains("RED1234"));
+        assertTrue(texto.contains("---"));
     }
 
-    @Test
-    void incluiDescontosSoNaoZerados(@TempDir Path tempDir) throws IOException {
-        var pesagem = pesagemBasica();
-        var desconto = new DescontoModel();
-        desconto.setUmidade(new BigDecimal("2.50"));
-        desconto.setAvariados(BigDecimal.ZERO);
-        pesagem.setDesconto(desconto);
-
-        var destino = tempDir.resolve("ticket_desconto.pdf").toFile();
-        exporter.gerar(destino, null, pesagem);
-
-        String texto = extrairTexto(destino);
-        assertTrue(texto.contains("Umidade: 2.50%"));
-        assertFalse(texto.contains("Avariados:"));
-    }
-
-    @Test
-    void naoQuebraQuandoClienteEProdutoSaoNulos(@TempDir Path tempDir) throws IOException {
-        var pesagem = pesagemBasica();
-        pesagem.setCliente(null);
-        pesagem.setProduto(null);
-
-        var destino = tempDir.resolve("ticket_sem_relacoes.pdf").toFile();
-        assertDoesNotThrow(() -> exporter.gerar(destino, null, pesagem));
-        assertTrue(destino.exists());
+    private int ocorrencias(String texto, String fragmento) {
+        int count = 0, idx = 0;
+        while ((idx = texto.indexOf(fragmento, idx)) != -1) {
+            count++;
+            idx += fragmento.length();
+        }
+        return count;
     }
 }

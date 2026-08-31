@@ -6,7 +6,6 @@ import my_app.Main;
 import my_app.SplashScreen;
 import my_app.screens.acessoBloqueadoScreen.AcessoBloqueadoScreen;
 import my_app.screens.clienteScreen.AddOrEditClienteScreen;
-import my_app.screens.infoUpdateScreen.InfoUpdateScreen;
 import my_app.screens.authScreen.AuthScreen;
 import my_app.screens.clienteScreen.ClienteScreen;
 import my_app.screens.conexaoBalancaScreen.ConexaoBalancaScreen;
@@ -33,7 +32,6 @@ public class AppRoutes {
         CONEXAO_BALANCA,
         CONEXAO_CAMERA,
         LICENSA,
-        INFO_UPDATE,
         LOGS,
         ACESSO_BLOQUEADO,
         ADD_OR_EDIT_PRODUTO,
@@ -64,7 +62,6 @@ public class AppRoutes {
                 new Router.Route(Screens.CONEXAO_BALANCA.name(), ConexaoBalancaScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Conexão com a balança", false)),
                 new Router.Route(Screens.CONEXAO_CAMERA.name(), ConexaoCameraScreen::new, new RouteProps(MAX_WIDTH, MEDIUM_HEIGHT, "Conexão das câmeras", false)),
                 new Router.Route(Screens.LICENSA.name(), LicensaScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Gerar licença", false)),
-                new Router.Route(Screens.INFO_UPDATE.name(), InfoUpdateScreen::new, new RouteProps(MAX_WIDTH, MAX_HEIGHT, "Atualizações do aplicativo", false)),
                 new Router.Route(Screens.LOGS.name(), LogsScreen::new, new RouteProps(MAX_WIDTH, MAX_HEIGHT, "Logs da aplicação", true)),
                 new Router.Route(Screens.ACESSO_BLOQUEADO.name(), ctx -> new AcessoBloqueadoScreen(),
                         new RouteProps(MIN_WIDTH, MIN_HEIGHT, "Acesso bloqueado", false))

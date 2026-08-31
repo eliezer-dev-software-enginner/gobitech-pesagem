@@ -58,7 +58,7 @@ public class HomeScreen implements ScreenComponent {
         corpoNode.setMaxHeight(Double.MAX_VALUE);
         VBox.setVgrow(corpoNode, Priority.ALWAYS);
 
-        return new Container(new ContainerProps().fillHeight()).children(
+        return new Container(new ContainerProps().fillHeight().paddingAll(0)).children(
                 menuBar(),
                 corpo
         );
@@ -70,9 +70,8 @@ public class HomeScreen implements ScreenComponent {
     }
 
     private Component menuBar() {
-        var suporteMenu = new Menu("Suporte")
+        var suporteMenu = new Menu("Logs")
                 .textColor(Sidebar.TEXT_COLOR)
-                .item("Novidades dessa atualização", () -> ctx.router().spawnWindow(AppRoutes.Screens.INFO_UPDATE.name(), e -> {}))
                 .item("Ver logs da aplicação", () -> ctx.router().spawnWindow(AppRoutes.Screens.LOGS.name(), e -> {}));
         
         var gerencialMenu = new Menu("Gerencial")

@@ -1,5 +1,48 @@
 # Decisões Arquiteturais
 
+## 2026-08-31: Ticket de pesagem reproduz o layout do André + guarda o operador (usuario_id)
+
+**Contexto:** o usuário trouxe o ticket real do André (app antigo) como referência e pediu pra
+reproduzir o layout exato, incluindo as **duas cópias** (o ticket vem impresso 2 vezes seguidas).
+O ticket do André é texto monoespaçado com cabeçalho da empresa (Cnpj/Insc.est/End/Bairro/
+Cidade/Fone), "Ticket de Pesagem Nº", Placa/Uf, Data/Hora de entrada e saída, Operador/
+Motorista/Produto/Fornecedor/Cliente, Peso entrada/saída/líquido, Observação e assinaturas.
+O ticket atual exibia Tara/Bruto/Líquido + descontos e não tinha entrada/saída nem operador.
+
+**Decisões:**
+- **Layout replicado** (`TicketPdfExporter` reescrito): monoespaçado (fonte Courier), com
+  Data Entrada/Hora e Data saida/Hora, Peso entrada/saída/líquido, observação e assinaturas —
+  conforme o ticket do André. **Duas vias na MESMA folha** (uma página única): a linha longa
+  `--…--` fica **entre** as duas vias como separação/corte (não pertence a nenhuma via), e há
+  uma **linha de assinatura acima de cada nome** (operador à esquerda, motorista à direita)
+  pra assinatura manual depois de imprimir. Separador usa `-` corrido em vez do caractere de
+  box-drawing `─` (U+2500) — fora do WinAnsiEncoding das fontes padrão do PDFBox.
+- **Fornecedor**: campo exibido vazio (o modelo de pesagem não tem esse dado e o usuário
+  confirmou que não deve ser preenchido). **Cliente** também vira vazio quando não há valor
+  (Motorista/Produto seguem com `---`, como no André).
+- **Operador**: a pesagem **não guardava quem a criou**. Adicionado `pesagens.usuario_id`
+  (migration `V17`), preenchido no salvamento com o usuário logado
+  (`PesagemFormViewModel.montarModel` ← `SessaoUsuario.usuarioLogado()`), e relação `usuario`
+  anexada por `PesagemService.anexarRelacoes`. Coluna opcional: pesagens antigas ficam `NULL`
+  (exibem `---` no ticket). O usuário escolheu guardar o id (produz o operador real de cada
+  pesagem) em vez de só usar o usuário logado na hora de imprimir.
+- **Dados de entrada no ticket**: como o ticket mostra Data/Hora e Peso de entrada E de saída,
+  `PesagemHistoricoViewModel.imprimirTicket` agora carrega a entrada vinculada
+  (`PesagemService.buscarEntradaVinculada`) e passa ela pro `gerar(...)`. Para entrada/avulsa/
+  manual (sem `entrada_id`) os campos de entrada ficam vazios.
+
+**Testado:** `TicketPdfExporterTest` reescrito (2 vias na mesma folha = 1 página, linha de
+separação entre elas, linha de assinatura acima dos nomes, campos do André, sem empresa/sem
+entrada/sem relações), `PesagemServiceTest` ganhou 4 casos (persistência/leitura de
+`usuario_id`, anexação do operador, `buscarEntradaVinculada` com e sem vínculo). `./gradlew
+test` → **194 testes, BUILD SUCCESSFUL**.
+
+> Nota: neste mesmo lote foi completada a remoção já iniciada (staged) da tela de verificação de
+> atualização (`InfoUpdateScreen`), removendo as 2 referências mortas restantes em
+> `AppRoutes.java` (import + enum `INFO_UPDATE`) que impediam a compilação.
+
+---
+
 ## 2026-08-31: Produto opcional na pesagem + `*` em todos os campos obrigatórios
 
 **Contexto:** o usuário pediu que o **produto** deixasse de ser obrigatório ao salvar uma

@@ -1,5 +1,23 @@
 # TODO
 
+## Concluído (ticket de pesagem no layout do André + operador — 2026-08-31)
+- [x] `TicketPdfExporter` reescrito reproduzindo o ticket do André (texto monoespaçado):
+      cabeçalho da empresa (Cnpj/Insc.est/End/Bairro/Cidade/Fone), "Ticket de Pesagem Nº",
+      Placa/Uf, Data/Hora de entrada e saída, Operador/Motorista/Produto/Fornecedor/Cliente,
+      Peso entrada/saída/líquido, Observação e assinaturas; **2 vias na MESMA folha** (1
+      página), com linha de separação entre elas e **linha de assinatura acima de cada nome**
+- [x] Novo campo `pesagens.usuario_id` (migration `V17`) — guarda quem criou a pesagem,
+      preenchido no salvamento via `SessaoUsuario` (`PesagemFormViewModel.montarModel`);
+      relação `usuario` anexada por `PesagemService.anexarRelacoes`; ticket exibe o Operador
+- [x] `PesagemHistoricoViewModel.imprimirTicket` carrega a entrada vinculada
+      (`PesagemService.buscarEntradaVinculada`) pra preencher Data/Hora/Peso de entrada
+- [x] Fornecedor exibido vazio (modelo não tem esse dado); Cliente vazio quando sem valor,
+      Motorista/Produto seguem com `---` (como no André)
+- [x] `TicketPdfExporterTest` reescrito (2 páginas/vias, campos, sem empresa/entrada/relações) +
+      `PesagemServiceTest` com 4 casos novos — `./gradlew test`: **194 testes, BUILD SUCCESSFUL**
+- [x] Completada a remoção (já staged) da `InfoUpdateScreen`: removidas as 2 referências mortas
+      em `AppRoutes.java` (import + enum `INFO_UPDATE`) que quebravam a compilação
+
 ## Concluído (produto opcional nas pesagens + `*` nos campos obrigatórios — 2026-08-31)
 - [x] Produto deixou de ser obrigatório nas pesagens: removida a validação "Produto é
       obrigatório" de `PesagemService.validarCampos()`; coluna `produto_id` ficou nullable

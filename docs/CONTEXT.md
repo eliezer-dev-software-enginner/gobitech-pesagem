@@ -63,6 +63,17 @@ criada ainda). Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTRE
   no próximo boot do app).
 
 ## Estado atual (2026-08-31)
+- **Ticket de pesagem** agora reproduz o layout exato do ticket do André (texto monoespaçado,
+  uma linha por campo, com cabeçalho da empresa, Ticket Nº, Placa/Uf, Data/Hora de entrada e
+  saída, Operador/Motorista/Produto/Fornecedor/Cliente, Peso entrada/saída/líquido, Observação
+  e assinaturas), com **2 vias na MESMA folha** (linha de separação entre elas + linha de
+  assinatura acima de cada nome). Novo campo `pesagens.usuario_id` (migration `V17`)
+  guarda quem criou a pesagem (Operador no ticket). `PesagemHistoricoViewModel.imprimirTicket`
+  usa a entrada vinculada pra Data/Hora/Peso de entrada. Ver `DECISIONS.md` e `TODO.md`.
+- Testes: `./gradlew test` → **194 testes, BUILD SUCCESSFUL**.
+- Completada a remoção já iniciada da `InfoUpdateScreen` (2 refs mortas em `AppRoutes.java`).
+
+## Estado atual (2026-08-31)
 - **Produto opcional nas pesagens**: removida a validação "Produto é obrigatório" de
   `PesagemService.validarCampos()` e a coluna `pesagens.produto_id` ficou nullable (migration
   `V16` recria a tabela preservando dados/FKs). **`*` em todos os campos obrigatórios** das

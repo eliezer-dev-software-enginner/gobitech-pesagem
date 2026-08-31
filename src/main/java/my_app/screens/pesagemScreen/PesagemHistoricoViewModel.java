@@ -160,7 +160,9 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
         Async.Run(() -> {
             try {
                 var empresa = empresaService.buscarUnico();
-                ticketPdfExporter.gerar(destino, empresa, model);
+                var comRelacoes = pesagemService.buscarComRelacoes(model.getId());
+                var entrada = pesagemService.buscarEntradaVinculada(comRelacoes);
+                ticketPdfExporter.gerar(destino, empresa, comRelacoes, entrada);
                 log.info("Ticket de pesagem exportado: pesagemId={} arquivo={}", model.getId(), destino.getAbsolutePath());
                 abrirArquivo(destino);
                 UI.runOnUi(() -> Components.ShowPopup(ctx, "Ticket salvo em: " + destino.getAbsolutePath()));
