@@ -159,11 +159,11 @@ public class UsuarioService extends BaseService<UsuarioModel> {
     }
 
     private void validarCamposObrigatorios(UsuarioModel model) {
+        if (model.getNome() == null || model.getNome().isBlank())
+            throw new IllegalArgumentException("Nome é obrigatório");
         if (model.getLogin() == null || model.getLogin().isBlank())
             throw new IllegalArgumentException("Login é obrigatório");
         if (model.getSenha() == null || model.getSenha().isBlank())
             throw new IllegalArgumentException("Senha é obrigatória");
-        if (model.getNome() == null || model.getNome().isBlank())
-            throw new IllegalArgumentException("Nome é obrigatório");
     }
 }
