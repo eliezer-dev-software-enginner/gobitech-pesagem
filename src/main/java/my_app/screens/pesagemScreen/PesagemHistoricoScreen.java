@@ -131,6 +131,8 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
                                 .children(
                                         new Button("Imprimir ticket", new ButtonProps().bgColor("#16a34a").textColor("white"))
                                                 .onClick(() -> vm.imprimirTicket(model)),
+                                        new Button("Imprimir térmica", new ButtonProps().bgColor("#16a34a").textColor("white"))
+                                                .onClick(() -> vm.imprimirTicketTermica(model)),
                                         new Button("Excluir", new ButtonProps().bgColor("#ef4444").textColor("white"))
                                                 .onClick(() -> {
                                                     fechar.run();

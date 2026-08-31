@@ -1,5 +1,33 @@
 # Decisões Arquiteturais
 
+## 2026-08-31: Ticket térmico 80mm (ESC/POS) na impressora padrão do sistema
+
+**Contexto:** na sessão "pesagem — formatação de campos" e em `14/…` havia uma decisão de que a
+seleção de impressora térmica estava **fora de escopo** (o app só exportava em PDF). O usuário
+agora pediu explicitamente imprimir o ticket numa térmica 80mm, indicando que o cliente tem esse
+hardware. O `plics-sw` (app antigo) já tinha implementação ESC/POS madura (`EscPosPrinter` +
+`WinRawPrinter`, lib `escpos-coffee` + `jssc`) que esta reescrita reaproveita.
+
+**Decisões:**
+- **Impressão térmica via impressora padrão do Windows**: novo `TicketThermalExporter`
+  (`my_app/infra`) usa `PrinterOutputStream.getDefaultPrintService()` — **sem tela de
+  configuração, porta serial ou IP**. Simplicidade pro uso no local (uma térmica definida como
+  padrão no Windows), confirmado com o usuário. A dependência `escpos-coffee`/`jssc` já estava
+  no `build.gradle.kts` (trazida pros testes/limpeza), então nada novo a adicionar ao build.
+- **Layout de campo = ticket do André** (mesmo do `TicketPdfExporter`), adaptado pra largura da
+  bobina: cabeçalho da empresa, "TICKET DE PESAGEM", Ticket nº, Placa do Veículo, DT/H Entrada/
+  Saída (`dd/MM/yyyy HH:mm:ss`), Operador/Motorista/Produto/Fornecedor/Cliente, Peso de Entrada/
+  Saída/Líquido, Peso Líquido Final, Observação e assinaturas `ADMINISTRADOR`/`MOTORISTA`.
+  Reusa os mesmos campos da pesagem e da entrada vinculada (`buscarComRelacoes` +
+  `buscarEntradaVinculada`).
+- **UI**: segundo botão **"Imprimir térmica"** em `PesagemHistoricoScreen` (modal de detalhes),
+  ao lado de "Imprimir ticket" (PDF) que permanece intacto. Stub de `WinRawPrinter` não foi
+  reaproveitado: pela decisão acima, usamos o default do Java Printing, sem tocar no spooler.
+- **Nota de contraste com a decisão anterior**: a decisão antiga ("sem impressora térmica, sem
+  necessidade de configurar porta/spooler") deixou de valer quanto à **necessidade** da térmica,
+  mas a parte de **não configurar porta/spooler** continua de pé — justamente por isso usamos a
+  impressora padrão do sistema.
+
 ## 2026-08-31: Ticket de pesagem reproduz o layout do André + guarda o operador (usuario_id)
 
 **Contexto:** o usuário trouxe o ticket real do André (app antigo) como referência e pediu pra

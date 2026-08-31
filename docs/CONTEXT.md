@@ -92,6 +92,19 @@ criada ainda). Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTRE
   `pesagens.entrada_id` (migration `V15`). Ver `DECISIONS.md` e `TODO.md`.
 - Testes: `./gradlew test` → **192 testes, BUILD SUCCESSFUL** (inclui `RelatorioPesagemPdfExporterTest`).
 
+## Estado atual (2026-08-31)
+- **Ticket térmico 80mm (ESC/POS)** — além do PDF, o ticket da pesagem agora pode ser impresso
+  direto numa **impressora térmica**. Novo `TicketThermalExporter` (`my_app/infra`) reusa o motor
+  ESC/POS (`escpos-coffee`, dependência já existente) e envia pra **impressora padrão do
+  sistema** (`PrinterOutputStream.getDefaultPrintService()`), sem configurar porta. Layout dos
+  campos igual ao do André (Cnpj/Insc.est/End/Bairro/Cidade/Fone, Ticket, Placa, DT/H Entrada/
+  Saída, Operador/Motorista/Produto/Fornecedor/Cliente, Peso de Entrada/Saída/Líquido,
+  Peso Líquido Final, Observação + assinaturas ADMINISTRADOR/MOTORISTA), adaptado pra bobina.
+  Novo botão **"Imprimir térmica"** no modal de detalhes do histórico, ao lado de "Imprimir
+  ticket" (PDF). `PesagemHistoricoViewModel.imprimirTicketTermica`. Sem tela/porta: usa a
+  impressora padrão do Windows. Ver `DECISIONS.md` e `TODO.md`.
+- Testes: `./gradlew test` → **196 testes, BUILD SUCCESSFUL** (inclui `TicketThermalExporterTest`).
+
 ## Estado atual (2026-08-28)
 - A **pesagem** deixou de ser uma tela única de CRUD (`PesagemScreen` removida). Viraram telas
   separadas por tipo — `PesagemEntrada`, `PesagemSaida`, `PesagemAvulsa`, `PesagemManual`

@@ -12,6 +12,7 @@ import my_app.db.services.PesagemService;
 import my_app.domain.ViewModelScreenContract;
 import my_app.domain.components.Components;
 import my_app.infra.TicketPdfExporter;
+import my_app.infra.TicketThermalExporter;
 import my_app.utils.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,7 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
     private final PesagemService pesagemService;
     private final EmpresaService empresaService;
     private final TicketPdfExporter ticketPdfExporter = new TicketPdfExporter();
+    private final TicketThermalExporter ticketThermalExporter = new TicketThermalExporter();
     @SuppressWarnings("rawtypes")
     private final java.util.function.Consumer<Object> eventListener = this::onEntityEvent;
 
@@ -169,6 +171,30 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
             } catch (Exception e) {
                 log.error("Erro ao gerar ticket da pesagem id={}", model.getId(), e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro ao gerar ticket: " + e.getMessage()));
+            }
+        });
+    }
+
+    /**
+     * Imprime o ticket dessa pesagem na impressora térmica 80mm (padrão do sistema).
+     */
+    public void imprimirTicketTermica(PesagemModel model) {
+        Async.Run(() -> {
+            try {
+                var empresa = empresaService.buscarUnico();
+                var comRelacoes = pesagemService.buscarComRelacoes(model.getId());
+                var entrada = pesagemService.buscarEntradaVinculada(comRelacoes);
+                boolean ok = ticketThermalExporter.imprimir(empresa, comRelacoes, entrada);
+                UI.runOnUi(() -> {
+                    if (ok) {
+                        Components.ShowPopup(ctx, "Ticket enviado para a impressora térmica");
+                    } else {
+                        Components.ShowAlertError("Não foi possível imprimir na impressora térmica. Verifique se há uma impressora padrão configurada.");
+                    }
+                });
+            } catch (Exception e) {
+                log.error("Erro ao imprimir ticket térmico da pesagem id={}", model.getId(), e);
+                UI.runOnUi(() -> Components.ShowAlertError("Erro ao imprimir ticket térmico: " + e.getMessage()));
             }
         });
     }

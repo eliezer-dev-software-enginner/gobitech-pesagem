@@ -1,5 +1,21 @@
 # TODO
 
+## Concluído (ticket de pesagem em impressora térmica 80mm — 2026-08-31)
+- [x] Novo `TicketThermalExporter` (`my_app/infra`) imprime o ticket numa térmica 80mm via
+      ESC/POS (`escpos-coffee`, já no build), no mesmo layout de campo do ticket do André:
+      cabeçalho da empresa (Cnpj/Insc.est/End/Bairro/Cidade/Fone), "TICKET DE PESAGEM",
+      Ticket nº, Placa do Veículo, DT/H Entrada/Saída (`dd/MM/yyyy HH:mm:ss`),
+      Operador/Motorista/Produto/Fornecedor/Cliente, Peso de Entrada/Saída/Líquido,
+      Peso Líquido Final, Observação e assinaturas `ADMINISTRADOR`/`MOTORISTA` — bobina 80mm
+- [x] Envia pra **impressora padrão do sistema** (`PrinterOutputStream.getDefaultPrintService()`)
+      — sem tela de configuração/porta/IP (confirmado com o usuário)
+- [x] Novo botão **"Imprimir térmica"** no modal de detalhes do histórico
+      (`PesagemHistoricoScreen`) ao lado de "Imprimir ticket" (PDF, que segue intacto);
+      `PesagemHistoricoViewModel.imprimirTicketTermica` reusa `buscarComRelacoes` +
+      `buscarEntradaVinculada`
+- [x] `TicketThermalExporterTest` novo (2 casos: layout completo + sem empresa/entrada/relações) —
+      `./gradlew test`: **196 testes, BUILD SUCCESSFUL**
+
 ## Concluído (ticket de pesagem no layout do André + operador — 2026-08-31)
 - [x] `TicketPdfExporter` reescrito reproduzindo o ticket do André (texto monoespaçado):
       cabeçalho da empresa (Cnpj/Insc.est/End/Bairro/Cidade/Fone), "Ticket de Pesagem Nº",
