@@ -243,25 +243,25 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
 
         Component conteudo = new Column(new ColumnProps().fillWidth().spacingOf(15))
                 .children(
-                        itemDetails(model),
-                        new Row(new RowProps().fillWidth().spacingOf(10))
-                                .children(
-                                        new Button("Editar", new ButtonProps().bgColor("#2563eb").textColor("white"))
-                                                .onClick(() -> {
-                                                    fechar.run();
-                                                    handleClickMenuEdit();
-                                                }),
-                                        new Button("Clonar", new ButtonProps().bgColor("#6b7280").textColor("white"))
-                                                .onClick(() -> {
-                                                    fechar.run();
-                                                    handleClickMenuClone();
-                                                }),
-                                        new Button("Excluir", new ButtonProps().bgColor("#ef4444").textColor("white"))
-                                                .onClick(() -> {
-                                                    fechar.run();
-                                                    handleClickMenuDelete();
-                                                })
-                                )
+                        itemDetails(model)
+//                        new Row(new RowProps().fillWidth().spacingOf(10))
+//                                .children(
+//                                        new Button("Editar", new ButtonProps().bgColor("#2563eb").textColor("white"))
+//                                                .onClick(() -> {
+//                                                    fechar.run();
+//                                                    handleClickMenuEdit();
+//                                                }),
+//                                        new Button("Clonar", new ButtonProps().bgColor("#6b7280").textColor("white"))
+//                                                .onClick(() -> {
+//                                                    fechar.run();
+//                                                    handleClickMenuClone();
+//                                                }),
+//                                        new Button("Excluir", new ButtonProps().bgColor("#ef4444").textColor("white"))
+//                                                .onClick(() -> {
+//                                                    fechar.run();
+//                                                    handleClickMenuDelete();
+//                                                })
+//                                )
                 );
 
         modalStage[0] = Components.ShowModal(conteudo, ctx, height);

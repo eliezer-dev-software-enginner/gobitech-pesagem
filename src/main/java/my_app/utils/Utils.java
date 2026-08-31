@@ -132,6 +132,13 @@ public static BigDecimal deCentavosParaReal(String centavos){
         return clean.substring(12).matches("\\d{2}");
     }
 
+    public static boolean isValidCpfOrCnpj(String value) {
+        String clean = value == null ? "" : value.toUpperCase().replaceAll("[^0-9A-Z]", "");
+        if (clean.length() == 11) return isValidCpf(clean);
+        if (clean.length() == 14) return isValidCnpj(clean);
+        return false;
+    }
+
     public static boolean isValidCpf(String cpf) {
         String cleanCpf = cpf.replaceAll("[^0-9]", "");
         return cleanCpf.length() == 11;

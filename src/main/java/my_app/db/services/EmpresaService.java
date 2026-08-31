@@ -61,5 +61,9 @@ public class EmpresaService extends BaseService<EmpresaModel> {
         if (model.getCep() != null && !model.getCep().isBlank() && !Utils.isValidCep(model.getCep())) {
             throw new IllegalArgumentException("CEP inválido");
         }
+
+        if (model.getCpfCnpj() != null && !model.getCpfCnpj().isBlank() && !Utils.isValidCpfOrCnpj(model.getCpfCnpj())) {
+            throw new IllegalArgumentException("Cpf ou cnpj inválido");
+        }
     }
 }
