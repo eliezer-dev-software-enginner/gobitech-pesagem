@@ -63,6 +63,18 @@ criada ainda). Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTRE
   no próximo boot do app).
 
 ## Estado atual (2026-08-31)
+- **Relatório resumido de entradas e saídas** agora imita o visual do relatório do André:
+  texto **monoespaçado (Courier)** com cabeçalho da empresa (nome/Cpf/Insc.e/End/Bairro/
+  Cidade/Fone), linha de `_`, título centralizado, separadores de `=`, colunas, uma linha
+  **"Observação:"** embaixo de cada ticket (a observação da própria pesagem, `---` se vazia) e
+  linha de totais. Mantida a coluna **Tara (Kg)** (decisão do usuário). **Em negrito**
+  (Courier-Bold, que tem a mesma largura de glifo do regular — não desalinha o texto): título,
+  nomes das colunas, rótulos "Observação", "Quantidade total entradas" e "Total peso liquido".
+  A largura da fonte é calculada pra linha mais larga caber na página. Ver `DECISIONS.md` e
+  `TODO.md`.
+- Testes: `./gradlew test` → **196 testes, BUILD SUCCESSFUL** (inclui `RelatorioPesagemPdfExporterTest`).
+
+## Estado atual (2026-08-31)
 - **Ticket de pesagem** agora reproduz o layout exato do ticket do André (texto monoespaçado,
   uma linha por campo, com cabeçalho da empresa, Ticket Nº, Placa/Uf, Data/Hora de entrada e
   saída, Operador/Motorista/Produto/Fornecedor/Cliente, Peso entrada/saída/líquido, Observação

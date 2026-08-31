@@ -1,5 +1,20 @@
 # TODO
 
+## Concluído (relatório resumido no layout monoespaçado do André + negritos — 2026-08-31)
+- [x] `RelatorioPesagemPdfExporter` reescrito: relatório vira texto **monoespaçado (Courier)**
+      igual ao do André — cabeçalho da empresa (nome/Cpf/Insc.e/End/Bairro/Cidade/Fone), linha de
+      `_`, título centralizado, separadores de `=`, colunas, "Observação:" **por linha** (a
+      observação da pesagem, `---` se vazia) e linha de totais
+- [x] **Em negrito** (Courier-Bold, mesma largura de glifo do regular — não desalinha): o título
+      "Relatório resumo de entradas e saídas", os nomes das colunas, e os rótulos "Observação",
+      "Quantidade total entradas" e "Total peso liquido"
+- [x] Coluna **Tara (Kg) mantida** (decisão do usuário; o relatório real do André não a tem),
+      colunas alinhadas por largura calculada em caracteres; fonte auto-dimensionada pra caber na
+      A4
+- [x] `PesagemHistoricoScreen.exportPdf`: agora passa observação por linha e os totais
+      (quantidade + soma do peso líquido); `RelatorioPesagemPdfExporterTest` reescrito (3 casos)
+      — `./gradlew test`: **196 testes, BUILD SUCCESSFUL**
+
 ## Concluído (ticket de pesagem em impressora térmica 80mm — 2026-08-31)
 - [x] Novo `TicketThermalExporter` (`my_app/infra`) imprime o ticket numa térmica 80mm via
       ESC/POS (`escpos-coffee`, já no build), no mesmo layout de campo do ticket do André:

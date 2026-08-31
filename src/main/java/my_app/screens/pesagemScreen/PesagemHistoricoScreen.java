@@ -227,6 +227,7 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
 
         var consumidas = new java.util.HashSet<Integer>();
         var rows = new java.util.ArrayList<List<String>>();
+        var observacoesLinha = new java.util.ArrayList<String>();
 
         var saidas = snapshotFiltrado.stream()
                 .filter(p -> "saida".equals(p.getTipoPesagem()))
@@ -240,15 +241,18 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
                 consumidas.add(entradaId);
                 consumidas.add(saida.getId());
                 rows.add(linhaPar(entrada, saida));
+                observacoesLinha.add(saida.getObservacoes());
             } else {
                 consumidas.add(saida.getId());
                 rows.add(linhaEventoUnico(saida));
+                observacoesLinha.add(saida.getObservacoes());
             }
         }
 
         for (var p : snapshotFiltrado) {
             if (consumidas.contains(p.getId())) continue;
             rows.add(linhaEventoUnico(p));
+            observacoesLinha.add(p.getObservacoes());
         }
 
         var totalLiquido = rows.isEmpty() ? java.math.BigDecimal.ZERO
@@ -257,22 +261,10 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
                 .map(s -> s.isBlank() ? java.math.BigDecimal.ZERO : new java.math.BigDecimal(s))
                 .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
 
-        var observacoes = snapshotFiltrado.stream()
-                .map(PesagemModel::getObservacoes)
-                .filter(o -> o != null && !o.isBlank())
-                .distinct()
-                .reduce((a, b) -> a + "; " + b)
-                .orElse("----");
-
-        var rodape = List.of(
-                "Observação (todas as linhas): " + observacoes,
-                "Quantidade total entradas: " + rows.size(),
-                "Total peso líquido: " + totalLiquido.stripTrailingZeros().toPlainString()
-        );
-
         var headers = List.of("Ticket", "Tara (Kg)", "Entrada", "Horário", "Saída", "Horário",
                 "Placa", "Produto", "Cliente", "Peso bruto", "Peso líquido");
-        RelatorioPesagemPdfExporter.exportar(destino, "Relatório resumo de entradas e saídas", headers, rows, rodape);
+        RelatorioPesagemPdfExporter.exportar(destino, empresa, "Relatório resumo de entradas e saídas",
+                headers, rows, observacoesLinha, rows.size(), totalLiquido.stripTrailingZeros().toPlainString());
     }
 
     private List<String> linhaPar(PesagemModel entrada, PesagemModel saida) {

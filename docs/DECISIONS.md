@@ -1,5 +1,34 @@
 # Decisões Arquiteturais
 
+## 2026-08-31: Relatório resumido passa a imitar o layout monoespaçado do André + negritos
+
+**Contexto:** o usuário trouxe o relatório real do André (texto monoespaçado, tipo ticket) e
+pediu "um leve ajuste" no relatório em PDF, deixando explícito que os textos a seguir devem
+ficar em **negrito**: "Relatório resumo de entradas e saídas", "Quantidade total entradas",
+"Observação", "Total peso liquido" e os nomes das colunas. Também mostrou que o relatório real
+tem uma linha "Observação:" embaixo de **cada** ticket (não um agregado no rodapé).
+
+**Decisões:**
+- **Layout monoespaçado (Courier)**: `RelatorioPesagemPdfExporter` reescrito pra reproduzir o
+  visual do André (cabeçalho da empresa, linha de `_`, título centralizado, separadores de `=`,
+  colunas, "Observação:" por linha e totais), em vez da tabela com bordas/zebra anterior. O
+  relatório virou texto corrido alinhado por **colunas calculadas em caracteres** (largura por
+  coluna = maior entre cabeçalho e células), como no ticket PDF.
+- **Tara mantida**: embora o relatório real do André **não** tenha a coluna "Tara (Kg)", o
+  usuário optou por mantê-la (foi pedida na tarefa anterior — `e36aa1d`). Confirmado em pergunta
+  antes de implementar.
+- **Observação por linha**: cada ticket exibe sua própria "Observação:" logo abaixo (a
+  observação da pesagem; `---` se vazia), no lugar do agregado único do rodapé. Para pares
+  Entrada+Saída, usa-se a observação da saída. Total de entradas e soma do peso líquido vão na
+  linha de totais.
+- **Negrito sem desalinhamento**: adota-se **Courier-Bold** para os trechos em negrito. Courier
+  e Courier-Bold são fontes monoespaçadas com a **mesma largura de glifo**, então os segmentos em
+  negrito não desalinham o texto (diferente de misturar fontes proporcionais). A página é
+  desenhada como sequência de "runs" (texto x negrito) por linha.
+- **Fonte auto-dimensionada**: o tamanho da fonte é calculado pra que a linha mais larga caiba
+  na largura útil da A4 (Courier = 0.6 × tamanho por caractere), teto de 8.5pt — evita estourar a
+  margem com a coluna extra de Tara e clientes longos.
+
 ## 2026-08-31: Ticket térmico 80mm (ESC/POS) na impressora padrão do sistema
 
 **Contexto:** na sessão "pesagem — formatação de campos" e em `14/…` havia uma decisão de que a

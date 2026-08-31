@@ -7,213 +7,224 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Gera o relatório resumido de entradas e saídas em PDF como texto monoespaçado (Courier),
+ * reproduzindo o visual do relatório do André: cabeçalho da empresa, título centralizado,
+ * separadores de '=', colunas, uma linha "Observação:" pra cada ticket e linha de totais.
+ * Usa Courier e Courier-Bold — fontes monoespaçadas com a MESMA largura de glifo, então
+ * segmentos em negrito (título, nomes das colunas, rótulos "Observação", "Quantidade total
+ * entradas" e "Total peso liquido") não desalinham o texto.
+ */
 public class RelatorioPesagemPdfExporter {
 
-    private static final float MARGEM = 50;
-    private static final float LEADING = 16;
-    private static final float LARGURA_UTIL = PDRectangle.A4.getWidth() - 2 * MARGEM;
+    private static final float MARGEM = 30;
+    private static final float LEADING = 15;
+    private static final PDFont REGULAR = PDType1Font.COURIER;
+    private static final PDFont BOLD = PDType1Font.COURIER_BOLD;
 
-    // padding interno de cada célula (esquerda + direita) usado tanto para
-    // desenhar quanto para calcular o limite de truncagem do texto
-    private static final float CELL_PADDING = 4;
+    private record Run(String texto, boolean negrito) {}
 
-    public static void exportar(File destino, String titulo,
-                                List<String> headers, List<List<String>> rows) throws IOException {
-        exportar(destino, titulo, headers, rows, java.util.List.of());
-    }
+    private record Linha(List<Run> runs) {}
 
-    public static void exportar(File destino, String titulo,
-                                List<String> headers, List<List<String>> rows, List<String> rodape) throws IOException {
+    /**
+     * @param empresa            cabeçalho (nome/Cpf/Insc.est/End/Bairro/Cidade/Fone)
+     * @param headers            nomes das colunas (negrito)
+     * @param rows               células de cada linha (mesma ordem das colunas)
+     * @param observacoesLinha   observação de cada linha (paralela a {@code rows})
+     * @param totalEntradas      número total de entradas
+     * @param totalLiquido       soma do peso líquido, já formatada
+     */
+    public static void exportar(File destino, EmpresaModel empresa, String titulo,
+                                List<String> headers, List<List<String>> rows,
+                                List<String> observacoesLinha,
+                                int totalEntradas, String totalLiquido) throws IOException {
         try (PDDocument doc = new PDDocument()) {
             var page = new PDPage(PDRectangle.A4);
             doc.addPage(page);
 
-            var fonteTitulo = PDType1Font.HELVETICA_BOLD;
-            var fonteTexto = PDType1Font.HELVETICA;
-            var fonteHeaderTabela = PDType1Font.HELVETICA_BOLD;
-            var fonteCell = PDType1Font.HELVETICA;
-
-            // cs não é mais final/try-with-resources: precisa ser fechado e reaberto de
-            // verdade a cada quebra de página (antes era fechado e nunca reaberto, o que
-            // lançaria "stream closed" assim que a lista estourasse a primeira página).
-            PDPageContentStream cs = new PDPageContentStream(doc, page);
-            try {
-                float y = page.getMediaBox().getHeight() - MARGEM;
-
-                // --- Titulo do relatorio ---
-                y = escreverLinha(cs, fonteTitulo, 14, MARGEM, y, titulo);
-                y -= LEADING / 2;
-
-                // --- Tabela ---
-                if (headers.isEmpty()) return;
-
-                int totalCols = headers.size();
-                float[] colWidths = calcularLarguras(headers, rows, fonteHeaderTabela, fonteCell, 9);
-
-                // Header — texto é truncado para caber na largura final da coluna,
-                // evitando que conteúdo muito longo (ex: números não arredondados)
-                // invada a coluna vizinha
-                float x = MARGEM;
-                cs.setNonStrokingColor(50, 50, 50);
-                cs.beginText();
-                cs.setFont(fonteHeaderTabela, 9);
-                cs.newLineAtOffset(x + 2, y);
-                cs.showText(truncar(fonteHeaderTabela, 9, headers.get(0), colWidths[0] - CELL_PADDING));
-                cs.endText();
-                for (int i = 1; i < totalCols; i++) {
-                    x += colWidths[i - 1];
-                    cs.beginText();
-                    cs.setFont(fonteHeaderTabela, 9);
-                    cs.newLineAtOffset(x + 2, y);
-                    cs.showText(truncar(fonteHeaderTabela, 9, headers.get(i), colWidths[i] - CELL_PADDING));
-                    cs.endText();
+            // largura da coluna (em caracteres) = maior entre título da coluna e células
+            int[] cols = new int[headers.size()];
+            for (int i = 0; i < headers.size(); i++) cols[i] = headers.get(i).length();
+            for (var row : rows) {
+                for (int i = 0; i < row.size() && i < cols.length; i++) {
+                    String cell = row.get(i) == null ? "" : row.get(i);
+                    if (cell.length() > cols[i]) cols[i] = cell.length();
                 }
-                y -= 2;
-                cs.setStrokingColor(50, 50, 50);
-                cs.moveTo(MARGEM, y);
-                cs.lineTo(MARGEM + LARGURA_UTIL, y);
-                cs.stroke();
-                y -= LEADING - 2;
-
-                cs.setNonStrokingColor(0, 0, 0);
-
-                // Rows
-                for (int r = 0; r < rows.size(); r++) {
-                    var row = rows.get(r);
-
-                    if (y < MARGEM + LEADING) {
-                        // nova pagina — fecha o stream atual de verdade e abre um novo pra
-                        // página nova, em vez de continuar escrevendo num stream fechado
-                        cs.close();
-                        var newPage = new PDPage(PDRectangle.A4);
-                        doc.addPage(newPage);
-                        cs = new PDPageContentStream(doc, newPage);
-                        y = newPage.getMediaBox().getHeight() - MARGEM;
-                        cs.setNonStrokingColor(0, 0, 0);
-                    }
-
-                    // zebra stripe é desenhado ANTES do texto da linha — antes ficava depois
-                    // do showText() e, como quem desenha por último fica em cima em PDF, o
-                    // fill() cobria o texto de toda linha par (metade da lista "sumia")
-                    if (r % 2 == 0) {
-                        cs.setNonStrokingColor(245, 245, 245);
-                        cs.addRect(MARGEM, y - 2, LARGURA_UTIL, LEADING);
-                        cs.fill();
-                        cs.setNonStrokingColor(0, 0, 0);
-                    }
-
-                    x = MARGEM;
-                    for (int i = 0; i < totalCols; i++) {
-                        String cellText = i < row.size() ? row.get(i) : "";
-                        cellText = truncar(fonteCell, 9, cellText, colWidths[i] - CELL_PADDING);
-                        cs.beginText();
-                        cs.setFont(fonteCell, 9);
-                        cs.newLineAtOffset(x + 2, y);
-                        cs.showText(cellText);
-                        cs.endText();
-                        x += colWidths[i];
-                    }
-
-                    y -= LEADING;
-                }
-
-                // --- rodapé personalizado (observações / totais) ---
-                if (!rodape.isEmpty()) {
-                    y -= LEADING;
-                    cs.setNonStrokingColor(0, 0, 0);
-                    for (var linha : rodape) {
-                        if (y < MARGEM + LEADING) {
-                            cs.close();
-                            var newPage = new PDPage(PDRectangle.A4);
-                            doc.addPage(newPage);
-                            cs = new PDPageContentStream(doc, newPage);
-                            y = newPage.getMediaBox().getHeight() - MARGEM;
-                            cs.setNonStrokingColor(0, 0, 0);
-                        }
-                        y = escreverLinha(cs, fonteCell, 9, MARGEM, y, linha);
-                    }
-                }
-
-                // rodape
-                y -= LEADING;
-                cs.setNonStrokingColor(150, 150, 150);
-                escreverLinha(cs, fonteTexto, 8, MARGEM, y,
-                        "Gerado em " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
-                                + " - " + rows.size() + " registro(s)");
-            } finally {
-                cs.close();
             }
+            int larguraTotal = larguraTotal(cols);
+            int OBS_LABEL = "Observação:".length();
 
+            var linhas = new ArrayList<Linha>();
+            // cabeçalho da empresa
+            String nomeEmpresa = empresa != null && naoVazio(empresa.getNome())
+                    ? empresa.getNome() : "Gobitech";
+            linha(linhas, nomeEmpresa);
+            linha(linhas, "Cpf: " + (empresa != null ? nulo(empresa.getCpfCnpj()) : "")
+                    + "    Insc.e ");
+            linha(linhas, "End: " + (empresa != null ? nulo(montarEnd(empresa)) : ""));
+            linha(linhas, "Bairro: " + (empresa != null ? nulo(empresa.getBairro()) : ""));
+            linha(linhas, "Cidade: " + (empresa != null ? nulo(montarCidade(empresa)) : ""));
+            linha(linhas, "Fone: " + (empresa != null ? nulo(empresa.getTelefone()) : ""));
+            linha(linhas, "_".repeat(Math.max(0, larguraTotal)));
+
+            linhaVazia(linhas);
+            linha(linhas, centrar(titulo, larguraTotal), true); // título em negrito
+            linha(linhas, "=".repeat(Math.max(0, larguraTotal)));
+            linhas.add(formatarColunas(headers, cols)); // nomes das colunas em negrito
+
+            for (int r = 0; r < rows.size(); r++) {
+                // linha de dados + observação da linha (rótulo em negrito)
+                Linha dados = formatarColunaLinha(rows.get(r), cols);
+                linhas.add(dados);
+                String obs = observacoesLinha != null && r < observacoesLinha.size()
+                        ? observacoesLinha.get(r) : "---";
+                if (obs == null || obs.isBlank()) obs = "---";
+                var obsRuns = new ArrayList<Run>();
+                obsRuns.add(new Run(padDir("Observação:", OBS_LABEL), true));
+                obsRuns.add(new Run(" " + obs, false));
+                linhas.add(new Linha(obsRuns));
+            }
+            if (!rows.isEmpty()) linhaVazia(linhas);
+
+            linha(linhas, "=".repeat(Math.max(0, larguraTotal)));
+            linhaVazia(linhas);
+            // linha de totais — ambos os rótulos em negrito
+            var totais = new ArrayList<Run>();
+            totais.add(new Run(espacos(16), false));
+            totais.add(new Run("Quantidade total entradas", true));
+            totais.add(new Run(" : " + totalEntradas, false));
+            totais.add(new Run(espacos(4), false));
+            totais.add(new Run("Total peso liquido", true));
+            totais.add(new Run(": " + totalLiquido + " ", false));
+            linhas.add(new Linha(totais));
+
+            renderizar(doc, page, linhas, tamanhoFonte(linhas));
             doc.save(destino);
         }
     }
 
-
-    private static float[] calcularLarguras(List<String> headers, List<List<String>> rows,
-                                            PDFont fonteH, PDFont fonteC, float fontSize) throws IOException {
-        int totalCols = headers.size();
-        float[] widths = new float[totalCols];
-
-        for (int i = 0; i < totalCols; i++) {
-            float maxW = fonteH.getStringWidth(headers.get(i)) / 1000 * fontSize;
-            for (var row : rows) {
-                String cell = i < row.size() ? row.get(i) : "";
-                float w = fonteC.getStringWidth(cell) / 1000 * fontSize;
-                if (w > maxW) maxW = w;
-            }
-            widths[i] = maxW + 10; // padding
-        }
-
-        // normalizar pra caber na largura util
-        float total = 0;
-        for (float w : widths) total += w;
-        if (total > LARGURA_UTIL) {
-            float ratio = LARGURA_UTIL / total;
-            for (int i = 0; i < totalCols; i++) widths[i] *= ratio;
-        }
-
-        return widths;
-    }
-
     /**
-     * Trunca o texto (adicionando "...") para que ele caiba dentro de larguraMax,
-     * usando as métricas reais da fonte. Isso é a rede de segurança final contra
-     * sobreposição de colunas: mesmo que calcularLarguras() encolha uma coluna
-     * (por normalização) para um valor menor que o conteúdo natural dela, o texto
-     * desenhado nunca vai ultrapassar o espaço reservado da coluna.
+     * Tamanho da fonte monoespaçada (Courier) que faz a linha mais larga caber na largura útil
+     * da página. Courier tem 0.6 do tamanho por caractere, então
+     * {@code tamanho = larguraUtil / (maxChars * 0.6)}. Teto de 8.5pt pra não ficar exagerado.
      */
-    private static String truncar(PDFont fonte, float tamanho, String texto, float larguraMax) throws IOException {
-        if (texto == null || texto.isEmpty()) return "";
-        if (larguraMax <= 0) return "";
-        if (fonte.getStringWidth(texto) / 1000 * tamanho <= larguraMax) return texto;
-
-        String reticencias = "...";
-        float larguraReticencias = fonte.getStringWidth(reticencias) / 1000 * tamanho;
-
-        StringBuilder sb = new StringBuilder();
-        for (char c : texto.toCharArray()) {
-            float w = fonte.getStringWidth(sb.toString() + c) / 1000 * tamanho + larguraReticencias;
-            if (w > larguraMax) break;
-            sb.append(c);
+    private static float tamanhoFonte(List<Linha> linhas) {
+        int maxChars = 0;
+        for (Linha l : linhas) {
+            int chars = 0;
+            for (Run run : l.runs()) chars += run.texto().length();
+            if (chars > maxChars) maxChars = chars;
         }
-        return sb + reticencias;
+        float larguraUtil = PDRectangle.A4.getWidth() - 2 * MARGEM;
+        float tamanho = maxChars > 0 ? larguraUtil / (maxChars * 0.6f) : 8.5f;
+        return Math.min(8.5f, tamanho);
     }
 
-    private static float escreverLinha(PDPageContentStream cs, PDFont fonte, float tamanho,
-                                       float x, float y, String texto) throws IOException {
-        cs.beginText();
-        cs.setFont(fonte, tamanho);
-        cs.newLineAtOffset(x, y);
-        cs.showText(texto != null ? texto : "");
-        cs.endText();
-        return y - LEADING;
+    private static void renderizar(PDDocument doc, PDPage page, List<Linha> linhas, float tamanho) throws IOException {
+        PDPageContentStream cs = new PDPageContentStream(doc, page);
+        float y = page.getMediaBox().getHeight() - MARGEM;
+        for (int i = 0; i < linhas.size(); i++) {
+            if (y < MARGEM + LEADING) {
+                cs.close();
+                page = new PDPage(PDRectangle.A4);
+                doc.addPage(page);
+                cs = new PDPageContentStream(doc, page);
+                y = page.getMediaBox().getHeight() - MARGEM;
+            }
+            float x = MARGEM;
+            for (Run run : linhas.get(i).runs()) {
+                PDFont fonte = run.negrito() ? BOLD : REGULAR;
+                cs.beginText();
+                cs.setFont(fonte, tamanho);
+                cs.newLineAtOffset(x, y);
+                cs.showText(run.texto());
+                cs.endText();
+                x += larguraPx(run.texto(), tamanho);
+            }
+            y -= LEADING;
+        }
+        cs.close();
+    }
+
+    private static float larguraPx(String texto, float tamanho) throws IOException {
+        return REGULAR.getStringWidth(texto) / 1000 * tamanho;
+    }
+
+    private static void linha(List<Linha> linhas, String texto) {
+        linha(linhas, texto, false);
+    }
+
+    private static void linha(List<Linha> linhas, String texto, boolean negrito) {
+        linhas.add(new Linha(List.of(new Run(texto, negrito))));
+    }
+
+    private static void linhaVazia(List<Linha> linhas) {
+        linhas.add(new Linha(List.of(new Run("", false))));
+    }
+
+    /** Formata todos os valores de uma linha alinhados às colunas (monoespaçado). */
+    private static Linha formatarColunaLinha(List<String> row, int[] cols) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < cols.length; i++) {
+            String cell = i < row.size() && row.get(i) != null ? row.get(i) : "";
+            sb.append(padDir(cell, cols[i]));
+            if (i < cols.length - 1) sb.append(espacos(2));
+        }
+        return new Linha(List.of(new Run(sb.toString(), false)));
+    }
+
+    /** Formata o cabeçalho (negrito) alinhado às colunas. */
+    private static Linha formatarColunas(List<String> headers, int[] cols) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < headers.size(); i++) {
+            sb.append(padDir(headers.get(i), cols[i]));
+            if (i < headers.size() - 1) sb.append(espacos(2));
+        }
+        return new Linha(List.of(new Run(sb.toString(), true)));
+    }
+
+    private static int larguraTotal(int[] cols) {
+        int total = 0;
+        for (int c : cols) total += c;
+        total += 2 * (cols.length - 1);
+        return total;
+    }
+
+    private static String espacos(int n) {
+        return n <= 0 ? "" : " ".repeat(n);
+    }
+
+    private static String padDir(String texto, int largura) {
+        return texto + espacos(Math.max(0, largura - texto.length()));
+    }
+
+    private static String centrar(String texto, int largura) {
+        if (largura <= 0) return texto;
+        int espacos = Math.max(0, (largura - texto.length()) / 2);
+        return espacos(espacos) + texto;
+    }
+
+    private static boolean naoVazio(String v) {
+        return v != null && !v.isBlank();
+    }
+
+    private static String nulo(String v) {
+        return (v == null || v.isBlank()) ? "" : v;
+    }
+
+    private static String montarEnd(EmpresaModel empresa) {
+        if (!naoVazio(empresa.getRua())) return "";
+        return empresa.getRua() + (naoVazio(empresa.getNumero()) ? ", " + empresa.getNumero() : "");
+    }
+
+    private static String montarCidade(EmpresaModel empresa) {
+        if (!naoVazio(empresa.getCidade())) return "";
+        return empresa.getCidade() + (naoVazio(empresa.getEstado()) ? " - " + empresa.getEstado() : "");
     }
 }
