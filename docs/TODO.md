@@ -1,5 +1,44 @@
 # TODO
 
+## Concluído (produto opcional nas pesagens + `*` nos campos obrigatórios — 2026-08-31)
+- [x] Produto deixou de ser obrigatório nas pesagens: removida a validação "Produto é
+      obrigatório" de `PesagemService.validarCampos()`; coluna `produto_id` ficou nullable
+      (migration `V16`, recria a tabela preservando dados e FKs) — teste ajustado
+      (`produtoEhOpcional` em vez de `deveLancarExcecaoQuandoProdutoNaoInformado`)
+- [x] `*` aplicado aos campos obrigatórios em todas as telas — novo helper
+      `Components.obrigatorio(label)` (`label *`):
+      - Pesagem: Placa*, Nome do motorista*, Cliente* (Produto segue sem `*` — agora opcional)
+      - Login: E-mail*, Senha*
+      - Cliente: Loja*, Razão social*
+      - Produto: Nome do produto*
+      - Usuário: Nome*, Login*, Senha*
+      - Empresa: Nome*
+      - Conexão da balança: Tipo de conexão* + (Porta COM*, Baud rate* / Endereço IP*, Porta*
+        conforme o tipo selecionado)
+- [x] `./gradlew test --rerun-tasks`: **BUILD SUCCESSFUL** (sem regressão)
+
+## Concluído (relatório do histórico — formato do André + Tara + rodapé — 2026-08-31)
+- [x] Relatório reproduz o do André (1 linha por par Entrada+Saída da mesma placa) em colunas:
+      Ticket | Tara (Kg) | Entrada | Horário | Saída | Horário | Placa | Produto | Cliente |
+      Peso bruto | Peso líquido (Fornecedor removida conforme pedido)
+- [x] Entrada/Saída = data (dd/MM/yyyy); Horário = hora (HH:mm:ss); Tara = peso de veículo da
+      entrada; bruto/líquido do registro consolidado do par; eventos únicos entram como linha
+      própria na coluna Entrada
+- [x] Rodapé igual ao do André: observação, "Quantidade total entradas: N", "Total peso líquido: X"
+- [x] `RelatorioPesagemPdfExporter`: overload com `List<String> rodape` + quebra de página
+- [x] `RelatorioPesagemPdfExporterTest` novo (3 casos) — `./gradlew test`: **192 testes,
+      BUILD SUCCESSFUL**
+
+## Concluído (relatório do histórico agrupa Entrada+Saída — 2026-08-31)
+- [x] Colunas do relatório = exatamente "Ticket, Entrada, Horário, Saída, Horário, Placa,
+      Produto, Cliente, Peso bruto, Peso líquido" (Fornecedor descartado conforme pedido)
+- [x] Agrupamento Entrada+Saída da mesma placa/visita numa linha só — `PesagemHistoricoScreen.
+      exportPdf`; avulsas/manuais e saídas sem a entrada no snapshot entram como linha própria
+- [x] Novo campo `pesagens.entrada_id` (migration `V15`) preenchido na pesagem de saída com o id
+      da entrada que a originou — hook `PesagemFormViewModel.aoMontarModel` + `PesagemSaidaViewModel`
+- [x] `PesagemServiceTest.entradaIdDaSaidaEhPersistidoERelido` novo — `./gradlew test`:
+      **189 testes, BUILD SUCCESSFUL**
+
 ## Concluído (eventos por entidade — 2026-08-28)
 - [x] `EntityEvent<T>` virou classe abstrata genérica; criados os eventos concretos
       `ClienteEvent`, `ProdutoEvent`, `PesagemEvent`, `UsuarioEvent` (fábricas criado/editado/

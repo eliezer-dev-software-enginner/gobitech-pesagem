@@ -69,10 +69,11 @@ class PesagemServiceTest extends BaseServiceTest {
     }
 
     @Test
-    void deveLancarExcecaoQuandoProdutoNaoInformado() {
+    void produtoEhOpcional() throws Exception {
         var p = pesagemValida();
         p.setProdutoId(null);
-        assertThrows(IllegalArgumentException.class, () -> pesagemService.salvar(p));
+        var salvo = pesagemService.salvar(p);
+        assertNull(salvo.getProdutoId());
     }
 
     @Test
@@ -180,5 +181,22 @@ class PesagemServiceTest extends BaseServiceTest {
         pesagemService.salvar(avulsa);
 
         assertNull(pesagemService.buscarTaraSugerida("ABC1D23"));
+    }
+
+    @Test
+    void entradaIdDaSaidaEhPersistidoERelido() throws Exception {
+        var entrada = pesagemValida();
+        entrada.setTipoPesagem("entrada");
+        var entradaSalva = pesagemService.salvar(entrada);
+
+        var saida = pesagemValida();
+        saida.setTipoPesagem("saida");
+        saida.setEntradaId(entradaSalva.getId());
+        var saidaSalva = pesagemService.salvar(saida);
+
+        var relida = pesagemService.buscarById(saidaSalva.getId());
+
+        assertNotNull(relida);
+        assertEquals(entradaSalva.getId(), relida.getEntradaId());
     }
 }

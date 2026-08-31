@@ -1,5 +1,85 @@
 # Decisões Arquiteturais
 
+## 2026-08-31: Produto opcional na pesagem + `*` em todos os campos obrigatórios
+
+**Contexto:** o usuário pediu que o **produto** deixasse de ser obrigatório ao salvar uma
+pesagem (o operador nem sempre sabe/preenche o produto na hora) e que todo campo obrigatório da
+aplicação ganhasse um `*` visual no rótulo.
+
+**Decisão (produto opcional):**
+- Removida a única regra que tornava o produto obrigatório: "Produto é obrigatório" em
+  `PesagemService.validarCampos()`. O formulário de pesagem (`PesagemFormScreen`) já não exigia o
+  campo — só o Service barrava.
+- Coluna `pesagens.produto_id` ficou **nullable**. SQLite não permite remover `NOT NULL` via
+  `ALTER COLUMN`, então a migration `V16` recria a tabela `pesagens` preservando dados, FKs
+  (`cliente_id`/`produto_id`/`desconto_id`), `tipo_pesagem` e `entrada_id` — mesmo padrão do `V11`.
+- Teste `PesagemServiceTest.deveLancarExcecaoQuandoProdutoNaoInformado` virou `produtoEhOpcional`
+  (salva com `produtoId` nulo e relê `null`).
+
+**Decisão (`*` nos obrigatórios):**
+- Novo helper `Components.obrigatorio(String)` que devolve `label + " *"`, aplicado nos rótulos
+  dos campos obrigatórios em cada tela (Pesagem: Placa/Nome do motorista/Cliente; Login:
+  E-mail/Senha; Cliente: Loja/Razão social; Produto: Nome; Usuário: Nome/Login/Senha; Empresa:
+  Nome; Conexão da balança: Tipo + campos do tipo selecionado). **Produto** no formulário de
+  pesagem **não** recebe `*` (consistente com a decisão acima). Câmeras e licença ficam sem `*`
+  (nenhum campo de texto obrigatório nelas).
+
+**Testado:** `./gradlew test --rerun-tasks` → **BUILD SUCCESSFUL** (sem regressão).
+
+---
+
+## 2026-08-31: Relatório do histórico — formato do André + coluna Tara + rodapé de totais
+
+**Contexto:** usuário trouxe o relatório real do André (app antigo) como referência exata e
+pediu pra reproduzi-lo, **adicionando a tara**. O modelo atual guarda tara (`peso_veiculo`),
+bruto (`peso_total`) e líquido (`peso_final`) na **mesma** pesagem (mantido — ver decisão
+abaixo sobre `entrada_id`). O relatório antigo não tinha a tara; ela é a medida que faltava.
+
+**Decisão (formato final do relatório):**
+- Uma linha **por par Entrada+Saída** da mesma placa/visita (como o do André), agora com coluna
+  `Tara (Kg)` adicionada:
+  `Ticket | Tara (Kg) | Entrada | Horário | Saída | Horário | Placa | Produto | Cliente | Peso bruto | Peso líquido`
+  (coluna Fornecedor segue **removida**, conforme pedido do usuário).
+- **Entrada/Saída** exibem a **data** (`dd/MM/yyyy`); **Horário** exibe a **hora** (`HH:mm:ss`) —
+  igual ao do André (antes eu havia interpretado como peso; a referência deixou claro que é data).
+- **Tara (Kg)** = peso de veículo da entrada; **Peso bruto/líquido** = do registro consolidado do
+  par (a saída, quando há par). Eventos únicos (avulsa/manual/saída órfã) entram como linha
+  própria na coluna Entrada com seus próprios tara/bruto/líquido.
+- **Rodapé**, igual ao do André: `Observação (todas as linhas): ...` (observações não-vazias dos
+  registros, senão `----`), `Quantidade total entradas: N`, `Total peso líquido: X`.
+- `RelatorioPesagemPdfExporter` ganhou overload com `List<String> rodape` impresso após a tabela
+  (com quebra de página), preservando o "Gerado em ... - N registro(s)" de baixo.
+
+**Testado:** `RelatorioPesagemPdfExporterTest` novo (3 casos: layout+rodapé, sem rodapé/linhas,
+quebra de página com 100 linhas). `./gradlew test` → **192 testes, BUILD SUCCESSFUL**.
+
+---
+
+## 2026-08-31: Relatório do histórico agrupa Entrada+Saída — novo campo `pesagens.entrada_id`
+
+**Contexto:** pedido do usuário — o relatório do histórico de pesagens deve ter exatamente as
+colunas "Ticket, Entrada, Horário, Saída, Horário, Placa, Produto, Cliente, Peso bruto, Peso
+líquido" (coluna "Fornecedor" descartada, ele confirmou). Cada linha deve agrupar **Entrada +
+Saída da mesma placa/visita** numa linha só, e o usuário pediu pra revisar o modo de salvamento
+pra permitir esse agrupamento correto — hoje não havia como vincular uma saída à sua entrada.
+
+**Decisão (duas partes):**
+- **Schema/salvamento:** novo campo opcional `pesagens.entrada_id` (migration `V15`) — a pesagem
+  de **saída** referencia a **entrada** que a originou. `PesagemSaidaViewModel` guarda o id da
+  entrada puxada (`buscarUltimaEntrada`) e, ao salvar, grava em `entradaId` via novo hook
+  `PesagemFormViewModel.aoMontarModel(PesagemModel)` (vazio por padrão, sobrescrito pela Saída).
+  Para entradas/avulsas/manuais fica `NULL`.
+- **Relatório (`PesagemHistoricoScreen.exportPdf`):** colunas exatas pedidas. Uma linha por par:
+  Entrada/Horário = peso bruto (`pesoTotal`) e hora da entrada; Saída/Horário = peso bruto e hora
+  da saída; Placa/Produto/Cliente da entrada; Peso bruto/Peso líquido do registro consolidado
+  (a saída, quando há par). Saídas sem a entrada no snapshot e pesagens avulsas/manuais entram
+  como linha própria — nada some do relatório. São **10** colunas, alinhadas 1:1 aos valores.
+
+**Testado:** novo `PesagemServiceTest.entradaIdDaSaidaEhPersistidoERelido` (grava e relê de volta).
+`./gradlew test` → **189 testes, BUILD SUCCESSFUL**.
+
+---
+
 ## 2026-08-28: Eventos por entidade — `EntityEvent` virou base abstrata e nasceram eventos concretos
 
 **Contexto:** o `EntityEvent<T>` (um único `record` genérico) tornava o consumo verboso: todo

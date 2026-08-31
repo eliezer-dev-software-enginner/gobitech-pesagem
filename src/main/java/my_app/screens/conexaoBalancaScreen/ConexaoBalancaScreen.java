@@ -43,17 +43,17 @@ public class ConexaoBalancaScreen implements ScreenComponent {
                         new Column(new ColumnProps().paddingAll(20).spacingOf(ThemeManager.theme().spacing().sm()))
                                 .c_child(Components.FormTitle("Conexão com a balança"))
                                 .c_child(new SpacerVertical(10))
-                                .c_child(Components.SelectColumn("Tipo de conexão",
+                                .c_child(Components.SelectColumn(Components.obrigatorio("Tipo de conexão"),
                                         ConexaoBalancaViewModel.tiposConexaoList, vm.tipoConexaoSelected, it -> it))
                                 .c_child(new SpacerVertical(10))
                                 .c_child(Show.when(vm.ehSerial,
                                         () -> new Row(new RowProps().spacingOf(10)).children(
-                                                Components.SelectColumn("Porta COM", vm.portasComState, vm.portaComSelected, it -> it, false),
-                                                Components.InputColumnNumeric("Baud rate", vm.baudRate, "Ex: 9600")
+                                                Components.SelectColumn(Components.obrigatorio("Porta COM"), vm.portasComState, vm.portaComSelected, it -> it, false),
+                                                Components.InputColumnNumeric(Components.obrigatorio("Baud rate"), vm.baudRate, "Ex: 9600")
                                         ),
                                         () -> new Row(new RowProps().spacingOf(10)).children(
-                                                Components.InputColumn("Endereço IP", vm.ipAddress, "Ex: 192.168.0.100"),
-                                                Components.InputColumnNumeric("Porta", vm.ipPort, "Ex: 9100")
+                                                Components.InputColumn(Components.obrigatorio("Endereço IP"), vm.ipAddress, "Ex: 192.168.0.100"),
+                                                Components.InputColumnNumeric(Components.obrigatorio("Porta"), vm.ipPort, "Ex: 9100")
                                         )
                                 ))
                                 .c_child(new SpacerVertical(20))

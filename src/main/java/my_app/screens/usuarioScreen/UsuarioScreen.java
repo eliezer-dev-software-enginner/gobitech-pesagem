@@ -59,9 +59,9 @@ public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<Usuari
                         .c_child(new SpacerVertical(20))
                         .c_child(new FlowRow(new FlowRowProps().spacingOf(10))
                                 .children(
-                                        Components.InputColumn("Nome", vm.nome, "Ex: Maria Silva"),
-                                        Components.InputColumn("Login", vm.login, "Ex: maria"),
-                                        Components.InputColumnAuth("Senha", vm.senha, "Digite a senha"),
+                                        Components.InputColumn(Components.obrigatorio("Nome"), vm.nome, "Ex: Maria Silva"),
+                                        Components.InputColumn(Components.obrigatorio("Login"), vm.login, "Ex: maria"),
+                                        Components.InputColumnAuth(Components.obrigatorio("Senha"), vm.senha, "Digite a senha"),
                                         Components.InputColumnPhone("Telefone", vm.telefone),
                                         Components.SelectColumn("Administrador?", Data.simNaoList, vm.ehAdminSelected, it -> it)
                                 )

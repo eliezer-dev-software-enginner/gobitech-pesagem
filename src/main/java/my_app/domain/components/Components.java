@@ -248,6 +248,14 @@ public class Components {
         return new Text(title, new TextProps().fontSize(ThemeManager.theme().typography().body()).bold());
     }
 
+    /**
+     * Marca um rótulo de campo que é obrigatório: adiciona um {@code *} depois do texto.
+     * Usado nos formulários pra indicar visualmente os campos que o sistema valida.
+     */
+    public static String obrigatorio(String label) {
+        return label + " *";
+    }
+
     static final ButtonProps propsBtnCadastro = new ButtonProps().fillWidth().height(31)
             .fontSize(ThemeManager.theme().typography().small()).textColor("black").bgColor(ThemeManager.theme().colors().primary());
 

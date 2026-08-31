@@ -116,8 +116,6 @@ public class PesagemService extends BaseService<PesagemModel> {
             throw new IllegalArgumentException("Placa é obrigatória");
         if (model.getClienteId() == null)
             throw new IllegalArgumentException("Cliente é obrigatório");
-        if (model.getProdutoId() == null)
-            throw new IllegalArgumentException("Produto é obrigatório");
         if (model.getPesoVeiculo() == null) model.setPesoVeiculo(BigDecimal.ZERO);
         if (model.getPesoTotal() == null) model.setPesoTotal(BigDecimal.ZERO);
         if (model.getPesoFinal() == null) model.setPesoFinal(BigDecimal.ZERO);

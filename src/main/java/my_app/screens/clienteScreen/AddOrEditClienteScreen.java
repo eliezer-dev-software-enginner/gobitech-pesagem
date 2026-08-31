@@ -69,8 +69,8 @@ public class AddOrEditClienteScreen implements ScreenComponent {
                                 .c_child(new SpacerVertical(20))
                                 .c_child(new FlowRow(new FlowRowProps().spacingOf(10))
                                         .children(
-                                                Components.InputColumn("Loja", viewModel.loja, "Ex: Fazenda Santa Rita"),
-                                                Components.InputColumn("Razão social", viewModel.razaoSocial, "Ex: Santa Rita Agropecuária Ltda"),
+                                                Components.InputColumn(Components.obrigatorio("Loja"), viewModel.loja, "Ex: Fazenda Santa Rita"),
+                                                Components.InputColumn(Components.obrigatorio("Razão social"), viewModel.razaoSocial, "Ex: Santa Rita Agropecuária Ltda"),
                                                 Components.InputColumnCpfCnpj("CPF/CNPJ", viewModel.cnpjCpf),
                                                 Components.InputColumnPhone("Telefone", viewModel.telefone)
                                         )

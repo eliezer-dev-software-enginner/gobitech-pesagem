@@ -62,9 +62,9 @@ public class AuthScreen implements ScreenComponent {
                                         new Column(new ColumnProps().paddingAll(10)).children(
                                                 new Text("Login", new TextProps().fontSize(ThemeManager.theme().typography().subtitle())),
                                                 new SpacerVertical(ThemeManager.theme().spacing().lg()),
-                                                Components.InputColumnAuth("E-mail", vm.loginState, "Ex: gestor@teste.com"),
+                                                Components.InputColumnAuth(Components.obrigatorio("E-mail"), vm.loginState, "Ex: gestor@teste.com"),
                                                 new SpacerVertical(ThemeManager.theme().spacing().lg()),
-                                                Components.InputColumnAuth("Senha", vm.passwordState, "Digite sua senha"),
+                                                Components.InputColumnAuth(Components.obrigatorio("Senha"), vm.passwordState, "Digite sua senha"),
                                                 new SpacerVertical(ThemeManager.theme().spacing().xl()),
                                                 Components.ButtonCadastro("Entrar", () -> vm.entrar(ctx))
                                         )

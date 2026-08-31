@@ -71,7 +71,7 @@ public class CadastroEmpresaScreen implements ScreenComponent {
     Row TopWithImage() {
         var left = new Row(new RowProps().bottomVertically().spacingOf(ThemeManager.theme().spacing().sm()))
                 .children(
-                        Components.InputColumn("Nome", vm.nome, "Ex: Balanças Gobitech"),
+                        Components.InputColumn(Components.obrigatorio("Nome"), vm.nome, "Ex: Balanças Gobitech"),
                         Components.InputColumnPhone("Telefone/Celular", vm.telefone));
 
         return new Row()

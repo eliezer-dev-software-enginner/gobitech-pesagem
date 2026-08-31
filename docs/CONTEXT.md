@@ -62,6 +62,25 @@ criada ainda). Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTRE
   `DECISIONS.md`), inclusive num banco real já em uso (corrigido via `V11`, com auto-correção
   no próximo boot do app).
 
+## Estado atual (2026-08-31)
+- **Produto opcional nas pesagens**: removida a validação "Produto é obrigatório" de
+  `PesagemService.validarCampos()` e a coluna `pesagens.produto_id` ficou nullable (migration
+  `V16` recria a tabela preservando dados/FKs). **`*` em todos os campos obrigatórios** das
+  telas via novo helper `Components.obrigatorio(label)` (`label *`): Pesagem (Placa/Nome do
+  motorista/Cliente), Login (E-mail/Senha), Cliente (Loja/Razão social), Produto (Nome), Usuário
+  (Nome/Login/Senha), Empresa (Nome), Conexão da balança (Tipo + campos do tipo selecionado).
+  Produto no formulário fica sem `*` (opcional). Ver `DECISIONS.md` e `TODO.md`.
+- Testes: `./gradlew test` → **BUILD SUCCESSFUL** (sem regressão).
+
+## Estado atual (2026-08-31)
+- **Relatório do histórico de pesagens** reproduz o do André (1 linha por par Entrada+Saída da
+  mesma placa) com a **tara adicionada** e rodapé de totais. Colunas: Ticket | Tara (Kg) |
+  Entrada | Horário | Saída | Horário | Placa | Produto | Cliente | Peso bruto | Peso líquido.
+  Entrada/Saída = data, Horário = hora (HH:mm:ss); bruto/líquido do registro consolidado. Rodapé:
+  observação, total de entradas, total peso líquido. Para o agrupamento correto, novo campo
+  `pesagens.entrada_id` (migration `V15`). Ver `DECISIONS.md` e `TODO.md`.
+- Testes: `./gradlew test` → **192 testes, BUILD SUCCESSFUL** (inclui `RelatorioPesagemPdfExporterTest`).
+
 ## Estado atual (2026-08-28)
 - A **pesagem** deixou de ser uma tela única de CRUD (`PesagemScreen` removida). Viraram telas
   separadas por tipo — `PesagemEntrada`, `PesagemSaida`, `PesagemAvulsa`, `PesagemManual`
