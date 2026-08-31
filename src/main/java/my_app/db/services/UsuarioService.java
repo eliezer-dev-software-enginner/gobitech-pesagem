@@ -43,6 +43,11 @@ public class UsuarioService extends BaseService<UsuarioModel> {
     @Override
     public UsuarioModel salvar(UsuarioModel model) throws SQLException {
         validarCamposObrigatorios(model);
+
+        if (!model.getTelefone().isEmpty() && !isValidPhone(model.getTelefone())) {
+            throw new IllegalArgumentException("Telefone inválido (informe DDD + Número)");
+        }
+
         if (model.getAtivo() == null) model.setAtivo(true);
         if (model.getAdmin() == null) model.setAdmin(false);
         model.setDataCriacao(LocalDateTime.now());
