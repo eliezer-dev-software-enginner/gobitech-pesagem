@@ -12,6 +12,8 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static my_app.utils.Utils.isValidPhone;
+
 /**
  * Login e senha ficam sempre criptografados em repouso (coluna {@code login}/{@code senha} da
  * tabela {@code usuarios}) — nunca em texto puro. Essa classe é a única fronteira que conhece
@@ -70,6 +72,10 @@ public class UsuarioService extends BaseService<UsuarioModel> {
     @Override
     public void atualizar(UsuarioModel model) throws SQLException {
         validarCamposObrigatorios(model);
+
+        if (!model.getTelefone().isEmpty() && !isValidPhone(model.getTelefone())) {
+            throw new IllegalArgumentException("Telefone inválido (informe DDD + Número)");
+        }
 
         var crypto = new CryptoManager();
         String loginPlain = model.getLogin();
