@@ -1,5 +1,22 @@
 # Decisões Arquiteturais
 
+## 2026-08-31: Só a Placa é obrigatória na pesagem (pedido do André)
+
+**Contexto:** o André pediu que só a placa fosse obrigatória. Até então, tanto a validação
+(`PesagemService.validarCampos`) quanto os formulários tinham Motorista e Cliente como
+obrigatórios (decisão anterior em `fba08df` marcava `*` neles).
+
+**Decisões:**
+- **Validação no `PesagemService`**: passou a exigir apenas `placa` (mantendo a normalização dos
+  pesos). Motorista e Cliente deixaram de gerar `IllegalArgumentException`.
+- **Formulário (`PesagemFormScreen`)**: removido o `*` de "Nome do motorista" e "Cliente";
+  "Placa" segue com `*` via `Components.obrigatorio`.
+- **Schema**: `motorista_nome` e `cliente_id` viraram **nullable**. SQLite não permite remover
+  `NOT NULL` via `ALTER COLUMN`, então a migration `V18` recria a tabela (mesmo padrão do `V16`),
+  preservando dados, FKs e as colunas `entrada_id`/`usuario_id` adicionadas depois.
+- Nota: isso muda uma decisão anterior (Motorista/Cliente obrigatórios em `fba08df`) — revisão
+  do comportamento por pedido explícito do André.
+
 ## 2026-08-31: Relatório resumido passa a imitar o layout monoespaçado do André + negritos
 
 **Contexto:** o usuário trouxe o relatório real do André (texto monoespaçado, tipo ticket) e

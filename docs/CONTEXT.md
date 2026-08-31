@@ -63,6 +63,15 @@ criada ainda). Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTRE
   no próximo boot do app).
 
 ## Estado atual (2026-08-31)
+- **Só a Placa é obrigatória** na pesagem (pedido do André). Removida a exigência de Motorista e
+  Cliente do `PesagemService.validarCampos`; formulários deixaram de marcar `*` em "Nome do
+  motorista" e "Cliente" (Placa segue com `*`). Migration `V18` torna `motorista_nome` e
+  `cliente_id` nullable (SQLite recria a tabela, preservando dados/FKs e as colunas
+  `entrada_id`/`usuario_id` — mesmo padrão do `V16`). Produto e demais já eram opcionais. Ver
+  `DECISIONS.md` e `TODO.md`.
+- Testes: `./gradlew test` → **196 testes, BUILD SUCCESSFUL**.
+
+## Estado atual (2026-08-31)
 - **Relatório resumido de entradas e saídas** agora imita o visual do relatório do André:
   texto **monoespaçado (Courier)** com cabeçalho da empresa (nome/Cpf/Insc.e/End/Bairro/
   Cidade/Fone), linha de `_`, título centralizado, separadores de `=`, colunas, uma linha

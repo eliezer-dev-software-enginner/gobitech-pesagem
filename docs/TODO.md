@@ -1,5 +1,16 @@
 # TODO
 
+## Concluído (só a Placa é obrigatória na pesagem — 2026-08-31)
+- [x] `PesagemService.validarCampos` passou a exigir somente `placa` (Motorista e Cliente
+      deixaram de ser obrigatórios)
+- [x] Formulário (`PesagemFormScreen`): removido o `*` de "Nome do motorista" e "Cliente";
+      Placa segue obrigatória (`*`)
+- [x] Migration `V18` torna `motorista_nome` e `cliente_id` nullable (recria a tabela como no
+      `V16`, preservando dados/FKs e `entrada_id`/`usuario_id`)
+- [x] Testes: `deveLancarExcecaoQuandoMotoristaVazio`/`...ClienteNaoInformado` viraram
+      `motoristaEhOpcional`/`clienteEhOpcional` — `./gradlew test`: **196 testes,
+      BUILD SUCCESSFUL**
+
 ## Concluído (relatório resumido no layout monoespaçado do André + negritos — 2026-08-31)
 - [x] `RelatorioPesagemPdfExporter` reescrito: relatório vira texto **monoespaçado (Courier)**
       igual ao do André — cabeçalho da empresa (nome/Cpf/Insc.e/End/Bairro/Cidade/Fone), linha de

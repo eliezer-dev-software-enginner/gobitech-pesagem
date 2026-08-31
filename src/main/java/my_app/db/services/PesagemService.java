@@ -128,12 +128,8 @@ public class PesagemService extends BaseService<PesagemModel> {
     }
 
     private void validarCampos(PesagemModel model) {
-        if (model.getMotoristaNome() == null || model.getMotoristaNome().isBlank())
-            throw new IllegalArgumentException("Nome do motorista é obrigatório");
         if (model.getPlaca() == null || model.getPlaca().isBlank())
             throw new IllegalArgumentException("Placa é obrigatória");
-        if (model.getClienteId() == null)
-            throw new IllegalArgumentException("Cliente é obrigatório");
         if (model.getPesoVeiculo() == null) model.setPesoVeiculo(BigDecimal.ZERO);
         if (model.getPesoTotal() == null) model.setPesoTotal(BigDecimal.ZERO);
         if (model.getPesoFinal() == null) model.setPesoFinal(BigDecimal.ZERO);

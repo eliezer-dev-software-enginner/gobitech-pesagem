@@ -51,10 +51,11 @@ class PesagemServiceTest extends BaseServiceTest {
     }
 
     @Test
-    void deveLancarExcecaoQuandoMotoristaVazio() {
+    void motoristaEhOpcional() throws Exception {
         var p = pesagemValida();
-        p.setMotoristaNome("");
-        assertThrows(IllegalArgumentException.class, () -> pesagemService.salvar(p));
+        p.setMotoristaNome(null);
+        var salvo = pesagemService.salvar(p);
+        assertNull(salvo.getMotoristaNome());
     }
 
     @Test
@@ -65,10 +66,11 @@ class PesagemServiceTest extends BaseServiceTest {
     }
 
     @Test
-    void deveLancarExcecaoQuandoClienteNaoInformado() {
+    void clienteEhOpcional() throws Exception {
         var p = pesagemValida();
         p.setClienteId(null);
-        assertThrows(IllegalArgumentException.class, () -> pesagemService.salvar(p));
+        var salvo = pesagemService.salvar(p);
+        assertNull(salvo.getClienteId());
     }
 
     @Test
