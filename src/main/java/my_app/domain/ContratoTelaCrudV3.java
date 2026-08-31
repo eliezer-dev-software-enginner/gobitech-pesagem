@@ -79,29 +79,6 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
         });
     }
 
-//    default void handleClickBaixarLista() {
-//        var fileChooser = new FileChooser();
-//        fileChooser.setTitle("Salvar lista em PDF");
-//        fileChooser.setInitialFileName("lista.pdf");
-//        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF", "*.pdf"));
-//        File destino = fileChooser.showSaveDialog(viewModel().ctx.selfStage());
-//        if (destino == null) return;
-//
-//        megalodonte.base.async.Async.Run(() -> {
-//            try {
-//                var empresaService = new EmpresaService();
-//                var empresa = empresaService.buscarUnico();
-//                empresaService.close();
-//                exportPdf(destino, empresa);
-//                UI.runOnUi(() -> Components.ShowPopup(viewModel().ctx, "PDF salvo em: " + destino.getAbsolutePath()));
-//            } catch (Exception e) {
-//                log.error("Erro ao exportar PDF", e);
-//                UI.runOnUi(() -> Components.ShowAlertError("Erro ao exportar: " + e.getMessage()));
-//            }
-//        });
-//    }
-
-    //void exportPdf(java.io.File destino, EmpresaModel empresa) throws Exception;
     void exportPdf(File destino, EmpresaModel empresa, List<T> snapshotFiltrado) throws Exception;
 
     default void handleClickMenuDelete() {
@@ -111,41 +88,15 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
         viewModel().handleClickMenuDelete();
     }
 
-    default void handleClickMenuClone() {
-        viewModel().formIsVisible.set(true);
-        populateFieldsFromModel();
-        viewModel().modoEdicaoState().set(false);
-    }
-
     default void handleClickMenuEdit() {
-//        viewModel().formIsVisible.set(true);
-//        populateFieldsFromModel();
-//        viewModel().modoEdicaoState().set(true);
-
         if(viewModel().selected.get() == null)throw new IllegalArgumentException("Selecione o item na tabela antes!");
 
         long id = viewModel().selected.get().getId();
         viewModel().ctx.router().spawnWindow(viewModel().screenNameSpawn+"/"+id+"/edit/");
     }
 
-    default void handleClickVoltar() {
-        viewModel().modoEdicaoState().set(false);
-        viewModel().voltarParaLista();
-    }
-
     SimpleTable<T> table();
 
-    /**
-     * Mantido por enquanto apenas porque PesagemScreen o utiliza
-     * @return
-     */
-    @Deprecated(forRemoval = true)
-    Component form();
-    /**
-     * Mantido por enquanto apenas porque PesagemScreen o utiliza
-     * @return
-     */
-    @Deprecated(forRemoval = true)
     Component itemDetails(T model);
 
     /**
@@ -157,15 +108,8 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
     }
 
     default Component mainView() {
-        // .fillHeight() no Show é essencial: sem ele, o Show trava a própria altura em
-        // USE_PREF_SIZE (não estica, não encolhe) — a página de lista/formulário nunca é
-        // forçada a caber no espaço real disponível, então o ScrollPane lá dentro nunca é
-        // forçado a rolar de verdade; ele só cresce, e o conteúdo que não cabe na janela some
-        // sem jeito de rolar até ele (reportado: tabela cheia empurrando "Criar novo" pra fora).
         return new Container(new ContainerProps().paddingAll(10).bgColor("#f3f4f6").fillHeight())
-                .children(
-                        Show.when(viewModel().formIsVisible, this::formPage, this::listPage).fillHeight()
-                );
+                .children(this.listPage());
     }
 
     /**
@@ -217,69 +161,15 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
                 .icon(Components.ikon(ikon,10, color));
     }
 
-    private Component formPage() {
-        return Components.ScrollPaneDefault(
-                new Column(new ColumnProps().fillWidth().spacingOf(15))
-                        .children(
-                                new Button("Voltar", new ButtonProps().bgColor("#e5e7eb")
-                                        .textColor("#111"))
-                                        .onClick(this::handleClickVoltar)
-                                        .icon(Components.ikon(AntDesignIconsOutlined.LEFT, 12, "black")),
-                                new Card(form(), new CardProps().fillWidth().paddingAll(20).bgColor("#ffffff"))
-                        )
-        );
-    }
-
     /**
      * Duplo-clique numa linha abre isso: os detalhes de {@code model} + Editar/Excluir/Clonar
      * embaixo. Cada ação fecha o modal (é uma janela própria, ver {@code Components.ShowModal})
      * antes de disparar — a edição de fato acontece na tela principal, atrás do modal.
      */
-    default void showItemDetailsComAcoes(T model, ScreenContext ctx, int height) {
-        Stage[] modalStage = new Stage[1];
-        Runnable fechar = () -> {
-            if (modalStage[0] != null) modalStage[0].close();
-        };
-
-        Component conteudo = new Column(new ColumnProps().fillWidth().spacingOf(15))
-                .children(
-                        itemDetails(model)
-//                        new Row(new RowProps().fillWidth().spacingOf(10))
-//                                .children(
-//                                        new Button("Editar", new ButtonProps().bgColor("#2563eb").textColor("white"))
-//                                                .onClick(() -> {
-//                                                    fechar.run();
-//                                                    handleClickMenuEdit();
-//                                                }),
-//                                        new Button("Clonar", new ButtonProps().bgColor("#6b7280").textColor("white"))
-//                                                .onClick(() -> {
-//                                                    fechar.run();
-//                                                    handleClickMenuClone();
-//                                                }),
-//                                        new Button("Excluir", new ButtonProps().bgColor("#ef4444").textColor("white"))
-//                                                .onClick(() -> {
-//                                                    fechar.run();
-//                                                    handleClickMenuDelete();
-//                                                })
-//                                )
-                );
-
-        modalStage[0] = Components.ShowModal(conteudo, ctx, height);
-    }
-
-    default void populateFieldsFromModel() {
-        viewModel().populateFieldsFromModel();
-    }
-
-    default void handleAddOrUpdate() {
-        try {
-            viewModel().handleAddOrUpdate();
-            viewModel().modoEdicaoState().set(false);
-        } catch (Exception e) {
-            log.error("Erro em handleAddOrUpdate", e);
-            UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
-        }
-
+    default void showItemDetails(T model, ScreenContext ctx, int height) {
+        Components.ShowModal(new Column(new ColumnProps().fillWidth().spacingOf(15))
+                .children(itemDetails(model)),
+                ctx, height);
     }
 
     default void onDestroy() {

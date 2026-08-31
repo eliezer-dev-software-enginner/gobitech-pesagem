@@ -48,10 +48,6 @@ public class ClienteScreen implements ScreenComponent, ContratoTelaCrudV3<Client
         return mainView();
     }
 
-    @Override
-    public Component form() {
-        return new Container();
-    }
 
     @Override
     public ViewModelScreenContract viewModel() {
@@ -71,7 +67,8 @@ public class ClienteScreen implements ScreenComponent, ContratoTelaCrudV3<Client
                 .column("Telefone", it->Utils.formatPhone(it.getTelefone()))
                 .column("Data de criação", it -> DateUtils.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build()
-                .onItemSelectChange(vm.selected::set);
+                .onItemSelectChange(vm.selected::set)
+                .onItemDoubleClick(it -> showItemDetails(it, this.screenContext, 350));
 
         return simpleTable;
     }

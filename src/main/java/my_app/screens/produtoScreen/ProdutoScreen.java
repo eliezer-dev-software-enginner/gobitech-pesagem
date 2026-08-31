@@ -48,11 +48,6 @@ public class ProdutoScreen implements ScreenComponent, ContratoTelaCrudV3<Produt
     }
 
     @Override
-    public Component form() {
-        return new Container();
-    }
-
-    @Override
     public ViewModelScreenContract viewModel() {
         return vm;
     }
@@ -69,8 +64,8 @@ public class ProdutoScreen implements ScreenComponent, ContratoTelaCrudV3<Produt
                 .column("Desconto (%)", it -> it.getDesconto() == null ? "0" : it.getDesconto().toPlainString())
                 .column("Data de criação", it -> DateUtils.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build()
-                .onItemSelectChange(vm.selected::set);
-                //.onItemDoubleClick(it -> showItemDetailsComAcoes(it, this.screenContext, 350));
+                .onItemSelectChange(vm.selected::set)
+                .onItemDoubleClick(it -> showItemDetails(it, this.screenContext, 350));
 
         return simpleTable;
     }

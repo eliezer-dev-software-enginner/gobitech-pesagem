@@ -143,16 +143,16 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
                     UI.runOnUi(() -> {
                         allDataList.updateIf(it -> it.getId().equals(model.getId()), it -> model);
                         Components.ShowPopup(ctx, "Cliente atualizado com sucesso");
-                        voltarParaLista();
                         EventBus.getInstance().publish(ClienteEvent.editado());
+                        clearForm();
                     });
                 } else {
                     clienteService.salvar(model);
                     UI.runOnUi(() -> {
                         allDataList.add(model);
                         Components.ShowPopup(ctx, "Cliente cadastrado com sucesso");
-                        voltarParaLista();
                         EventBus.getInstance().publish(ClienteEvent.criado());
+                        clearForm();
                     });
                 }
             } catch (IllegalArgumentException e) {

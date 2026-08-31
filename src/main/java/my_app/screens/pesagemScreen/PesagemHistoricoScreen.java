@@ -117,7 +117,7 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
      * O histórico não tem "Criar novo"/"Editar" (formulários são telas à parte) — só o
      * "Imprimir ticket" (daqui da lista) e "Excluir".
      */
-    @Override
+
     public void showItemDetailsComAcoes(PesagemModel model, ScreenContext ctx, int height) {
         Stage[] modalStage = new Stage[1];
         Runnable fechar = () -> {
@@ -129,9 +129,9 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
                         itemDetails(model),
                         new Row(new RowProps().fillWidth().spacingOf(10))
                                 .children(
-                                        new Button("Imprimir ticket", new ButtonProps().bgColor("#16a34a").textColor("white"))
+                                        new Button("Baixar ticket", new ButtonProps().bgColor("#16a34a").textColor("white"))
                                                 .onClick(() -> vm.imprimirTicket(model)),
-                                        new Button("Imprimir térmica", new ButtonProps().bgColor("#16a34a").textColor("white"))
+                                        new Button("Imprimir nota térmica 80mm", new ButtonProps().bgColor("#16a34a").textColor("white"))
                                                 .onClick(() -> vm.imprimirTicketTermica(model)),
                                         new Button("Excluir", new ButtonProps().bgColor("#ef4444").textColor("white"))
                                                 .onClick(() -> {
@@ -188,15 +188,7 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
                 .icon(Components.ikon(ikon, 10, color));
     }
 
-    // Formulário inline não se aplica ao histórico — mas o contrato pede o método.
     @Override
-    @Deprecated(forRemoval = true)
-    public Component form() {
-        return new Column();
-    }
-
-    @Override
-    @Deprecated(forRemoval = true)
     public Component itemDetails(PesagemModel model) {
         return new Column(new ColumnProps().paddingAll(20))
                 .c_child(new megalodonte.components.Text("Detalhes da pesagem", new TextProps().fontSize(ThemeManager.theme().typography().subtitle())))

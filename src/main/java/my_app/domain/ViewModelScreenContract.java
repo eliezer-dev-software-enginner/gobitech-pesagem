@@ -16,10 +16,6 @@ public abstract class ViewModelScreenContract<Model extends Identifier> {
 
     public String screenNameSpawn = "";
 
-    // Lista e formulário são páginas mutuamente exclusivas (ver ContratoTelaCrudV3) — começa
-    // mostrando a lista; "Cadastrar"/"Editar" abre o formulário, "Voltar" fecha.
-    public final State<Boolean> formIsVisible = new State<>(false);
-
     public final ComputedState<String> btnText = ComputedState.of(() -> modoEdicao.get() ? "Atualizar" : "+ Adicionar", modoEdicao);
 
     public final State<String> searchState = new State<>("");
@@ -47,7 +43,6 @@ public abstract class ViewModelScreenContract<Model extends Identifier> {
 
     protected abstract boolean matchesSearch(Model model, String query);
 
-    protected void onInit() {}
     public void onDestroy() throws Exception {
         // no-op por padrão, subclasses sobrescrevem se precisar
     }
@@ -76,14 +71,5 @@ public abstract class ViewModelScreenContract<Model extends Identifier> {
             ErrorReporter.handle(e);
             throw new IllegalStateException(e); // interrompe a construção da tela de forma previsível
         }
-    }
-
-    /**
-     * Sai do formulário e volta pra lista — usado depois de salvar com sucesso e no botão
-     * "Voltar" ({@code ContratoTelaCrudV3.handleClickVoltar}).
-     */
-    public void voltarParaLista() {
-        formIsVisible.set(false);
-        clearForm();
     }
 }

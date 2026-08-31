@@ -51,27 +51,27 @@ public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<Usuari
         return mainView();
     }
 
-    @Override
-    public Component form() {
-        return new Card(
-                new Column(new ColumnProps().paddingAll(20))
-                        .c_child(Components.FormTitle("Cadastrar usuário"))
-                        .c_child(new SpacerVertical(20))
-                        .c_child(new FlowRow(new FlowRowProps().spacingOf(10))
-                                .children(
-                                        Components.InputColumn(Components.obrigatorio("Nome"), vm.nome, "Ex: Maria Silva"),
-                                        Components.InputColumn(Components.obrigatorio("Login"), vm.login, "Ex: maria"),
-                                        Components.InputColumnAuth(Components.obrigatorio("Senha"), vm.senha, "Digite a senha"),
-                                        Components.InputColumnPhone("Telefone", vm.telefone),
-                                        Components.SelectColumn("Administrador?", Data.simNaoList, vm.ehAdminSelected, it -> it)
-                                )
-                        )
-                        .c_child(new SpacerVertical(10))
-                        .c_child(new LineHorizontal())
-                        .c_child(new SpacerVertical(20))
-                        .c_child(Components.actionButtons(vm.btnText, this::handleAddOrUpdate))
-        );
-    }
+//    @Override
+//    public Component form() {
+//        return new Card(
+//                new Column(new ColumnProps().paddingAll(20))
+//                        .c_child(Components.FormTitle("Cadastrar usuário"))
+//                        .c_child(new SpacerVertical(20))
+//                        .c_child(new FlowRow(new FlowRowProps().spacingOf(10))
+//                                .children(
+//                                        Components.InputColumn(Components.obrigatorio("Nome"), vm.nome, "Ex: Maria Silva"),
+//                                        Components.InputColumn(Components.obrigatorio("Login"), vm.login, "Ex: maria"),
+//                                        Components.InputColumnAuth(Components.obrigatorio("Senha"), vm.senha, "Digite a senha"),
+//                                        Components.InputColumnPhone("Telefone", vm.telefone),
+//                                        Components.SelectColumn("Administrador?", Data.simNaoList, vm.ehAdminSelected, it -> it)
+//                                )
+//                        )
+//                        .c_child(new SpacerVertical(10))
+//                        .c_child(new LineHorizontal())
+//                        .c_child(new SpacerVertical(20))
+//                        .c_child(Components.actionButtons(vm.btnText, this::handleAddOrUpdate))
+//        );
+//    }
 
     @Override
     public ViewModelScreenContract viewModel() {
@@ -91,7 +91,7 @@ public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<Usuari
                 .column("Data de criação", it -> DateUtils.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build()
                 .onItemSelectChange(vm.selected::set)
-                .onItemDoubleClick(it -> showItemDetailsComAcoes(it, this.screenContext, 350));
+                .onItemDoubleClick(it -> showItemDetails(it, this.screenContext, 350));
 
         return simpleTable;
     }

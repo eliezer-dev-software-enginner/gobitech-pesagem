@@ -167,6 +167,7 @@ public class Components {
         Scroll scroll = new Scroll(ui);
         stage.setScene(new Scene((Parent) scroll.getJavaFxNode(), 800, height));
         stage.setTitle("Detalhes");
+        stage.setResizable(true);
 
         Stage owner = context.selfStage();
         stage.initOwner(owner);
