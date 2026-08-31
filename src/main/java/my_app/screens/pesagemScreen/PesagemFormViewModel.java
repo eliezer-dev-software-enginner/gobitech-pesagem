@@ -186,7 +186,7 @@ public abstract class PesagemFormViewModel {
 
                 leitor.iniciar(
                         peso -> UI.runOnUi(() -> {
-                            pesoAoVivo.set(peso.toPlainString());
+                            pesoAoVivo.set(arrInt(peso));
                             lendoBalanca.set(true);
                         }),
                         erro -> UI.runOnUi(() -> {
@@ -240,7 +240,7 @@ public abstract class PesagemFormViewModel {
                 .add(parseDecimal(outros.get()));
 
         var liquidoFinal = PesagemCalculo.calcularPesoLiquido(bruto, tara, percentualDesconto);
-        pesoFinal.set(liquidoFinal.toPlainString());
+        pesoFinal.set(arrInt(liquidoFinal));
     }
 
     // ---- montagem / salvamento ----
@@ -254,9 +254,9 @@ public abstract class PesagemFormViewModel {
         model.setObservacoes(observacoes.get());
         model.setTipoPesagem(tipoPesagem());
 
-        model.setPesoVeiculo(parseDecimal(pesoVeiculo.get()));
-        model.setPesoTotal(parseDecimal(pesoTotal.get()));
-        model.setPesoFinal(parseDecimal(pesoFinal.get()));
+        model.setPesoVeiculo(parseDecimal(arrInt(parseDecimal(pesoVeiculo.get()))));
+        model.setPesoTotal(parseDecimal(arrInt(parseDecimal(pesoTotal.get()))));
+        model.setPesoFinal(parseDecimal(arrInt(parseDecimal(pesoFinal.get()))));
 
         model.setFotoFrente1(fotoFrente1.get());
         model.setFotoFrente2(fotoFrente2.get());
@@ -296,6 +296,15 @@ public abstract class PesagemFormViewModel {
 
     private String str(BigDecimal valor) {
         return valor == null ? "" : valor.toPlainString();
+    }
+
+    /**
+     * Converte um valor de peso pra inteiro (sem casa decimal), como o André prefere —
+     * ex.: 70000, 15595. Arredonda (HALF_UP) e retorna sem frações.
+     */
+    protected String arrInt(BigDecimal valor) {
+        var inteiro = PesagemCalculo.arredondarInteiro(valor);
+        return inteiro == null ? "" : inteiro.toBigInteger().toString();
     }
 
     protected BigDecimal parseDecimal(String valor) {

@@ -410,6 +410,58 @@ public class Components {
         return InputColumnDecimal(label, inputState, placeholder, null);
     }
 
+    /** Input numérico de inteiro (sem casa decimal), com separador de milhar (ponto). */
+    public static Component InputColumnInteger(String label, State<String> inputState, String placeholder) {
+        var inputProps = getInputPropsV2(placeholder).width(140);
+
+        var input = new Input(inputState, inputProps)
+                .onInitialize(value -> {
+                    if (value == null || value.trim().isEmpty()) {
+                        return OnChangeResult.of("", "");
+                    }
+                    return OnChangeResult.of(formatarInteiro(value), value);
+                })
+                .onChange(value -> {
+                    if (value == null) value = "";
+                    String cleaned = value.replaceAll("[^0-9]", "");
+                    if (cleaned.isEmpty()) {
+                        return OnChangeResult.of("", "");
+                    }
+                    String intTrimmed = cleaned.replaceFirst("^0+(?!$)", "");
+                    return OnChangeResult.of(formatarInteiro(intTrimmed), intTrimmed);
+                })
+                .lockCursorToEnd();
+
+        return new Column()
+                .c_child(new Text(label, new TextProps().fontSize(ThemeManager.theme().typography().small())))
+                .c_child(input);
+    }
+
+    /** Igual a {@link #InputWithButtonRow}, mas com o input numérico inteiro (sem decimais). */
+    public static Component InputWithButtonRowInteger(String label, String placeholder, String btnTitle, State<String> inputState, RunnableThrowing onClick) {
+        return new Row(new RowProps().bottomVertically())
+                .r_child(Components.InputColumnInteger(label, inputState, placeholder))
+                .r_child(new Button(btnTitle, new ButtonProps().height(32).textColor("black")
+                                .bgColor(ThemeManager.theme().colors().primary())
+                                .borderRadius(ThemeManager.theme().border().radiusSm()).borderWidth(ThemeManager.theme().border().width()).borderColor(ThemeManager.theme().colors().primary())
+                        )
+                                .onClick(onClick)
+                );
+    }
+
+    private static String formatarInteiro(String value) {
+        if (value == null || value.trim().isEmpty()) return "";
+        String intPart = value.replaceAll("[^0-9]", "");
+        intPart = intPart.isEmpty() ? "0" : intPart.replaceFirst("^0+(?!$)", "");
+        StringBuilder fmt = new StringBuilder();
+        int len = intPart.length();
+        for (int i = 0; i < len; i++) {
+            if (i > 0 && (len - i) % 3 == 0) fmt.append('.');
+            fmt.append(intPart.charAt(i));
+        }
+        return fmt.toString();
+    }
+
     private static String formatarDecimal(String value) {
         if (value == null || value.trim().isEmpty()) return "";
         String normalizado = value.replace(",", ".");

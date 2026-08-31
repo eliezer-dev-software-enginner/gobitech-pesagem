@@ -57,7 +57,7 @@ public class PesagemSaidaViewModel extends PesagemFormViewModel {
         notaFiscal.set(entrada.getNotaFiscal() == null ? "" : entrada.getNotaFiscal());
 
         if (entrada.getPesoVeiculo() != null) {
-            pesoVeiculo.set(entrada.getPesoVeiculo().toPlainString());
+            pesoVeiculo.set(arrInt(entrada.getPesoVeiculo()));
         }
 
         if (entrada.getClienteId() != null) {

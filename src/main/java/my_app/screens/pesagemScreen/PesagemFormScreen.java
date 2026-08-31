@@ -112,18 +112,18 @@ public abstract class PesagemFormScreen implements ScreenComponent {
 
         if (usarBalanca()) {
             pesos.c_child(new SpacerVertical(5))
-                    .c_child(Components.TextWithValue("Peso na balança agora (Kg): ", vm.pesoAoVivo))
+                    .c_child(Components.TextWithValue("Peso da balança agora (Kg): ", vm.pesoAoVivo))
                     .c_child(new SpacerVertical(10));
         }
 
         var linha = new FlowRow(new FlowRowProps().spacingOf(10));
         linha.children(
                 permitirCapturarTara()
-                        ? Components.InputWithButtonRowDecimal("Tara (Kg)", "Ex: 8500", "Capturar", vm.pesoVeiculo, vm::capturarTara)
-                        : Components.InputColumnDecimal("Tara (Kg)", vm.pesoVeiculo, "Ex: 8500"),
+                        ? Components.InputWithButtonRowInteger("Tara (Kg)", "Ex: 8500", "Capturar", vm.pesoVeiculo, vm::capturarTara)
+                        : Components.InputColumnInteger("Tara (Kg)", vm.pesoVeiculo, "Ex: 8500"),
                 permitirCapturarBruto()
-                        ? Components.InputWithButtonRowDecimal("Peso bruto (Kg)", "Ex: 32000", "Capturar", vm.pesoTotal, vm::capturarPesoBruto)
-                        : Components.InputColumnDecimal("Peso bruto (Kg)", vm.pesoTotal, "Ex: 32000"),
+                        ? Components.InputWithButtonRowInteger("Peso bruto (Kg)", "Ex: 32000", "Capturar", vm.pesoTotal, vm::capturarPesoBruto)
+                        : Components.InputColumnInteger("Peso bruto (Kg)", vm.pesoTotal, "Ex: 32000"),
                 Components.InputColumn("Peso líquido (Kg)", vm.pesoFinal, "", true)
         );
 

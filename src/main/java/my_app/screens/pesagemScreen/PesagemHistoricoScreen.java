@@ -104,7 +104,7 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
                 .column("Tipo", PesagemModel::getTipoPesagem)
                 .column("Cliente", it -> it.getCliente() != null ? it.getCliente().getLoja() : "-")
                 .column("Produto", it -> it.getProduto() != null ? it.getProduto().getNome() : "-")
-                .column("Peso líquido (Kg)", it -> String.valueOf(it.getPesoFinal()))
+                .column("Peso líquido (Kg)", it -> pesoStr(it.getPesoFinal()))
                 .column("Data", it -> DateUtils.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build()
                 .onItemSelectChange(vm.selected::set)
@@ -209,9 +209,9 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
                 .c_child(Components.TextWithDetails("Cliente: ", model.getCliente() != null ? model.getCliente().getLoja() : "-"))
                 .c_child(Components.TextWithDetails("Produto: ", model.getProduto() != null ? model.getProduto().getNome() : "-"))
                 .c_child(Components.TextWithDetails("Nota fiscal: ", model.getNotaFiscal()))
-                .c_child(Components.TextWithDetails("Tara: ", model.getPesoVeiculo() + " Kg"))
-                .c_child(Components.TextWithDetails("Peso bruto: ", model.getPesoTotal() + " Kg"))
-                .c_child(Components.TextWithDetails("Peso líquido: ", model.getPesoFinal() + " Kg"))
+                .c_child(Components.TextWithDetails("Tara: ", pesoStr(model.getPesoVeiculo()) + " Kg"))
+                .c_child(Components.TextWithDetails("Peso bruto: ", pesoStr(model.getPesoTotal()) + " Kg"))
+                .c_child(Components.TextWithDetails("Peso líquido: ", pesoStr(model.getPesoFinal()) + " Kg"))
                 .c_child(Components.TextWithDetails("Data de criação: ", DateUtils.localDateTimeToBrazilianDateTime(model.getDataCriacao())))
                 .c_child(Components.TextWithDetails("Observações: ", model.getObservacoes(), true));
     }

@@ -62,4 +62,21 @@ class PesagemCalculoTest {
                 BigDecimal.valueOf(10000), BigDecimal.valueOf(2000), BigDecimal.valueOf(100));
         assertPeso("0.00", liquido);
     }
+
+    @Test
+    void arredondaPesoParaInteiro() {
+        assertPeso("70000", PesagemCalculo.arredondarInteiro(new BigDecimal("70000.00")));
+        assertPeso("15595", PesagemCalculo.arredondarInteiro(new BigDecimal("15595.4")));
+    }
+
+    @Test
+    void arredondaMeiaZeroParaCima() {
+        // HALF_UP: 12345.5 -> 12346
+        assertPeso("12346", PesagemCalculo.arredondarInteiro(new BigDecimal("12345.5")));
+    }
+
+    @Test
+    void arredondarInteiroComNullRetornaNull() {
+        assertEquals(null, PesagemCalculo.arredondarInteiro(null));
+    }
 }

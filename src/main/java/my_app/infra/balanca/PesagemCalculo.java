@@ -29,4 +29,13 @@ public class PesagemCalculo {
         return liquidoAntesDoDesconto.subtract(valorDesconto)
                 .setScale(2, RoundingMode.HALF_UP);
     }
+
+    /**
+     * Arredonda um valor pra inteiro (sem casa decimal), como o André prefere nos pesos
+     * da tela de pesagem (ex.: 70000, 15595). Retorna {@code null} se o valor for {@code null}.
+     */
+    public static BigDecimal arredondarInteiro(BigDecimal valor) {
+        if (valor == null) return null;
+        return valor.setScale(0, RoundingMode.HALF_UP);
+    }
 }
