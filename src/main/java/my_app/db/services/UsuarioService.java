@@ -44,7 +44,7 @@ public class UsuarioService extends BaseService<UsuarioModel> {
     public UsuarioModel salvar(UsuarioModel model) throws SQLException {
         validarCamposObrigatorios(model);
 
-        if (!model.getTelefone().isEmpty() && !isValidPhone(model.getTelefone())) {
+        if (model.getTelefone() != null && !model.getTelefone().isEmpty() && !isValidPhone(model.getTelefone())) {
             throw new IllegalArgumentException("Telefone inválido (informe DDD + Número)");
         }
 
@@ -78,7 +78,7 @@ public class UsuarioService extends BaseService<UsuarioModel> {
     public void atualizar(UsuarioModel model) throws SQLException {
         validarCamposObrigatorios(model);
 
-        if (!model.getTelefone().isEmpty() && !isValidPhone(model.getTelefone())) {
+        if (model.getTelefone() != null && !model.getTelefone().isEmpty() && !isValidPhone(model.getTelefone())) {
             throw new IllegalArgumentException("Telefone inválido (informe DDD + Número)");
         }
 

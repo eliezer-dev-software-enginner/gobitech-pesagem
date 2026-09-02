@@ -1,5 +1,56 @@
 # TODO
 
+
+[] Adicionar botão para copiar a placa em ItemDetails
+[] Corrigir "Registrar registrar ..." em Pesagem
+[] Na busca da placa em "Pesagem de saída" ignorar letras minúsculas de maiscúlas.
+[] Inputs com bordas vermelhas quando não forem editáveis
+[] Criar input uppercase em Components para o input da Placa
+[] Popup não desaparece sozinho (corrigir)
+[] Analisar se botão "Caputurar" Tara deve aparecer também em Pesagem avulsa.
+[] Inscrição estadual que é exibida nos relatórios e tickets (cabeçalho) não alimentamos isso em nenhum lugar. No cadastro de empresa deveria haver esse campo.
+[] Ao baixar relatório e ticket deve salvar com a data e horario formatado também, vide Utils. Em ambos deve haver o prefixo "relatório - ", "ticket - " respectivamente.
+
+
+## Concluído (fluxo J — validar documento e limitar nome do motorista — 2026-09-02)
+- [x] `Utils.isValidDocumento(String)`: aceita vazio/nulo, RG (8-9 dígitos) ou CPF (11) — J2
+- [x] `PesagemService.validarCampos()` **lança `IllegalArgumentException`** quando o documento
+      preenchido não é RG/CPF válido e quando o Nome do motorista excede 100 caracteres — J2/J4
+      (validação de negócio na Service, seguindo o padrão da "Placa é obrigatória")
+- [x] `UtilsTest`: 7 novos casos de `isValidDocumento`
+- [x] `PesagemServiceTest`: 5 novos casos (documento inválido/vazio/RG/CPF; nome 101 e 100 chars)
+- [x] `./gradlew test`: **BUILD SUCCESSFUL** — `testes-pesagem.md` atualizado (J2 e J4 = ok)
+
+## Concluído (fluxo H — bloquear soma de descontos > 100% — 2026-09-01)
+- [x] Bloqueio de salvamento quando a soma dos 8 descontos ultrapassa 100%, com alerta —
+      decisão do usuário (H4)
+- [x] Soma dos descontos extraída pro método reutilizável `somaDescontos()` (usado em
+      `calcLiquido` e na validação de `salvar`) — sem duplicação
+- [x] `testes-pesagem.md` atualizado (H4) — `./gradlew test`: **BUILD SUCCESSFUL**
+
+## Concluído (fluxo G — bruto<tara, salvar sem peso — 2026-09-01)
+- [x] Bloqueio de salvamento quando Peso bruto < Tara (líquido negativo), com alerta —
+      decisão do usuário (G4/B5)
+- [x] Aviso de confirmação antes de salvar pesagem sem nenhum peso (F2/G6) — vale pras 4 telas
+- [x] Cálculo do líquido extraído pro método reutilizável `calcLiquido()` (sem duplicação)
+- [x] G3 (colar `8500.5` → `85.005`) **mantido por decisão do usuário** — aplicação de balança,
+      valor é digitado/capturado com vírgula, não colado
+- [x] `testes-pesagem.md` atualizado (G3/G4/G5) — `./gradlew test`: **BUILD SUCCESSFUL**
+
+## Concluído (fix — líquido negativo + Saída sem Peso bruto — 2026-09-01)
+- [x] `PesagemFormViewModel.recalcularPesoLiquido()`: retorna vazio quando `pesoTotal` está
+      vazio (antes dava `0 − tara` = negativo) — cenário C1
+- [x] `PesagemSaidaViewModel.preencherDaEntrada()`: agora copia `pesoTotal` da Entrada além de
+      `pesoVeiculo` — cenário D2
+- [x] `testes-pesagem.md` atualizado com os resultados (C1 e D2 marcados como ok)
+
+## Concluído (fix — NPE em UsuarioService ao salvar sem telefone — 2026-09-01)
+- [x] `UsuarioService.salvar()`/`atualizar()`: null-check em `getTelefone()` antes de chamar
+      `isEmpty()` — causava NPE ao salvar/editar usuário sem telefone (campo opcional)
+- [x] Corrigiu 9 testes que falhavam com NPE (`UsuarioServiceTest` + `PesagemServiceTest`) —
+      todos eram o mesmo bug real, não problema de infraestrutura de teste
+- [x] `./gradlew test` → **199 testes, BUILD SUCCESSFUL** (0 falhas)
+
 ## Concluído (só a Placa é obrigatória na pesagem — 2026-08-31)
 - [x] `PesagemService.validarCampos` passou a exigir somente `placa` (Motorista e Cliente
       deixaram de ser obrigatórios)

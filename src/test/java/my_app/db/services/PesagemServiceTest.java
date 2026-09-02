@@ -90,6 +90,49 @@ class PesagemServiceTest extends BaseServiceTest {
     }
 
     @Test
+    void deveLancarExcecaoQuandoDocumentoMotoristaInvalido() {
+        var p = pesagemValida();
+        p.setMotoristaDocumento("123");
+        assertThrows(IllegalArgumentException.class, () -> pesagemService.salvar(p));
+    }
+
+    @Test
+    void aceitaDocumentoMotoristaVazioOuNulo() throws Exception {
+        var p1 = pesagemValida();
+        p1.setMotoristaDocumento("");
+        assertNotNull(pesagemService.salvar(p1).getId());
+
+        var p2 = pesagemValida();
+        p2.setMotoristaDocumento(null);
+        assertNotNull(pesagemService.salvar(p2).getId());
+    }
+
+    @Test
+    void aceitaDocumentoMotoristaRgOuCpfValido() throws Exception {
+        var p1 = pesagemValida();
+        p1.setMotoristaDocumento("12345678");
+        assertNotNull(pesagemService.salvar(p1).getId());
+
+        var p2 = pesagemValida();
+        p2.setMotoristaDocumento("12345678901");
+        assertNotNull(pesagemService.salvar(p2).getId());
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoNomeMotoristaExcede100Caracteres() {
+        var p = pesagemValida();
+        p.setMotoristaNome("X".repeat(101));
+        assertThrows(IllegalArgumentException.class, () -> pesagemService.salvar(p));
+    }
+
+    @Test
+    void aceitaNomeMotoristaComAte100Caracteres() throws Exception {
+        var p = pesagemValida();
+        p.setMotoristaNome("X".repeat(100));
+        assertNotNull(pesagemService.salvar(p).getId());
+    }
+
+    @Test
     void deveLancarExcecaoQuandoTipoPesagemVazio() {
         var p = pesagemValida();
         p.setTipoPesagem(null);

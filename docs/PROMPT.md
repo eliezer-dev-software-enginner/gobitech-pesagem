@@ -28,5 +28,4 @@ Após cada tarefa:
 - Atualize docs/TODO.md.
 - Mantenha os arquivos concisos.
 
-
-Quero que você finalize a exportação de relatório em PesagemHistoricoScreen().
+Prompt: Em testes-pesagem.md adicione a coluna de Resultado assim como em testes-manuais.md.

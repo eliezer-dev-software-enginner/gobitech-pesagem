@@ -228,9 +228,19 @@ public abstract class PesagemFormViewModel {
      * campos, então o valor exibido está sempre atualizado sem botão "Calcular".
      */
     private void recalcularPesoLiquido() {
-        var bruto = parseDecimal(pesoTotal.get());
-        var tara = parseDecimal(pesoVeiculo.get());
-        var percentualDesconto = parseDecimal(avariados.get())
+        var liquidoFinal = calcLiquido();
+        if (liquidoFinal == null) {
+            pesoFinal.set("");
+            return;
+        }
+        pesoFinal.set(arrInt(liquidoFinal));
+    }
+
+    /**
+     * Soma os 8 percentuais de desconto da pesagem.
+     */
+    private BigDecimal somaDescontos() {
+        return parseDecimal(avariados.get())
                 .add(parseDecimal(ardidos.get()))
                 .add(parseDecimal(quebraArdidos.get()))
                 .add(parseDecimal(impurezas.get()))
@@ -238,9 +248,22 @@ public abstract class PesagemFormViewModel {
                 .add(parseDecimal(umidade.get()))
                 .add(parseDecimal(quebraUmidade.get()))
                 .add(parseDecimal(outros.get()));
+    }
 
-        var liquidoFinal = PesagemCalculo.calcularPesoLiquido(bruto, tara, percentualDesconto);
-        pesoFinal.set(arrInt(liquidoFinal));
+    /**
+     * Calcula o peso líquido a partir de bruto, tara e descontos. Retorna {@code null} quando o
+     * Peso bruto não foi informado (não há o que calcular). Reaproveitado pela exibição dinâmica
+     * ({@link #recalcularPesoLiquido}) e pela validação de salvamento ({@link #salvar}).
+     */
+    private BigDecimal calcLiquido() {
+        if (pesoTotal.get() == null || pesoTotal.get().isBlank()) {
+            return null;
+        }
+        var bruto = parseDecimal(pesoTotal.get());
+        var tara = parseDecimal(pesoVeiculo.get());
+        var percentualDesconto = somaDescontos();
+
+        return PesagemCalculo.calcularPesoLiquido(bruto, tara, percentualDesconto);
     }
 
     // ---- montagem / salvamento ----
@@ -321,6 +344,28 @@ public abstract class PesagemFormViewModel {
      * histórico sincronizado.
      */
     public void salvar() {
+        var percentualDesconto = somaDescontos();
+        if (percentualDesconto.compareTo(new BigDecimal("100")) > 0) {
+            Components.ShowAlertError("A soma dos descontos não pode ultrapassar 100%.");
+            return;
+        }
+        if (!pesoTotal.get().isBlank() && !pesoVeiculo.get().isBlank()) {
+            var liquidoFinal = calcLiquido();
+            if (liquidoFinal != null && liquidoFinal.compareTo(BigDecimal.ZERO) < 0) {
+                Components.ShowAlertError("Peso bruto não pode ser menor que a Tara (peso líquido estaria negativo).");
+                return;
+            }
+        }
+        if (pesoVeiculo.get().isBlank() && pesoTotal.get().isBlank()) {
+            Components.ShowAlertAdvice(
+                    "Nenhum peso foi informado (Tara e Peso bruto vazios). Deseja salvar mesmo assim?",
+                    this::executarSalvamento);
+            return;
+        }
+        executarSalvamento();
+    }
+
+    private void executarSalvamento() {
         var model = montarModel();
         var descontoModel = montarDesconto();
 

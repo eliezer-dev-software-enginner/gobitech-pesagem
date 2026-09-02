@@ -8,6 +8,7 @@ import my_app.db.repositories.DescontoRepository;
 import my_app.db.repositories.PesagemRepository;
 import my_app.db.repositories.ProdutoRepository;
 import my_app.db.repositories.UsuarioRepository;
+import my_app.utils.Utils;
 import net.sf.persism.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -130,6 +131,11 @@ public class PesagemService extends BaseService<PesagemModel> {
     private void validarCampos(PesagemModel model) {
         if (model.getPlaca() == null || model.getPlaca().isBlank())
             throw new IllegalArgumentException("Placa é obrigatória");
+        if (model.getMotoristaDocumento() != null && !model.getMotoristaDocumento().isBlank()
+                && !Utils.isValidDocumento(model.getMotoristaDocumento()))
+            throw new IllegalArgumentException("Documento do motorista inválido (informe um RG ou CPF válido).");
+        if (model.getMotoristaNome() != null && model.getMotoristaNome().length() > 100)
+            throw new IllegalArgumentException("Nome do motorista excede o limite de 100 caracteres.");
         if (model.getPesoVeiculo() == null) model.setPesoVeiculo(BigDecimal.ZERO);
         if (model.getPesoTotal() == null) model.setPesoTotal(BigDecimal.ZERO);
         if (model.getPesoFinal() == null) model.setPesoFinal(BigDecimal.ZERO);

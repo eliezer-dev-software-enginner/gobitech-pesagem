@@ -20,6 +20,9 @@ public class PesagemCalculo {
      * em vez de um único percentual.
      */
     public static BigDecimal calcularPesoLiquido(BigDecimal bruto, BigDecimal tara, BigDecimal percentualDesconto) {
+        if (bruto == null || bruto.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
         var liquidoAntesDoDesconto = bruto.subtract(tara);
 
         var valorDesconto = liquidoAntesDoDesconto

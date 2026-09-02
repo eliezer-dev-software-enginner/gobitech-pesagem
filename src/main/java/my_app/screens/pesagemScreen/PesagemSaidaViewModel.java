@@ -59,6 +59,9 @@ public class PesagemSaidaViewModel extends PesagemFormViewModel {
         if (entrada.getPesoVeiculo() != null) {
             pesoVeiculo.set(arrInt(entrada.getPesoVeiculo()));
         }
+        if (entrada.getPesoTotal() != null) {
+            pesoTotal.set(arrInt(entrada.getPesoTotal()));
+        }
 
         if (entrada.getClienteId() != null) {
             clientesState.get().stream()

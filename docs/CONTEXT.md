@@ -62,6 +62,44 @@ criada ainda). Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTRE
   `DECISIONS.md`), inclusive num banco real já em uso (corrigido via `V11`, com auto-correção
   no próximo boot do app).
 
+## Estado atual (2026-09-02)
+- **Fluxo J (campos textuais opcionais) — fixes**:
+  - **J2**: documento do motorista agora é **validado se preenchido** — novo
+    `Utils.isValidDocumento()` (RG 8-9 dígitos ou CPF 11) e `PesagemService.validarCampos()`
+    lança `IllegalArgumentException` quando inválido. Vazio continua permitido.
+  - **J4**: `PesagemService.validarCampos()` **lança `IllegalArgumentException`** quando
+    "Nome do motorista" excede 100 caracteres.
+  - As validações J2/J4 ficam na **Service** (segundo o padrão já existente), a ViewModel só
+    exibe o `getMessage()` da `IllegalArgumentException`.
+- Testes: `./gradlew test` → **BUILD SUCCESSFUL**.
+
+## Estado atual (2026-09-01)
+- **Fluxo H (descontos)**: **bloqueio** de salvamento quando a soma dos descontos ultrapassa
+  100% — alerta "A soma dos descontos não pode ultrapassar 100."; soma extraída pro método
+  reutilizável `somaDescontos()`.
+- **Fluxo G (pesagem manual) — fixes**:
+  - **G4**: **bloqueio** de salvamento quando Peso bruto < Tara (líquido negativo) — alerta
+    "Peso bruto não pode ser menor que a Tara".
+  - **F2/G6**: aviso de confirmação antes de salvar pesagem **sem nenhum peso**; Sim salva, Não
+    cancela. Vale pras 4 telas (classe base `PesagemFormViewModel`).
+  - **G3**: comportamento de colagem com ponto decimal (`8500.5` → `85.005`) **mantido por
+    decisão do usuário** — aplicação de balança, valor é digitado/capturado (vírgula), não colado.
+- Cálculo do líquido extraído pro método reutilizável `calcLiquido()` (sem duplicação entre a
+  exibição dinâmica e a validação de salvamento).
+- Testes: `./gradlew test` → **BUILD SUCCESSFUL**.
+
+## Estado atual (2026-09-01)
+- **Fix de dois bugs** encontrados em testes manuais (`testes-pesagem.md`, cenários C1 e D2):
+  - **C1**: Peso líquido ficava negativo ao registrar Entrada só com Tara (sem Peso bruto) —
+    `recalcularPesoLiquido()` agora retorna vazio quando bruto não informado.
+  - **D2**: Saída não trazia o Peso bruto da Entrada ao buscar pela placa — `preencherDaEntrada()`
+    agora copia `pesoTotal` além de `pesoVeiculo`.
+- **Fix de bug real em `UsuarioService`**: `salvar()`/`atualizar()` faziam
+  `model.getTelefone().isEmpty()` sem checar null — NPE ao salvar usuário sem telefone (campo
+  opcional). Corrigido com null-check antes.
+- Testes: `./gradlew test` → **199 testes, BUILD SUCCESSFUL** (0 falhas — os 9 NPEs pré-existentes
+  em `UsuarioServiceTest`/`PesagemServiceTest` foram corrigidos).
+
 ## Estado atual (2026-08-31)
 - **Só a Placa é obrigatória** na pesagem (pedido do André). Removida a exigência de Motorista e
   Cliente do `PesagemService.validarCampos`; formulários deixaram de marcar `*` em "Nome do

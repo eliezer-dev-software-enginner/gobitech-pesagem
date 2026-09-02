@@ -1,5 +1,114 @@
 # Decisões Arquiteturais
 
+## 2026-09-02: Fluxo J (campos textuais opcionais) — validar documento e limitar nome do motorista
+
+**Contexto:** testes manuais do fluxo J em `testes-pesagem.md` revelaram dois erros:
+- **J2 — documento inválido:** o campo "Documento do motorista" (`InputRgCpf`) aceitava e
+  deixava salvar qualquer texto. O campo aceita RG (8-9 dígitos) ou CPF (11 dígitos).
+- **J4 — nome muito longo:** 200+ caracteres em "Nome do motorista" eram aceitos e salvos.
+
+**Decisões (confirmadas com o usuário):**
+- **J2 — validar RG/CPF se preenchido:** novo `Utils.isValidDocumento(String)` (vazio/nulo =
+  válido, pois o documento é opcional; ≤9 dígitos exige ≥8 = RG; 11 = CPF). `PesagemService.
+  validarCampos()` **lança `IllegalArgumentException`** quando o documento preenchido não passa.
+  Documento vazio continua permitido.
+- **J4 — bloquear no salvar:** `PesagemService.validarCampos()` **lança `IllegalArgumentException`**
+  quando o Nome do motorista excede 100 caracteres. A coluna é `TEXT` (SQLite, sem limite
+  prático) — o teto é regra de domínio, aplicada no Service (padrão da "Placa é obrigatória").
+- **Onde validar:** as validações J2/J4 ficam na **Service** (campos já presentes no
+  `PesagemModel`), não na ViewModel — esta última só exibe o `e.getMessage()` da
+  `IllegalArgumentException` que já captura. As validações H4/G4/F2 continuam na ViewModel por
+  dependerem de estado de UI/descontos ainda não montado no model.
+
+**Testado:** `UtilsTest` ganhou 7 casos de `isValidDocumento`; `PesagemServiceTest` ganhou 5
+(doc inválido/vazio/RG/CPF; nome 101 e 100 chars). `./gradlew test` → **BUILD SUCCESSFUL**.
+`testes-pesagem.md` J2 e J4 marcados como ok.
+
+---
+
+**Contexto:** o cenário H4 revelou que deixava salvar com a soma dos descontos ultrapassando
+100% (o que levaria o líquido a negativo). Por decisão do usuário, o salvamento passa a ser
+**bloqueado** quando a soma dos 8 percentuais de desconto ultrapassa 100% (alerta "A soma dos
+descontos não pode ultrapassar 100%.").
+
+**Implementação:** a soma dos descontos foi extraída pro método reutilizável `somaDescontos()`,
+usado tanto em `calcLiquido()` (cálculo do líquido) quanto na validação de `salvar()` — sem
+duplicação. H3 (desconto negativo individual) já é tratado pelo `InputColumnDecimal`, que
+descarta o sinal.
+
+**Testado:** `./gradlew test` → **BUILD SUCCESSFUL**.
+
+---
+
+## 2026-09-01: Fluxo G (pesagem manual) — bruto<tara e salvar sem peso
+
+**Contexto:** testes manuais do fluxo G revelaram três questões:
+
+**G3 — colar/digitar ponto decimal quebrava (85.005 no lugar de 8500,5):** o mesmo vale pra
+qualquer colagem de ponto decimal — o `InputColumnDecimal` usa **vírgula** como separador
+decimal e ponto como milhar (padrão BR), então colar `8500.5` vira `85.005`. **Decisão do
+usuário:** manter como está — é uma aplicação de balança, o valor é **digitado ou capturado**,
+não colado; quem digitar usa vírgula normalmente. Sem mudança de código.
+
+**G4 — bruto < tara gera líquido negativo:** por decisão do usuário, o salvamento passa a ser
+**bloqueado** quando o peso líquido calculado é negativo (alerta "Peso bruto não pode ser menor
+que a Tara").
+
+**F2/G6 — salvar sem nenhum peso:** pede confirmação ("Nenhum peso foi informado... Deseja salvar
+mesmo assim?") antes de salvar; Sim salva, Não cancela.
+
+**Refatoração:** o cálculo do líquido foi extraído de `recalcularPesoLiquido()` para um método
+reutilizável `calcLiquido()` (retorna `null` quando o bruto não foi informado), aproveitado pela
+exibição dinâmica e pela validação de salvamento — sem duplicação.
+
+**Testado:** `./gradlew test` → **BUILD SUCCESSFUL**.
+
+---
+
+## 2026-09-01: Fix — líquido negativo ao registrar Entrada só com Tara + Saída não trazia Peso bruto
+
+**Contexto:** testes manuais (cenários C1 e D2 de `testes-pesagem.md`) revelaram dois bugs:
+- **C1**: ao salvar uma Entrada com só Tara (sem Peso bruto), o campo Peso líquido ficava
+  negativo (ex.: Tara=8500, Bruto vazio → líquido = −8500).
+- **D2**: ao abrir a tela de Saída e digitar a placa de uma Entrada existente, o sistema não
+  trazia o Peso bruto registrado na Entrada.
+
+**Causas raiz:**
+- **C1**: `PesagemFormViewModel.recalcularPesoLiquido()` converte campo vazio em
+  `BigDecimal.ZERO` via `parseDecimal`, então `0 − tara` gerava negativo sem qualquer guarda.
+- **D2**: `PesagemSaidaViewModel.preencherDaEntrada()` só copiava a Tara (`pesoVeiculo`) da
+  Entrada; nunca copiava o Peso bruto (`pesoTotal`).
+
+**Fixes:**
+- **C1**: `recalcularPesoLiquido()` agora retorna imediatamente (pesoFinal = vazio) quando
+  `pesoTotal` está vazio/nulo — sem bruto informado, não há o que calcular.
+- **D2**: `preencherDaEntrada()` agora também copia `pesoTotal` da Entrada quando disponível.
+
+**Testado:** `./gradlew test` → **199 testes, BUILD SUCCESSFUL** (0 falhas — os 9 NPEs
+pré-existentes em `UsuarioServiceTest`/`PesagemServiceTest` também foram corrigidos no mesmo
+lote, ver abaixo). `testes-pesagem.md` atualizado com os resultados.
+
+---
+
+## 2026-09-01: Fix — NPE em UsuarioService ao salvar usuário sem telefone
+
+**Contexto:** os 9 testes que falhavam em `UsuarioServiceTest` e `PesagemServiceTest` (todos
+`NullPointerException`) não eram problema de infraestrutura de teste — eram um bug real em
+`UsuarioService`.
+
+**Causa raiz:** `UsuarioService.salvar()` e `atualizar()` faziam
+`model.getTelefone().isEmpty()` sem null-check. O campo `telefone` é opcional (null por padrão
+no model), então qualquer salvamento de usuário sem telefone estourava NPE. Os testes de
+`PesagemServiceTest` também falhavam porque criavam `UsuarioModel` sem telefone pra testar
+`usuarioId`/`buscarComRelacoesAnexaOperador`.
+
+**Fix:** null-check antes de `isEmpty()`: `model.getTelefone() != null && !model.getTelefone()
+.isEmpty() && !isValidPhone(model.getTelefone())`.
+
+**Testado:** `./gradlew test` → **199 testes, BUILD SUCCESSFUL**.
+
+---
+
 ## 2026-08-31: Só a Placa é obrigatória na pesagem (pedido do André)
 
 **Contexto:** o André pediu que só a placa fosse obrigatória. Até então, tanto a validação

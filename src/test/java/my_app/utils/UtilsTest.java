@@ -122,4 +122,41 @@ class UtilsTest {
         assertEquals("", Utils.formatRgCpf(""));
         assertEquals("", Utils.formatRgCpf(null));
     }
+
+    @Test
+    void isValidDocumento_aceitaCpfVazioOuNulo() {
+        assertTrue(Utils.isValidDocumento(""));
+        assertTrue(Utils.isValidDocumento(null));
+    }
+
+    @Test
+    void isValidDocumento_aceitaCpfValido() {
+        assertTrue(Utils.isValidDocumento("12345678901"));
+        assertTrue(Utils.isValidDocumento("123.456.789-01"));
+    }
+
+    @Test
+    void isValidDocumento_aceitaRgValido() {
+        assertTrue(Utils.isValidDocumento("12345678"));
+        assertTrue(Utils.isValidDocumento("12.345.678"));
+        assertTrue(Utils.isValidDocumento("123456789"));
+        assertTrue(Utils.isValidDocumento("12.345.678-9"));
+    }
+
+    @Test
+    void isValidDocumento_rejeitaRgCurto() {
+        assertFalse(Utils.isValidDocumento("1234567"));
+        assertFalse(Utils.isValidDocumento("123"));
+    }
+
+    @Test
+    void isValidDocumento_rejeitaTamanhoInvalido() {
+        assertFalse(Utils.isValidDocumento("123456789012"));
+        assertFalse(Utils.isValidDocumento("12345"));
+    }
+
+    @Test
+    void isValidDocumento_rejeitaLetrasNoCpf() {
+        assertFalse(Utils.isValidDocumento("12345A78901"));
+    }
 }
