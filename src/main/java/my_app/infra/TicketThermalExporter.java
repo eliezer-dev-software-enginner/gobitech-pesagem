@@ -73,7 +73,7 @@ public class TicketThermalExporter {
 
         raw(linhas, empresa != null && naoVazio(empresa.getNome()) ? empresa.getNome() : "Gobitech", true, true);
         raw(linhas, "Cnpj: " + (empresa != null ? nulo(empresa.getCpfCnpj()) : ""), false, false);
-        raw(linhas, "Insc.est:", false, false);
+        raw(linhas, "Insc.est: " + (empresa != null ? nulo(empresa.getInscricaoEstadual()) : ""), false, false);
         raw(linhas, "End: " + (empresa != null ? nulo(montarEnd(empresa)) : ""), false, false);
         raw(linhas, "Bairro: " + (empresa != null ? nulo(empresa.getBairro()) : ""), false, false);
         raw(linhas, "Cidade: " + (empresa != null ? nulo(montarCidade(empresa)) : ""), false, false);

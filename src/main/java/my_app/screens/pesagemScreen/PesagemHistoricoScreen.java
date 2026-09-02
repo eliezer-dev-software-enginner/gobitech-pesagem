@@ -194,7 +194,14 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
                 .c_child(new megalodonte.components.Text("Detalhes da pesagem", new TextProps().fontSize(ThemeManager.theme().typography().subtitle())))
                 .c_child(new megalodonte.components.SpacerVertical(20))
                 .c_child(Components.TextWithDetails("ID: ", model.getId()))
-                .c_child(Components.TextWithDetails("Placa: ", model.getPlaca()))
+                .c_child(new Row(new RowProps().bottomVertically().spacingOf(10))
+                        .r_child(Components.TextWithDetails("Placa: ", model.getPlaca()))
+                        .r_child(new Button("Copiar placa", new ButtonProps().height(32).textColor("black")
+                                .bgColor(ThemeManager.theme().colors().primary())
+                                .borderRadius(ThemeManager.theme().border().radiusSm())
+                                .borderWidth(ThemeManager.theme().border().width())
+                                .borderColor(ThemeManager.theme().colors().primary()))
+                                .onClick(() -> copiarPlaca(model))))
                 .c_child(Components.TextWithDetails("Motorista: ", model.getMotoristaNome()))
                 .c_child(Components.TextWithDetails("Documento do motorista: ", model.getMotoristaDocumento()))
                 .c_child(Components.TextWithDetails("Tipo: ", model.getTipoPesagem()))
@@ -306,5 +313,13 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
         if (dataHora == null) return "";
         if (soHora) return dataHora.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
         return dataHora.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+    }
+
+    /** Copia a placa pra área de transferência (útil pra colar na busca da pesagem de saída). */
+    private void copiarPlaca(PesagemModel model) {
+        var content = new javafx.scene.input.ClipboardContent();
+        content.putString(model.getPlaca() == null ? "" : model.getPlaca());
+        javafx.scene.input.Clipboard.getSystemClipboard().setContent(content);
+        Components.ShowPopup(screenContext, "Placa copiada: " + model.getPlaca());
     }
 }

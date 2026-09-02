@@ -184,4 +184,25 @@ class PesagemRepositoryTest extends BaseRepositoryTest {
         assertEquals(1, saidas.size());
         assertEquals("saida", saidas.get(0).getTipoPesagem());
     }
+
+    @Test
+    void buscarPorPlacaETipoIgnoraMaiusculaMinuscula() throws SQLException {
+        repository.salvar(novaPesagem("abc1d23"));
+
+        var porCaixaDiferente = repository.buscarPorPlacaETipo("ABC1D23", "entrada");
+        var porUpper = repository.buscarPorPlacaETipo("ABC1D23", "entrada");
+
+        assertEquals(1, porCaixaDiferente.size());
+        assertEquals("abc1d23", porCaixaDiferente.get(0).getPlaca());
+        assertEquals(porUpper.size(), porCaixaDiferente.size());
+    }
+
+    @Test
+    void filtrarPorPlacaIgnoraMaiusculaMinuscula() throws SQLException {
+        repository.salvar(novaPesagem("abc1d23"));
+
+        var resultado = repository.filtrar("ABC1D23", null, null, null, null, null);
+
+        assertEquals(1, resultado.size());
+    }
 }

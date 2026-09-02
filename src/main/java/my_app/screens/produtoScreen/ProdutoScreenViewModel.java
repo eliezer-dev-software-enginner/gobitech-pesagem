@@ -22,7 +22,6 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
     private static final Logger log = LoggerFactory.getLogger(ProdutoScreenViewModel.class);
 
     private final ProdutoService produtoService;
-    @SuppressWarnings("rawtypes")
     private final Consumer<Object> eventListener = this::onEntityEvent;
 
     final State<String> nome = new State<>("");

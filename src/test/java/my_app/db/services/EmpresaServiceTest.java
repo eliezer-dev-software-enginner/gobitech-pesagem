@@ -55,4 +55,15 @@ class EmpresaServiceTest extends BaseServiceTest {
     void deveRetornarNullQuandoNaoHaEmpresa() throws Exception {
         assertNull(empresaService.buscarUnico());
     }
+
+    @Test
+    void devePersistirInscricaoEstadual() throws Exception {
+        var e = new EmpresaModel();
+        e.setNome("Minha Empresa");
+        e.setInscricaoEstadual("10.123.456-7");
+        empresaService.salvarOuAtualizar(e);
+        var encontrado = empresaService.buscarUnico();
+        assertNotNull(encontrado);
+        assertEquals("10.123.456-7", encontrado.getInscricaoEstadual());
+    }
 }

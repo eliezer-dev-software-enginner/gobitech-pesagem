@@ -66,7 +66,7 @@ public class RelatorioPesagemPdfExporter {
                     ? empresa.getNome() : "Gobitech";
             linha(linhas, nomeEmpresa);
             linha(linhas, "Cpf: " + (empresa != null ? nulo(empresa.getCpfCnpj()) : "")
-                    + "    Insc.e ");
+                    + "    Insc.e " + (empresa != null ? nulo(empresa.getInscricaoEstadual()) : ""));
             linha(linhas, "End: " + (empresa != null ? nulo(montarEnd(empresa)) : ""));
             linha(linhas, "Bairro: " + (empresa != null ? nulo(empresa.getBairro()) : ""));
             linha(linhas, "Cidade: " + (empresa != null ? nulo(montarCidade(empresa)) : ""));

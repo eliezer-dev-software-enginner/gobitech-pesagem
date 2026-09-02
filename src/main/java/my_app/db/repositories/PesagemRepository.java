@@ -24,7 +24,7 @@ public class PesagemRepository extends BaseRepository<PesagemModel> {
     public List<PesagemModel> buscarPorPlaca(String placa) throws SQLException {
         return session().query(
                 modelClass(),
-                sql("SELECT * FROM pesagens WHERE placa = ? ORDER BY dataCriacao ASC"),
+                sql("SELECT * FROM pesagens WHERE UPPER(placa) = UPPER(?) ORDER BY dataCriacao ASC"),
                 params(placa)
         );
     }
@@ -32,7 +32,7 @@ public class PesagemRepository extends BaseRepository<PesagemModel> {
     public List<PesagemModel> buscarPorPlacaETipo(String placa, String tipoPesagem) throws SQLException {
         return session().query(
                 modelClass(),
-                sql("SELECT * FROM pesagens WHERE placa = ? AND tipo_pesagem = ? ORDER BY dataCriacao ASC"),
+                sql("SELECT * FROM pesagens WHERE UPPER(placa) = UPPER(?) AND tipo_pesagem = ? ORDER BY dataCriacao ASC"),
                 params(placa, tipoPesagem)
         );
     }
@@ -48,7 +48,7 @@ public class PesagemRepository extends BaseRepository<PesagemModel> {
         var valores = new ArrayList<Object>();
 
         if (placa != null && !placa.isBlank()) {
-            condicoes.add("placa = ?");
+            condicoes.add("UPPER(placa) = UPPER(?)");
             valores.add(placa);
         }
         if (motoristaNome != null && !motoristaNome.isBlank()) {

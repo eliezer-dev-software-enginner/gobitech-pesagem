@@ -22,6 +22,7 @@ public class EmpresaViewModel {
 
     final State<String> nome = State.of("");
     final State<String> cpfCnpj = State.of("");
+    final State<String> inscricaoEstadual = State.of("");
     final State<String> telefone = State.of("");
     final State<String> email = State.of("");
     final State<String> logoMarca = State.of("assets/app_banner_square.png");
@@ -55,6 +56,7 @@ public class EmpresaViewModel {
                     UI.runOnUi(() -> {
                         nome.set(model.getNome() == null ? "" : model.getNome());
                         cpfCnpj.set(model.getCpfCnpj() == null ? "" : model.getCpfCnpj());
+                        inscricaoEstadual.set(model.getInscricaoEstadual() == null ? "" : model.getInscricaoEstadual());
                         telefone.set(model.getTelefone() == null ? "" : model.getTelefone());
                         email.set(model.getEmail() == null ? "" : model.getEmail());
                         logoMarca.set(model.getLogomarca() != null ? model.getLogomarca() : "assets/app_banner_square.png");
@@ -88,6 +90,7 @@ public class EmpresaViewModel {
         var model = new EmpresaModel();
         model.setNome(nome.get());
         model.setCpfCnpj(cpfCnpj.get());
+        model.setInscricaoEstadual(inscricaoEstadual.get());
         model.setTelefone(telefone.get());
         model.setEmail(email.get());
         model.setLogomarca(logoMarca.get());

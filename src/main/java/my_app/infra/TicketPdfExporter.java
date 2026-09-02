@@ -24,6 +24,11 @@ import java.util.List;
  * e saída, operador/motorista/produto/fornecedor/cliente, pesos de entrada/saída/líquido,
  * observação e assinaturas. Cada PDF traz o ticket impresso 2 vezes (duas vias) na MESMA
  * folha, separadas por uma linha longa. Usa o mesmo Apache PDFBox do restante do app.
+ *
+ * <p>O nome da empresa (topo) e o título "Ticket de Pesagem" vêm em negrito (Courier-Bold),
+ * com uma linha grossa (de sublinhados) abaixo do título — no mesmo estilo da linha de
+ * assinatura que fica acima de "Motorista". Usa Courier e Courier-Bold — fontes monoespaçadas
+ * com a MESMA largura de glifo, então trechos em negrito não desalinham o layout.
  */
 public class TicketPdfExporter {
 
@@ -31,6 +36,13 @@ public class TicketPdfExporter {
     private static final DateTimeFormatter HORA_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
     private static final float MARGEM = 50;
     private static final float LEADING = 16;
+    private static final PDFont REGULAR = PDType1Font.COURIER;
+    private static final PDFont BOLD = PDType1Font.COURIER_BOLD;
+
+    /** Um trecho de texto e se ele deve sair em negrito (Courier-Bold). */
+    private record Run(String texto, boolean negrito) {}
+
+    private record Linha(List<Run> runs) {}
 
     /**
      * @param entrada pesagem de entrada vinculada à saída (pode ser {@code null} para
@@ -38,20 +50,11 @@ public class TicketPdfExporter {
      */
     public void gerar(File destino, EmpresaModel empresa, PesagemModel pesagem, PesagemModel entrada) throws IOException {
         try (PDDocument doc = new PDDocument()) {
-            var fonte = PDType1Font.COURIER;
-            float tamanho = 11;
-
-            var linhas = montarLinhas(empresa, pesagem, entrada);
-            var pagina = montarPagina(linhas);
+            var linhas = montarPagina(montarLinhas(empresa, pesagem, entrada));
 
             var page = new PDPage(PDRectangle.A4);
             doc.addPage(page);
-            try (var cs = new PDPageContentStream(doc, page)) {
-                float y = page.getMediaBox().getHeight() - MARGEM;
-                for (String linha : pagina) {
-                    y = escreverLinha(cs, fonte, tamanho, MARGEM, y, linha);
-                }
-            }
+            renderizar(doc, page, linhas);
 
             doc.save(destino);
         }
@@ -61,84 +64,105 @@ public class TicketPdfExporter {
      * As duas vias na MESMA folha, separadas por uma linha longa — essa linha é o corte que
      * indica o fim do primeiro ticket e o começo do segundo (por isso não pertence a nenhuma via).
      */
-    List<String> montarPagina(List<String> via) {
-        var pagina = new ArrayList<String>();
+    List<Linha> montarPagina(List<Linha> via) {
+        var pagina = new ArrayList<Linha>();
         pagina.addAll(via);
-        pagina.add("----------------------------------------------------------------------");
+        pagina.add(linha("----------------------------------------------------------------------"));
         pagina.addAll(via);
         return pagina;
     }
 
     /**
      * Monta o ticket como lista de linhas monoespaçadas, reproduzindo o layout do André.
+     * O nome da empresa e o título "Ticket de Pesagem" saem em negrito, com uma linha grossa
+     * de sublinhados abaixo do título.
      */
-    List<String> montarLinhas(EmpresaModel empresa, PesagemModel pesagem, PesagemModel entrada) {
-        var linhas = new ArrayList<String>();
+    List<Linha> montarLinhas(EmpresaModel empresa, PesagemModel pesagem, PesagemModel entrada) {
+        var linhas = new ArrayList<Linha>();
 
-        // Cabeçalho da empresa
+        // Cabeçalho da empresa (nome em negrito)
         String nomeEmpresa = empresa != null && valor(empresa.getNome()) != null ? empresa.getNome() : "Gobitech";
-        linhas.add(nomeEmpresa);
-        linhas.add("Cnpj:              " + (empresa != null ? nulo(empresa.getCpfCnpj()) : "") + "          Insc.est:");
-        linhas.add("End:             " + (empresa != null ? nulo(montarEnd(empresa)) : ""));
-        linhas.add("Bairro:          " + (empresa != null ? nulo(empresa.getBairro()) : ""));
-        linhas.add("Cidade: " + (empresa != null ? nulo(montarCidade(empresa)) : ""));
-        linhas.add("Fone:    " + (empresa != null ? nulo(empresa.getTelefone()) : ""));
-        linhas.add("");
+        linhas.add(linha(nomeEmpresa, true));
+        linhas.add(linha("Cnpj:              " + (empresa != null ? cnpjFormatado(empresa.getCpfCnpj()) : "")
+                + "          Insc.est: " + (empresa != null ? nulo(empresa.getInscricaoEstadual()) : "")));
+        linhas.add(linha("End:             " + (empresa != null ? nulo(montarEnd(empresa)) : "")));
+        linhas.add(linha("Bairro:          " + (empresa != null ? nulo(empresa.getBairro()) : "")));
+        linhas.add(linha("Cidade: " + (empresa != null ? nulo(montarCidade(empresa)) : "")));
+        linhas.add(linha("Fone:    " + (empresa != null ? telefoneFormatado(empresa.getTelefone()) : "")));
+        linhas.add(linhaVazia());
 
-        // Título + número
-        linhas.add(String.format("                         Ticket de Pesagem                         Nº: %d",
-                pesagem.getId() == null ? 0 : pesagem.getId()));
-        linhas.add("");
+        // Título + número ("Ticket de Pesagem" em negrito)
+        String id = String.valueOf(pesagem.getId() == null ? 0 : pesagem.getId());
+        linhas.add(new Linha(List.of(
+                new Run(" ".repeat(25), false),
+                new Run("Ticket de Pesagem", true),
+                new Run(" ".repeat(25) + "Nº: " + id, false))));
+        // Linha grossa (mesmo estilo da linha de assinatura acima de "Motorista"), na mesma
+        // coluna/posição do título e com o mesmo comprimento de "Ticket de Pesagem".
+        linhas.add(linha(" ".repeat(25) + "_".repeat("Ticket de Pesagem".length())));
+        linhas.add(linhaVazia());
 
         boolean temEntrada = entrada != null && entrada.getDataCriacao() != null;
 
         // Placa / Uf
-        linhas.add(String.format("Placa:                %-16s Uf:", nulo(pesagem.getPlaca())));
+        linhas.add(linha(String.format("Placa:                %-16s Uf:", nulo(pesagem.getPlaca()))));
 
         // Data/Hora entrada
         if (temEntrada) {
-            linhas.add("Data Entrada:         " + DATA_FMT.format(entrada.getDataCriacao())
-                    + "     Hora entrada: " + HORA_FMT.format(entrada.getDataCriacao()));
+            linhas.add(linha("Data Entrada:         " + DATA_FMT.format(entrada.getDataCriacao())
+                    + "     Hora entrada: " + HORA_FMT.format(entrada.getDataCriacao())));
         } else {
-            linhas.add("Data Entrada:         " + "     Hora entrada: ");
+            linhas.add(linha("Data Entrada:         " + "     Hora entrada: "));
         }
 
         // Data/Hora saida (a própria pesagem)
         if (pesagem.getDataCriacao() != null) {
-            linhas.add("Data saida:           " + DATA_FMT.format(pesagem.getDataCriacao())
-                    + "     Hora saida:    " + HORA_FMT.format(pesagem.getDataCriacao()));
+            linhas.add(linha("Data saida:           " + DATA_FMT.format(pesagem.getDataCriacao())
+                    + "     Hora saida:    " + HORA_FMT.format(pesagem.getDataCriacao())));
         } else {
-            linhas.add("Data saida:           " + "     Hora saida:    ");
+            linhas.add(linha("Data saida:           " + "     Hora saida:    "));
         }
 
         // Operador / Motorista / Produto / Fornecedor / Cliente
-        linhas.add("Operador:             " + nomeOperador(pesagem));
-        linhas.add("Motorista:            " + valorOu(pesagem.getMotoristaNome(), "---"));
-        linhas.add("Produto:              " + (pesagem.getProduto() != null ? valorOu(pesagem.getProduto().getNome(), "---") : "---"));
-        linhas.add("Fornecedor:");
-        linhas.add("Cliente:              " + (pesagem.getCliente() != null ? valorOu(pesagem.getCliente().getLoja(), "") : ""));
+        linhas.add(linha("Operador:             " + nomeOperador(pesagem)));
+        linhas.add(linha("Motorista:            " + valorOu(pesagem.getMotoristaNome(), "---")));
+        linhas.add(linha("Produto:              " + (pesagem.getProduto() != null ? valorOu(pesagem.getProduto().getNome(), "---") : "---")));
+        linhas.add(linha("Fornecedor:"));
+        linhas.add(linha("Cliente:              " + (pesagem.getCliente() != null ? valorOu(pesagem.getCliente().getLoja(), "") : "")));
 
         // Pesos
-        linhas.add("Peso entrada:         " + pesoSemLegenda(entrada != null ? entrada.getPesoTotal() : null) + " Kg");
-        linhas.add("Peso saida:           " + pesoSemLegenda(pesagem.getPesoTotal()) + " Kg");
-        linhas.add("Peso liquido:         " + pesoSemLegenda(pesagem.getPesoFinal()) + " Kg");
-        linhas.add("Observacao:");
+        linhas.add(linha("Peso entrada:         " + pesoSemLegenda(entrada != null ? entrada.getPesoTotal() : null) + " Kg"));
+        linhas.add(linha("Peso saida:           " + pesoSemLegenda(pesagem.getPesoTotal()) + " Kg"));
+        linhas.add(linha("Peso liquido:         " + pesoSemLegenda(pesagem.getPesoFinal()) + " Kg"));
+        linhas.add(linha("Observacao:"));
 
         // Observação (quebrada em linhas)
         if (pesagem.getObservacoes() != null && !pesagem.getObservacoes().isBlank()) {
-            for (String linha : quebrar(pesagem.getObservacoes())) {
-                linhas.add("  " + linha);
+            for (String l : quebrar(pesagem.getObservacoes())) {
+                linhas.add(linha("  " + l));
             }
         }
-        linhas.add("");
+        linhas.add(linhaVazia());
 
         // Assinaturas à mão: uma linha de assinatura ACIMA do nome do operador (à esquerda) e
         // do motorista (à direita) — depois de imprimir, quem faz a pesagem assina sobre a linha.
         String operador = nomeOperador(pesagem);
-        linhas.add(String.format("%-30s %50s", "______________________", "______________________"));
-        linhas.add(String.format("%-30s %50s", operador, "Motorista"));
+        linhas.add(linha(String.format("%-30s %50s", "______________________", "______________________")));
+        linhas.add(linha(String.format("%-30s %50s", operador, "Motorista")));
 
         return linhas;
+    }
+
+    private Linha linha(String texto) {
+        return linha(texto, false);
+    }
+
+    private Linha linha(String texto, boolean negrito) {
+        return new Linha(List.of(new Run(texto, negrito)));
+    }
+
+    private Linha linhaVazia() {
+        return linha("");
     }
 
     private String nomeOperador(PesagemModel pesagem) {
@@ -174,6 +198,22 @@ public class TicketPdfExporter {
         return (v == null || v.isBlank()) ? "" : v;
     }
 
+    /** CNPJ formatado ex.: {@code 12.345.678/0001-99} (vide {@code Utils.formatCnpj}). */
+    private String cnpjFormatado(String v) {
+        if (v == null || v.isBlank()) return "";
+        String soDigitos = v.replaceAll("\\D", "");
+        if (soDigitos.isEmpty()) return v;
+        return my_app.utils.Utils.formatCnpj(soDigitos);
+    }
+
+    /** Telefone formatado ex.: {@code (61) 99653-2857} (vide {@code Utils.formatPhone}). */
+    private String telefoneFormatado(String v) {
+        if (v == null || v.isBlank()) return "";
+        String soDigitos = v.replaceAll("\\D", "");
+        if (soDigitos.isEmpty()) return v;
+        return my_app.utils.Utils.formatPhone(soDigitos);
+    }
+
     private String valorOu(String valor, String fallback) {
         return naoVazio(valor) ? valor : fallback;
     }
@@ -183,13 +223,25 @@ public class TicketPdfExporter {
         return (v == null || v.isBlank()) ? null : v;
     }
 
-    private float escreverLinha(PDPageContentStream cs, PDFont fonte, float tamanho, float x, float y, String texto) throws IOException {
-        cs.beginText();
-        cs.setFont(fonte, tamanho);
-        cs.newLineAtOffset(x, y);
-        cs.showText(texto != null ? texto : "");
-        cs.endText();
-        return y - LEADING;
+    /** Rende as linhas (runs) no PDF; cada run sai em regular ou negrito conforme {@code negrito}. */
+    private void renderizar(PDDocument doc, PDPage page, List<Linha> linhas) throws IOException {
+        float tamanho = 11;
+        try (var cs = new PDPageContentStream(doc, page)) {
+            float y = page.getMediaBox().getHeight() - MARGEM;
+            for (Linha linha : linhas) {
+                float x = MARGEM;
+                for (Run run : linha.runs()) {
+                    PDFont fonte = run.negrito() ? BOLD : REGULAR;
+                    cs.beginText();
+                    cs.setFont(fonte, tamanho);
+                    cs.newLineAtOffset(x, y);
+                    cs.showText(run.texto());
+                    cs.endText();
+                    x += REGULAR.getStringWidth(run.texto()) / 1000 * tamanho;
+                }
+                y -= LEADING;
+            }
+        }
     }
 
     private List<String> quebrar(String texto) {

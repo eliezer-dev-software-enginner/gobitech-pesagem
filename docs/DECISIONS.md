@@ -1,6 +1,50 @@
 # Decisões Arquiteturais
 
-## 2026-09-02: Fluxo J (campos textuais opcionais) — validar documento e limitar nome do motorista
+## 2026-09-02: Polimento de UX/pesagem — 9 melhorias do TODO
+
+**Contexto:** o usuário adicionou 9 itens ao `TODO.md`. Todos implementados; as duas decisões
+de produto abaixo foram confirmadas com o usuário antes de codar.
+
+**Decisões de produto (confirmadas):**
+- **Item 7 — Capturar Tara na Pesagem avulsa**: o botão "Capturar" da Tara passa a aparecer
+  também na avulsa (antes ficava só digitado). Justificativa: na avulsa o caminhão vazio está
+  na balança, então o operador pode pesar a tara dela. Basta o default do `PesagemFormScreen.
+  permitirCapturarTara()` (true) — removido o override `false` do `PesagemAvulsaScreen`.
+- **Item 8 — Inscrição estadual da empresa**: campo novo `empresas.inscricao_estadual`
+  (migration `V19`, opcional/null — SQLite não permite `ADD COLUMN NOT NULL` simples), preenchido
+  no `CadastroEmpresaScreen`, e passou a alimentar o "Insc.est:" que já existia hardcoded (vazio)
+  no cabeçalho do `RelatorioPesagemPdfExporter`, `TicketPdfExporter` e `TicketThermalExporter`.
+
+**Decisões de implementação:**
+- **Item 3 — busca de placa case-insensitive no banco**: `UPPER(placa) = UPPER(?)` no
+  `PesagemRepository` (`buscarPorPlaca`, `buscarPorPlacaETipo`, `filtrar`). Em vez de só
+  normalizar no input (item 5), a busca também é insensível à caixa pra dar match em dados
+  antigos que já foram salvos com caixa diferente no banco.
+- **Item 4 — borda vermelha em campo não-editável**: `InputColumn` com `disableInput=true`
+  (ex.: Peso líquido) usa borda vermelha (#e74c3c) pra indicar somente leitura.
+- **Item 5 — input uppercase**: novo `Components.InputColumnUppercase` (força maiúsculas no
+  display e no state), usado no campo Placa — que passa a ser gravado normalizado em maiúsculo.
+- **Item 6 — popup auto-dismiss**: `Components.ShowPopup` esconde sozinho após ~3s
+  (`javafx.animation.PauseTransition`), além do `setAutoHide` (clique fora).
+- **Item 9 — nome de arquivo ao baixar**: novo `Utils.timestampParaArquivo()`
+  (`yyyy-MM-dd_HHmm`, seguro pra arquivo, sem `/` nem `:`). Relatório → `relatório - <data>.pdf`
+  (no `ContratoTelaCrudV3.handleClickBaixarLista`, que vale pras listas CRUD); ticket →
+  `ticket - <data>.pdf` (`PesagemHistoricoViewModel.imprimirTicket`).
+- **Item 1 — copiar placa**: botão "Copiar placa" no modal de detalhes do histórico usando
+  `javafx.scene.input.Clipboard`.
+- **Ticket PDF — negrito no topo**: nome da empresa e "Ticket de Pesagem" saem em negrito
+  (Courier-Bold, mesma largura de glifo do Courier → não desalinha) no `TicketPdfExporter`,
+  que passou a usar o padrão de `Run`/`Linha` do `RelatorioPesagemPdfExporter`; e uma linha
+  grossa de sublinhados abaixo do título — mesmo estilo da linha de assinatura acima de
+  "Motorista".
+- **Item 2 — texto do botão salvar**: `textoBotaoSalvar()` retorna `tituloFormulario()` direto
+  (o título já começa com "Registrar"), eliminando o "Registrar registrar ...".
+
+**Testado:** `./gradlew test` → **BUILD SUCCESSFUL** (novos testes de `Utils.timestampParaArquivo`,
+`EmpresaService` inscreção, `PesagemRepository` caixa da placa, e Insc.est nos 3 exporters).
+
+---
+
 
 **Contexto:** testes manuais do fluxo J em `testes-pesagem.md` revelaram dois erros:
 - **J2 — documento inválido:** o campo "Documento do motorista" (`InputRgCpf`) aceitava e

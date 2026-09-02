@@ -18,6 +18,9 @@ public class EmpresaModel extends Identifier {
     private String telefone;
     private String email;
 
+    @Column(name = "inscricao_estadual")
+    private String inscricaoEstadual;
+
     @Column(name = "endereco_cep")
     private String cep;
 

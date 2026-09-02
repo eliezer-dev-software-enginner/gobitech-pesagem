@@ -63,6 +63,21 @@ criada ainda). Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTRE
   no próximo boot do app).
 
 ## Estado atual (2026-09-02)
+- **Polimento de UX/pesagem** (9 itens do TODO):
+  - Botão **"Copiar placa"** no modal de detalhes do histórico.
+  - Correção **"Registrar registrar ..."** no botão de salvar (4 telas).
+  - **Busca de placa insensível a maiúsc/minúsc** no banco (`UPPER(placa)=UPPER(?)`) e campo
+    Placa agora é **uppercase** (`InputColumnUppercase`).
+  - **Borda vermelha** em inputs não-editáveis (ex.: Peso líquido).
+  - **Popup some sozinho** após ~3s.
+  - Botão **"Capturar" Tara na Pesagem avulsa** (caminhão vazio na balança).
+  - **Inscrição estadual** da empresa: novo campo (migration `V19`) + cadastro + exibida no
+    cabeçalho de relatório/tickets "Insc.est:".
+  - Download de **relatório** (`relatório - <data>.pdf`) e **ticket** (`ticket - <data>.pdf`)
+    com data/hora no nome (`Utils.timestampParaArquivo`).
+- Testes: `./gradlew test` → **BUILD SUCCESSFUL**.
+
+## Estado atual (2026-09-02)
 - **Fluxo J (campos textuais opcionais) — fixes**:
   - **J2**: documento do motorista agora é **validado se preenchido** — novo
     `Utils.isValidDocumento()` (RG 8-9 dígitos ou CPF 11) e `PesagemService.validarCampos()`

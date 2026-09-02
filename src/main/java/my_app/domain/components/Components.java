@@ -158,6 +158,12 @@ public class Components {
         popup.getContent().add(label);
         popup.setAutoHide(true);
         popup.show(context.selfStage());
+
+        // Some sozinho depois de 3s (independente de clicar fora) — senão o popup podia ficar
+        // na tela até o usuário clicar em outro lugar.
+        var timer = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(3));
+        timer.setOnFinished(e -> popup.hide());
+        timer.play();
     }
 
 
@@ -625,10 +631,14 @@ public class Components {
             labelProps.textColor(labelColor);
         }
 
+        // Campo não editável (somente leitura): borda vermelha pra deixar claro que não é
+        // editável, em vez da borda padrão que sugere um campo comum.
+        String corBorda = disableInput ? "#e74c3c" : borderColor;
+
         return new Column()
                 .c_child(new Text(label, labelProps))
                 .c_child(new Input((State<String>) inputState,
-                                props.borderWidth(borderWidth).borderColor(borderColor).borderRadius(borderRadius)
+                                props.borderWidth(borderWidth).borderColor(corBorda).borderRadius(borderRadius)
                         )
                 );
     }
@@ -647,6 +657,31 @@ public class Components {
 
     public static Component InputColumn(String label, ReadableState<String> inputState, String placeholder) {
         return InputColumn(label, inputState, placeholder, false);
+    }
+
+    /**
+     * Campo de texto com entrada forçada em MAIÚSCULAS — a função upper é aplicada no valor
+     * exibido E no state (pra armazenar normalizado). Ex.: Placa do veículo.
+     */
+    public static Component InputColumnUppercase(String label, ReadableState<String> inputState, String placeholder) {
+        State<String> estado = (State<String>) inputState;
+        var props = getInputPropsV2(placeholder).width(220).height(35);
+
+        var input = new Input(estado, props)
+                .onInitialize(value -> {
+                    String up = value == null ? "" : value.toUpperCase();
+                    return OnChangeResult.of(up, up);
+                })
+                .onChange(value -> {
+                    if (value == null) value = "";
+                    String up = value.toUpperCase();
+                    return OnChangeResult.of(up, up);
+                })
+                .lockCursorToEnd();
+
+        return new Column()
+                .c_child(new Text(label, new TextProps().fontSize(ThemeManager.theme().typography().small())))
+                .c_child(input);
     }
 
 

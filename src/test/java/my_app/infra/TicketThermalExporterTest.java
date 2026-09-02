@@ -55,6 +55,7 @@ class TicketThermalExporterTest {
         var empresa = new EmpresaModel();
         empresa.setNome("BALANÇAS GOBITECH");
         empresa.setCpfCnpj("12345678000199");
+        empresa.setInscricaoEstadual("10.123.456-7");
         empresa.setCidade("FORMOSA");
         empresa.setEstado("GO");
         empresa.setTelefone("61-99653-2857");
@@ -66,6 +67,7 @@ class TicketThermalExporterTest {
 
         assertTrue(tudo.contains("BALANÇAS GOBITECH"));
         assertTrue(tudo.contains("Cnpj: 12345678000199"));
+        assertTrue(tudo.contains("Insc.est: 10.123.456-7"));
         assertTrue(tudo.contains("Cidade: FORMOSA - GO"));
         assertTrue(tudo.contains("TICKET DE PESAGEM"));
         assertTrue(tudo.contains("Ticket.......: 3"));

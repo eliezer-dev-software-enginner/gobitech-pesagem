@@ -1,16 +1,37 @@
 # TODO
 
-
-[] Adicionar botão para copiar a placa em ItemDetails
-[] Corrigir "Registrar registrar ..." em Pesagem
-[] Na busca da placa em "Pesagem de saída" ignorar letras minúsculas de maiscúlas.
-[] Inputs com bordas vermelhas quando não forem editáveis
-[] Criar input uppercase em Components para o input da Placa
-[] Popup não desaparece sozinho (corrigir)
-[] Analisar se botão "Caputurar" Tara deve aparecer também em Pesagem avulsa.
-[] Inscrição estadual que é exibida nos relatórios e tickets (cabeçalho) não alimentamos isso em nenhum lugar. No cadastro de empresa deveria haver esse campo.
-[] Ao baixar relatório e ticket deve salvar com a data e horario formatado também, vide Utils. Em ambos deve haver o prefixo "relatório - ", "ticket - " respectivamente.
-
+## Concluído (lote de melhorias de UX/polimento — 2026-09-02)
+- [x] **Item 1 — botão copiar placa**: novo botão "Copiar placa" no modal de detalhes do
+      histórico (`PesagemHistoricoScreen.itemDetails`) que copia a placa pra área de
+      transferência (útil pra colar na busca da pesagem de saída)
+- [x] **Item 2 — "Registrar registrar ..."**: `PesagemFormViewModel.textoBotaoSalvar()` fazia
+      `"Registrar " + tituloFormulario()` — como os títulos já começam com "Registrar",
+      virava "Registrar registrar pesagem de saída". Corrigido pra retornar só o título.
+- [x] **Item 3 — busca de placa ignora maiúsc/minúsc**: `PesagemRepository.buscarPorPlaca`,
+      `buscarPorPlacaETipo` e `filtrar` passaram a usar `UPPER(placa) = UPPER(?)` — a busca da
+      Saída encontra a entrada mesmo com a caixa diferente (SQLite compara placa em binário
+      por padrão)
+- [x] **Item 4 — borda vermelha em input não-editável**: `InputColumn` com
+      `disableInput=true` (ex.: Peso líquido) agora usa borda vermelha pra sinalizar somente
+      leitura
+- [x] **Item 5 — input uppercase pra Placa**: novo `Components.InputColumnUppercase`
+      (força MAIÚSCULAS no display e no state), usado no campo Placa das 4 telas de pesagem
+- [x] **Item 6 — popup some sozinho**: `Components.ShowPopup` agora esconde após ~3s
+      (`PauseTransition`), além de sumir ao clicar fora
+- [x] **Item 7 — Capturar Tara na avulsa**: decisão do usuário: mostrar o botão "Capturar"
+      na tara da Pesagem avulsa (caminhão vazio está na balança). Removido o override
+      `permitirCapturarTara()=false` do `PesagemAvulsaScreen`.
+- [x] **Item 8 — Inscrição estadual da empresa**: novo campo `empresas.inscricao_estadual`
+      (migration `V19`, opcional) + campo no `CadastroEmpresaScreen`/`EmpresaViewModel` +
+      modelo; exibido no cabeçalho de relatório e tickets ("Insc.est: ...") no
+      `RelatorioPesagemPdfExporter`, `TicketPdfExporter` e `TicketThermalExporter`
+- [x] **Item 9 — nome de arquivo de baixar com data/hora + prefixo**: novo
+      `Utils.timestampParaArquivo()` (`yyyy-MM-dd_HHmm`, seguro pra nome de arquivo). Relatório
+      (`ContratoTelaCrudV3.handleClickBaixarLista`) → `relatório - <data>.pdf`; ticket
+      (`PesagemHistoricoViewModel.imprimirTicket`) → `ticket - <data>.pdf`
+- [x] Testes: `UtilsTest` (timestamp), `EmpresaServiceTest` (inscricao persistida),
+      `PesagemRepositoryTest` (busca/filtro de placa ignorando caixa), exporters (Insc.est no
+      ticket PDF/térmico e relatório) — `./gradlew test`: **BUILD SUCCESSFUL**
 
 ## Concluído (fluxo J — validar documento e limitar nome do motorista — 2026-09-02)
 - [x] `Utils.isValidDocumento(String)`: aceita vazio/nulo, RG (8-9 dígitos) ou CPF (11) — J2

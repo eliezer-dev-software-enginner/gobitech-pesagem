@@ -29,6 +29,7 @@ import my_app.core.Identifier;
 import my_app.db.models.EmpresaModel;
 import my_app.domain.components.Components;
 import my_app.db.services.EmpresaService;
+import my_app.utils.Utils;
 import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.antdesignicons.AntDesignIconsOutlined;
 import org.kordamp.ikonli.entypo.Entypo;
@@ -57,7 +58,7 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
     default void handleClickBaixarLista() {
         var fileChooser = new FileChooser();
         fileChooser.setTitle("Salvar lista em PDF");
-        fileChooser.setInitialFileName("lista.pdf");
+        fileChooser.setInitialFileName("relatório - " + Utils.timestampParaArquivo() + ".pdf");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF", "*.pdf"));
         File destino = fileChooser.showSaveDialog(viewModel().ctx.selfStage());
         if (destino == null) return;

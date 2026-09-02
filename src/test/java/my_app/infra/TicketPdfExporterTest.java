@@ -58,6 +58,7 @@ class TicketPdfExporterTest {
         var empresa = new EmpresaModel();
         empresa.setNome("BALANÇAS GOBITECH");
         empresa.setCpfCnpj("12345678000199");
+        empresa.setInscricaoEstadual("10.123.456-7");
         empresa.setCidade("FORMOSA");
         empresa.setEstado("GO");
         empresa.setTelefone("61-99653-2857");
@@ -75,6 +76,12 @@ class TicketPdfExporterTest {
 
         String texto = extrairTexto(destino);
         assertTrue(texto.contains("BALANÇAS GOBITECH"));
+        assertTrue(texto.contains("Cnpj:"));
+        assertTrue(texto.contains("12.345.678/0001-99"),
+                "CNPJ deve sair formatado no ticket (12.345.678/0001-99)");
+        assertTrue(texto.contains("Insc.est: 10.123.456-7"));
+        assertTrue(texto.contains("(61) 99653-2857"),
+                "Fone deve sair formatado no ticket ((61) 99653-2857)");
         assertTrue(texto.contains("Cidade: FORMOSA - GO"));
         assertTrue(texto.contains("Ticket de Pesagem"));
         assertTrue(texto.contains("Nº: 1"));

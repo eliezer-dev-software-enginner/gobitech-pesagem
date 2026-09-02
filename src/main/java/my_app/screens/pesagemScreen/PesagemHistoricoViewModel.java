@@ -14,6 +14,7 @@ import my_app.domain.components.Components;
 import my_app.infra.TicketPdfExporter;
 import my_app.infra.TicketThermalExporter;
 import my_app.utils.DateUtils;
+import my_app.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -154,7 +155,7 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
     public void imprimirTicket(PesagemModel model) {
         var fileChooser = new FileChooser();
         fileChooser.setTitle("Salvar ticket em PDF");
-        fileChooser.setInitialFileName("ticket_pesagem_" + model.getId() + ".pdf");
+        fileChooser.setInitialFileName("ticket - " + Utils.timestampParaArquivo() + ".pdf");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF", "*.pdf"));
         File destino = fileChooser.showSaveDialog(ctx.selfStage());
         if (destino == null) return;

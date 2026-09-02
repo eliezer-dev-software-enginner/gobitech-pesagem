@@ -25,6 +25,7 @@ class RelatorioPesagemPdfExporterTest {
         var empresa = new EmpresaModel();
         empresa.setNome("LUIZ NICOLA SOUZA LIMA");
         empresa.setCpfCnpj("71073280853");
+        empresa.setInscricaoEstadual("10.123.456-7");
         empresa.setRua("BR 251 KM 33");
         empresa.setBairro("FAZENDA VEREDA");
         empresa.setCidade("CRISTALINA");
@@ -55,6 +56,7 @@ class RelatorioPesagemPdfExporterTest {
         String texto = extrairTexto(destino);
         assertTrue(texto.contains("LUIZ NICOLA SOUZA LIMA"));
         assertTrue(texto.contains("Cpf:") && texto.contains("Insc.e"));
+        assertTrue(texto.contains("10.123.456-7"));
         assertTrue(texto.contains("End: BR 251 KM 33"));
         assertTrue(texto.contains("Bairro: FAZENDA VEREDA"));
         assertTrue(texto.contains("Cidade: CRISTALINA - GO"));

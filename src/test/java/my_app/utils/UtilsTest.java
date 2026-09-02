@@ -159,4 +159,13 @@ class UtilsTest {
     void isValidDocumento_rejeitaLetrasNoCpf() {
         assertFalse(Utils.isValidDocumento("12345A78901"));
     }
+
+    @Test
+    void timestampParaArquivo_formatoSeguroParaNomeDeArquivo() {
+        String ts = Utils.timestampParaArquivo();
+        assertTrue(ts.matches("\\d{2}-\\d{2}-\\d{4}_\\d{4}"),
+                "esperado dd-MM-yyyy_HHmm, veio: " + ts);
+        assertFalse(ts.contains("/"), "não pode conter barra (quebra caminho do SO)");
+        assertFalse(ts.contains(":"), "não pode conter dois-pontos (invalido no Windows)");
+    }
 }

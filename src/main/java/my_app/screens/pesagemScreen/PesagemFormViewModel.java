@@ -142,9 +142,9 @@ public abstract class PesagemFormViewModel {
     /** Título do card (e rótulo de confirmação) deste tipo de pesagem. */
     protected abstract String tituloFormulario();
 
-    /** Texto do botão de salvar (ex.: "Registrar entrada"). */
+    /** Texto do botão de salvar — o título já começa com "Registrar ...". */
     protected String textoBotaoSalvar() {
-        return "Registrar " + tituloFormulario().toLowerCase();
+        return tituloFormulario();
     }
 
     protected <T> T createOrReport(megalodonte.utils.ThrowingSupplier<T> supplier) {
