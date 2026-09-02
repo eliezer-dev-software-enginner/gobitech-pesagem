@@ -227,7 +227,9 @@ public class TicketPdfExporter {
     private void renderizar(PDDocument doc, PDPage page, List<Linha> linhas) throws IOException {
         float tamanho = 11;
         try (var cs = new PDPageContentStream(doc, page)) {
-            float y = page.getMediaBox().getHeight() - MARGEM;
+            // Sem margin do topo no cabeçalho: começa rente à borda superior da página (um
+            // pequeno deslocamento do tamanho da fonte pra não cortar o topo dos glifos).
+            float y = page.getMediaBox().getHeight() - tamanho;
             for (Linha linha : linhas) {
                 float x = MARGEM;
                 for (Run run : linha.runs()) {
