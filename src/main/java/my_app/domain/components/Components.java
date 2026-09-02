@@ -332,6 +332,13 @@ public class Components {
         );
     }
 
+    public static Component SubtitleWithState(String label, ReadableState<String> valueState) {
+        return new Row(new RowProps().centerVertically().hugWidth().
+                bgColor(ThemeManager.theme().colors().selection()))
+                .r_child(new Text(label, new TextProps().fontSize(ThemeManager.theme().typography().subtitle())))
+                .r_child(new Text(valueState, new TextProps().fontSize(ThemeManager.theme().typography().body())));
+    }
+
     public static Component TextWithValue(String label, ReadableState<String> valueState) {
         return new Row()
                 .r_child(new Text(label, new TextProps().fontSize(ThemeManager.theme().typography().body()).bold()))
