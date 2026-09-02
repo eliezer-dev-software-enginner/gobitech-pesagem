@@ -8,10 +8,10 @@ import my_app.db.repositories.DescontoRepository;
 import my_app.db.repositories.PesagemRepository;
 import my_app.db.repositories.ProdutoRepository;
 import my_app.db.repositories.UsuarioRepository;
-import my_app.utils.Utils;
 import net.sf.persism.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pack.utilities.ValidatorPack;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -132,7 +132,7 @@ public class PesagemService extends BaseService<PesagemModel> {
         if (model.getPlaca() == null || model.getPlaca().isBlank())
             throw new IllegalArgumentException("Placa é obrigatória");
         if (model.getMotoristaDocumento() != null && !model.getMotoristaDocumento().isBlank()
-                && !Utils.isValidDocumento(model.getMotoristaDocumento()))
+                && !ValidatorPack.isValidDocumento(model.getMotoristaDocumento()))
             throw new IllegalArgumentException("Documento do motorista inválido (informe um RG ou CPF válido).");
         if (model.getMotoristaNome() != null && model.getMotoristaNome().length() > 100)
             throw new IllegalArgumentException("Nome do motorista excede o limite de 100 caracteres.");

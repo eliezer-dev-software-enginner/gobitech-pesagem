@@ -16,7 +16,7 @@ import megalodonte.v2.Show;
 import my_app.db.models.LicensaModel;
 import my_app.domain.Data;
 import my_app.domain.components.Components;
-import my_app.utils.DateUtils;
+import pack.utilities.DatePack;
 
 public class LicensaScreen implements ScreenComponent {
     private final LicensaViewModel vm;
@@ -74,8 +74,8 @@ public class LicensaScreen implements ScreenComponent {
                 .columns()
                 .column("Código", LicensaModel::getValor)
                 .column("Validade", it -> it.getExpiraEm() == null ? "Sem expiração"
-                        : DateUtils.localDateTimeToBrazilianDateTime(it.getExpiraEm()))
-                .column("Gerada em", it -> DateUtils.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
+                        : DatePack.localDateTimeToBrazilianDateTime(it.getExpiraEm()))
+                .column("Gerada em", it -> DatePack.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build();
 
         return simpleTable;

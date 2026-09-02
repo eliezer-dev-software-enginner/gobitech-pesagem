@@ -1,5 +1,43 @@
 # Decisões Arquiteturais
 
+## 2026-09-02: Migrar utilitários da classe Utils para o pacote `pack-utilities`
+
+**Contexto:** o usuário adicionou a dependência `com.github.eliezer-dev-software-enginner:pack-utilities:v1.0.0` (JitPack → pacote `pack.utilities.*`) e pediu pra usar os métodos do pacote e enxugar a classe `my_app.utils.Utils`, deixando **somente `timestampParaArquivo()`**.
+
+**Decisão:** trocar todas as chamadas a `Utils.*` pelos métodos equivalentes do pacote e reduzir
+`Utils` a só `timestampParaArquivo()`. Mapeamento (verificado por decompilação do jar pra garantir
+compatibilidade de comportamento):
+
+| `Utils.*` (removido) | `pack-utilities` (substituto) |
+|---|---|
+| `toBRLCurrency(BigDecimal/String)` | `CurrencyPack.toBRLCurrency(...)` |
+| `deCentavosParaReal(String)` | `CurrencyPack.deCentavosParaReal(String)` |
+| `formatPhone` | `FormatterPack.formatPhone` |
+| `formatCep` | `FormatterPack.formatCep` |
+| `formatCpf` | `FormatterPack.formatCpf` |
+| `formatCnpj` | `FormatterPack.formatCnpj` |
+| `formatCpfCnpj` | `FormatterPack.formatCpfCnpj` |
+| `formatRgCpf` | `FormatterPack.formatRgCpf` |
+| `isValidEmail` (era `isNotValidEmail`) | `!ValidatorPack.isValidEmail(email)` |
+| `isValidCep` / `isValidCpf` / `isValidCnpj` / `isValidCpfOrCnpj` / `isValidDocumento` / `isValidPhone` | `ValidatorPack.*` |
+| `updateItemOnObservableList` (deprecated) | removido (sem uso) |
+
+**Pontos de atenção:**
+- Os validadores de CPF/CNPJ do pacote são **mais rigorosos** que os antigos (validação real de
+  dígito verificador + anti-repetição, e suporte a CNPJ alfanumérico). Em produção só o
+  `ValidatorPack.isValidCpfOrCnpj` (cadastro de empresa) passa a usar a verificação completa —
+  comportamento aceitável (rejeita CNPJ/CPF inválidos que o lenient deixava passar).
+- `isValidDocumento` (fluxo J) tem semântica idêntica à antiga (vazio ok, RG 8-9 ou CPF 11).
+- Arquivos alterados: `EmpresaService`, `PesagemService`, `UsuarioService`, `ClienteService`
+  (Validadors), `Components`, `Data`, `TotaisState`, `ListaPdfExporter`, `TicketPdfExporter`,
+  `ClienteScreen` (Formatters/Currency). `UtilsTest` reduzido ao teste de `timestampParaArquivo`.
+- **`DateUtils` local também removido** — todos os 9 métodos tinham equivalente 1:1 no
+  `DatePack` do pacote (mesmos formatos `dd/MM/yyyy` e `dd/MM/yyyy HH:mm` e o mesmo tratamento de
+  null/0). `Parcela`, `Components`, `ProdutoScreen`, `LicensaScreen`, `PesagemHistoricoViewModel`,
+  `PesagemHistoricoScreen`, `ClienteScreen`, `UsuarioScreen` e `DashboardViewModel` passaram a usar
+  `pack.utilities.DatePack`. `my_app/utils/DateUtils.java` deletado.
+- Testes: `./gradlew test --rerun-tasks` → **BUILD SUCCESSFUL**.
+
 ## 2026-09-02: Polimento de UX/pesagem — 9 melhorias do TODO
 
 **Contexto:** o usuário adicionou 9 itens ao `TODO.md`. Todos implementados; as duas decisões

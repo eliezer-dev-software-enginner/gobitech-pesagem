@@ -8,6 +8,7 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import pack.utilities.FormatterPack;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -66,7 +67,7 @@ public class ListaPdfExporter {
                     }
                     if (empresa.getCpfCnpj() != null && !empresa.getCpfCnpj().isBlank()) {
                         textY = escreverLinha(cs, fonteTexto, 9, textX, textY,
-                                "CNPJ/CPF: " + my_app.utils.Utils.formatCpfCnpj(empresa.getCpfCnpj()));
+                                "CNPJ/CPF: " + FormatterPack.formatCpfCnpj(empresa.getCpfCnpj()));
                     }
                     String endereco = formatarEndereco(empresa);
                     if (!endereco.isBlank()) {
@@ -230,7 +231,7 @@ public class ListaPdfExporter {
 
     private static String formatarContato(EmpresaModel empresa) {
         var partes = new java.util.ArrayList<String>();
-        if (naoVazio(empresa.getTelefone())) partes.add("Tel: " + my_app.utils.Utils.formatPhone(empresa.getTelefone()));
+        if (naoVazio(empresa.getTelefone())) partes.add("Tel: " + FormatterPack.formatPhone(empresa.getTelefone()));
         if (naoVazio(empresa.getEmail())) partes.add(empresa.getEmail());
         return String.join("    ", partes);
     }

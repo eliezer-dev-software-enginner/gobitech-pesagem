@@ -13,7 +13,7 @@ import my_app.domain.ViewModelScreenContract;
 import my_app.domain.components.Components;
 import my_app.infra.TicketPdfExporter;
 import my_app.infra.TicketThermalExporter;
-import my_app.utils.DateUtils;
+import pack.utilities.DatePack;
 import my_app.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,9 +86,9 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
         Async.Run(() -> {
             try {
                 Long inicioMillis = filtroDataInicio.get() == null ? null
-                        : DateUtils.localDateParaMillis(filtroDataInicio.get());
+                        : DatePack.localDateParaMillis(filtroDataInicio.get());
                 Long fimMillis = filtroDataFim.get() == null ? null
-                        : DateUtils.localDateParaMillis(filtroDataFim.get()) + 86399999L;
+                        : DatePack.localDateParaMillis(filtroDataFim.get()) + 86399999L;
 
                 var list = pesagemService.filtrar(
                         filtroPlaca.get().isBlank() ? null : filtroPlaca.get().trim(),

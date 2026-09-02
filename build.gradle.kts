@@ -29,6 +29,7 @@ version = fullVersion
 repositories {
     mavenCentral()
     mavenLocal()
+    maven { url = uri("https://jitpack.io") }
 }
 
 java {
@@ -111,6 +112,9 @@ dependencies {
 
     //geracao de PDF (tela de Relatorios)
     implementation("org.apache.pdfbox:pdfbox:2.0.29")
+
+    //utilitties
+    implementation("com.github.eliezer-dev-software-enginner:pack-utilities:v1.0.0")
 }
 
 tasks.test {

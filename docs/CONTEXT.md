@@ -48,6 +48,24 @@ ver `DECISIONS.md` pras decisões específicas de cada troca.
 **Fora da Fase 1, adiado pra Fase 2**: câmera Intelbras (`camera_settings` — tabela nem foi
 criada ainda). Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTREGAS.md`.
 
+## Estado atual (2026-09-02)
+- **Utilitários movidos pro pacote `pack-utilities`** (dependência nova
+  `com.github.eliezer-dev-software-enginner:pack-utilities:v1.0.0` → pacote `pack.utilities.*`):
+  `Utils.java` foi enxugada pra **só `timestampParaArquivo()`**. Validação e formatação agora vêm
+  de `ValidatorPack`/`FormatterPack`/`CurrencyPack` (ex.: `isValidDocumento`, `isValidCpfOrCnpj`,
+  `isValidPhone`, `isValidCep`, `formatCpfCnpj`, `formatRgCpf`, `formatPhone`, `formatCep`,
+  `formatCnpj`, `toBRLCurrency`, `deCentavosParaReal`). Cuidado: validadores de CPF/CNPJ do pacote
+  são **mais rigorosos** (dígito verificador real). `EmpresaService`, `PesagemService`,
+  `UsuarioService`, `ClienteService`, `Components`, `Data`, `TotaisState`, `ListaPdfExporter`,
+  `TicketPdfExporter`, `ClienteScreen` atualizados. `UtilsTest` reduzido ao teste de
+  `timestampParaArquivo`. Ver `DECISIONS.md`.
+- **`DateUtils` local removido**: os 9 métodos tinham equivalente 1:1 no `pack.utilities.DatePack`
+  (mesmos formatos `dd/MM/yyyy` e `dd/MM/yyyy HH:mm` e tratamento de null/0).
+  `Parcela`, `Components`, `ProdutoScreen`, `LicensaScreen`, `PesagemHistoricoViewModel`,
+  `PesagemHistoricoScreen`, `ClienteScreen`, `UsuarioScreen`, `DashboardViewModel` migrados.
+  `my_app/utils/DateUtils.java` deletado.
+- Testes: `./gradlew test --rerun-tasks` → **BUILD SUCCESSFUL**.
+
 ## Estado atual (2026-08-17)
 - Migrations, Models, Repositories, Services e Screens/ViewModels das 9 entidades acima:
   **feitos e compilando** (`./gradlew compileJava` → BUILD SUCCESS, 0 erros).

@@ -22,7 +22,7 @@ import my_app.domain.ViewModelScreenContract;
 import my_app.domain.components.Components;
 import my_app.db.models.EmpresaModel;
 import my_app.infra.ListaPdfExporter;
-import my_app.utils.DateUtils;
+import pack.utilities.DatePack;
 
 import java.io.File;
 import java.util.List;
@@ -88,7 +88,7 @@ public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<Usuari
                 .column("Nome", UsuarioModel::getNome)
                 .column("Login", UsuarioModel::getLogin)
                 .column("Admin", it -> Boolean.TRUE.equals(it.getAdmin()) ? "Sim" : "Não")
-                .column("Data de criação", it -> DateUtils.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
+                .column("Data de criação", it -> DatePack.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build()
                 .onItemSelectChange(vm.selected::set)
                 .onItemDoubleClick(it -> showItemDetails(it, this.screenContext, 350));
@@ -104,7 +104,7 @@ public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<Usuari
                 u.getNome() != null ? u.getNome() : "",
                 u.getLogin() != null ? u.getLogin() : "",
                 Boolean.TRUE.equals(u.getAdmin()) ? "Sim" : "Nao",
-                DateUtils.localDateTimeToBrazilianDateTime(u.getDataCriacao())
+                DatePack.localDateTimeToBrazilianDateTime(u.getDataCriacao())
         )).toList();
         ListaPdfExporter.exportar(destino, empresa, "Lista de Usuarios", headers, rows);
     }
@@ -118,6 +118,6 @@ public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<Usuari
                 .c_child(Components.TextWithDetails("Login: ", model.getLogin()))
                 .c_child(Components.TextWithDetails("Telefone: ", model.getTelefone()))
                 .c_child(Components.TextWithDetails("Administrador: ", Boolean.TRUE.equals(model.getAdmin()) ? "Sim" : "Não"))
-                .c_child(Components.TextWithDetails("Data de criação: ", DateUtils.localDateTimeToBrazilianDateTime(model.getDataCriacao())));
+                .c_child(Components.TextWithDetails("Data de criação: ", DatePack.localDateTimeToBrazilianDateTime(model.getDataCriacao())));
     }
 }

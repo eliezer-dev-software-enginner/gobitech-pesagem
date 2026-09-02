@@ -9,6 +9,7 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import pack.utilities.FormatterPack;
 
 import java.io.File;
 import java.io.IOException;
@@ -198,20 +199,20 @@ public class TicketPdfExporter {
         return (v == null || v.isBlank()) ? "" : v;
     }
 
-    /** CNPJ formatado ex.: {@code 12.345.678/0001-99} (vide {@code Utils.formatCnpj}). */
+    /** CNPJ formatado ex.: {@code 12.345.678/0001-99} (vide {@code FormatterPack.formatCnpj}). */
     private String cnpjFormatado(String v) {
         if (v == null || v.isBlank()) return "";
         String soDigitos = v.replaceAll("\\D", "");
         if (soDigitos.isEmpty()) return v;
-        return my_app.utils.Utils.formatCnpj(soDigitos);
+        return FormatterPack.formatCnpj(soDigitos);
     }
 
-    /** Telefone formatado ex.: {@code (61) 99653-2857} (vide {@code Utils.formatPhone}). */
+    /** Telefone formatado ex.: {@code (61) 99653-2857} (vide {@code FormatterPack.formatPhone}). */
     private String telefoneFormatado(String v) {
         if (v == null || v.isBlank()) return "";
         String soDigitos = v.replaceAll("\\D", "");
         if (soDigitos.isEmpty()) return v;
-        return my_app.utils.Utils.formatPhone(soDigitos);
+        return FormatterPack.formatPhone(soDigitos);
     }
 
     private String valorOu(String valor, String fallback) {

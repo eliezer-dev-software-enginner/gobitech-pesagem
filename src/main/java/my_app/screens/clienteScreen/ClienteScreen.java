@@ -18,8 +18,8 @@ import my_app.domain.ViewModelScreenContract;
 import my_app.domain.components.Components;
 import my_app.db.models.EmpresaModel;
 import my_app.infra.ListaPdfExporter;
-import my_app.utils.DateUtils;
-import my_app.utils.Utils;
+import pack.utilities.DatePack;
+import pack.utilities.FormatterPack;
 
 import java.io.File;
 import java.util.List;
@@ -63,9 +63,9 @@ public class ClienteScreen implements ScreenComponent, ContratoTelaCrudV3<Client
                 .column("ID", ClienteModel::getId, 60.0)
                 .column("Loja", ClienteModel::getLoja)
                 .column("Razão social", ClienteModel::getRazaoSocial)
-                .column("CPF/CNPJ", it->Utils.formatCpfCnpj(it.getCpfCnpj()))
-                .column("Telefone", it->Utils.formatPhone(it.getTelefone()))
-                .column("Data de criação", it -> DateUtils.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
+                .column("CPF/CNPJ", it->FormatterPack.formatCpfCnpj(it.getCpfCnpj()))
+                .column("Telefone", it->FormatterPack.formatPhone(it.getTelefone()))
+                .column("Data de criação", it -> DatePack.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build()
                 .onItemSelectChange(vm.selected::set)
                 .onItemDoubleClick(it -> showItemDetails(it, this.screenContext, 350));
@@ -80,9 +80,9 @@ public class ClienteScreen implements ScreenComponent, ContratoTelaCrudV3<Client
                 String.valueOf(c.getId()),
                 c.getLoja() != null ? c.getLoja() : "",
                 c.getRazaoSocial() != null ? c.getRazaoSocial() : "",
-                c.getCpfCnpj() != null ? Utils.formatCpfCnpj(c.getCpfCnpj()) : "",
-                c.getTelefone() != null ? Utils.formatPhone(c.getTelefone()) : "",
-                DateUtils.localDateTimeToBrazilianDateTime(c.getDataCriacao())
+                c.getCpfCnpj() != null ? FormatterPack.formatCpfCnpj(c.getCpfCnpj()) : "",
+                c.getTelefone() != null ? FormatterPack.formatPhone(c.getTelefone()) : "",
+                DatePack.localDateTimeToBrazilianDateTime(c.getDataCriacao())
         )).toList();
         ListaPdfExporter.exportar(destino, empresa, "Lista de Clientes", headers, rows);
     }
@@ -94,10 +94,10 @@ public class ClienteScreen implements ScreenComponent, ContratoTelaCrudV3<Client
                 .c_child(Components.TextWithDetails("ID: ", model.getId()))
                 .c_child(Components.TextWithDetails("Loja: ", model.getLoja()))
                 .c_child(Components.TextWithDetails("Razão social: ", model.getRazaoSocial()))
-                .c_child(Components.TextWithDetails("CPF/CNPJ: ", Utils.formatCpfCnpj(model.getCpfCnpj())))
-                .c_child(Components.TextWithDetails("Telefone: ", Utils.formatPhone(model.getTelefone())))
+                .c_child(Components.TextWithDetails("CPF/CNPJ: ", FormatterPack.formatCpfCnpj(model.getCpfCnpj())))
+                .c_child(Components.TextWithDetails("Telefone: ", FormatterPack.formatPhone(model.getTelefone())))
                 .c_child(Components.ItemDetailEndereco(model.getEndereco()))
                 .c_child(Components.TextWithDetails("Complemento: ", model.getComplemento()))
-                .c_child(Components.TextWithDetails("Data de criação: ", DateUtils.localDateTimeToBrazilianDateTime(model.getDataCriacao())));
+                .c_child(Components.TextWithDetails("Data de criação: ", DatePack.localDateTimeToBrazilianDateTime(model.getDataCriacao())));
     }
 }

@@ -35,8 +35,7 @@ import megalodonte.v2.Show;
 import my_app.domain.Data;
 import my_app.domain.Parcela;
 import my_app.domain.states.EnderecoState;
-import my_app.utils.DateUtils;
-import my_app.utils.Utils;
+import pack.utilities.DatePack;
 import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.antdesignicons.AntDesignIconsOutlined;
 import org.kordamp.ikonli.entypo.Entypo;
@@ -50,7 +49,10 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static my_app.utils.Utils.*;
+import static pack.utilities.FormatterPack.formatCep;
+import static pack.utilities.FormatterPack.formatCpfCnpj;
+import static pack.utilities.FormatterPack.formatPhone;
+import static pack.utilities.FormatterPack.formatRgCpf;
 
 public class Components {
 
@@ -72,7 +74,7 @@ public class Components {
     public static Component ItemDetailEndereco(Endereco endereco) {
         return new Container()
                 .c_child(Components.TextWithDetails("UF: ", endereco.uf()))
-                .c_child(Components.TextWithDetails("CEP: ", Utils.formatCep(endereco.cep())))
+                .c_child(Components.TextWithDetails("CEP: ", formatCep(endereco.cep())))
                 .c_child(Components.TextWithDetails("Cidade: ", endereco.cidade()))
                 .c_child(Components.TextWithDetails("Bairro: ", endereco.bairro()))
                 .c_child(Components.TextWithDetails("Rua: ", endereco.rua()))
@@ -490,7 +492,7 @@ public class Components {
     /**
      * Campo combinado CPF-ou-CNPJ: formata como CPF (numérico) enquanto o digitado tem 11
      * caracteres ou menos, e como CNPJ (aceita letras — formato alfanumérico mais recente) a
-     * partir do 12º — ver {@code Utils.formatCpfCnpj}. Usado em telas onde o mesmo campo aceita
+     * partir do 12º — ver {@code FormatterPack.formatCpfCnpj}. Usado em telas onde o mesmo campo aceita
      * tanto pessoa física quanto jurídica (Cliente, Empresa).
      */
     public static Component InputColumnCpfCnpj(String label, State<String> inputState) {
@@ -521,7 +523,7 @@ public class Components {
     /**
      * Campo combinado RG-ou-CPF com máscara dinâmica: até 9 dígitos assume RG
      * ({@code ##.###.###-#}), a partir do 10º assume CPF ({@code ###.###.###-##}). Devolve no
-     * state só os dígitos, sem os separadores — ver {@code Utils.formatRgCpf}.
+     * state só os dígitos, sem os separadores — ver {@code FormatterPack.formatRgCpf}.
      */
     public static Component InputRgCpf(String label, State<String> inputState) {
         var inputProps = getInputPropsV2("RG ou CPF").width(170);

@@ -10,7 +10,8 @@ import org.slf4j.LoggerFactory;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 
-import static my_app.utils.Utils.*;
+import static pack.utilities.ValidatorPack.isValidCep;
+import static pack.utilities.ValidatorPack.isValidPhone;
 
 public class ClienteService extends BaseService<ClienteModel> {
 

@@ -29,7 +29,7 @@ import my_app.domain.ViewModelScreenContract;
 import my_app.domain.components.Components;
 import my_app.infra.ListaPdfExporter;
 import my_app.infra.RelatorioPesagemPdfExporter;
-import my_app.utils.DateUtils;
+import pack.utilities.DatePack;
 import org.kordamp.ikonli.entypo.Entypo;
 
 import java.io.File;
@@ -105,7 +105,7 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
                 .column("Cliente", it -> it.getCliente() != null ? it.getCliente().getLoja() : "-")
                 .column("Produto", it -> it.getProduto() != null ? it.getProduto().getNome() : "-")
                 .column("Peso líquido (Kg)", it -> pesoStr(it.getPesoFinal()))
-                .column("Data", it -> DateUtils.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
+                .column("Data", it -> DatePack.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build()
                 .onItemSelectChange(vm.selected::set)
                 .onItemDoubleClick(it -> showItemDetailsComAcoes(it, this.screenContext, 500));
@@ -211,7 +211,7 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
                 .c_child(Components.TextWithDetails("Tara: ", pesoStr(model.getPesoVeiculo()) + " Kg"))
                 .c_child(Components.TextWithDetails("Peso bruto: ", pesoStr(model.getPesoTotal()) + " Kg"))
                 .c_child(Components.TextWithDetails("Peso líquido: ", pesoStr(model.getPesoFinal()) + " Kg"))
-                .c_child(Components.TextWithDetails("Data de criação: ", DateUtils.localDateTimeToBrazilianDateTime(model.getDataCriacao())))
+                .c_child(Components.TextWithDetails("Data de criação: ", DatePack.localDateTimeToBrazilianDateTime(model.getDataCriacao())))
                 .c_child(Components.TextWithDetails("Observações: ", model.getObservacoes(), true));
     }
 

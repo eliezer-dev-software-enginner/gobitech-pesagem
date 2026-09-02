@@ -12,7 +12,7 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static my_app.utils.Utils.isValidPhone;
+import static pack.utilities.ValidatorPack.isValidPhone;
 
 /**
  * Login e senha ficam sempre criptografados em repouso (coluna {@code login}/{@code senha} da

@@ -3,8 +3,8 @@ package my_app.db.services;
 import my_app.db.DB;
 import my_app.db.models.EmpresaModel;
 import my_app.db.repositories.EmpresaRepository;
-import my_app.utils.Utils;
 import net.sf.persism.Session;
+import pack.utilities.ValidatorPack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,14 +55,14 @@ public class EmpresaService extends BaseService<EmpresaModel> {
         if (model.getNome() == null || model.getNome().isBlank()) {
             throw new IllegalArgumentException("Nome é obrigatório");
         }
-        if (model.getTelefone() != null && !model.getTelefone().isBlank() && !Utils.isValidPhone(model.getTelefone())) {
+        if (model.getTelefone() != null && !model.getTelefone().isBlank() && !ValidatorPack.isValidPhone(model.getTelefone())) {
             throw new IllegalArgumentException("Telefone inválido");
         }
-        if (model.getCep() != null && !model.getCep().isBlank() && !Utils.isValidCep(model.getCep())) {
+        if (model.getCep() != null && !model.getCep().isBlank() && !ValidatorPack.isValidCep(model.getCep())) {
             throw new IllegalArgumentException("CEP inválido");
         }
 
-        if (model.getCpfCnpj() != null && !model.getCpfCnpj().isBlank() && !Utils.isValidCpfOrCnpj(model.getCpfCnpj())) {
+        if (model.getCpfCnpj() != null && !model.getCpfCnpj().isBlank() && !ValidatorPack.isValidCpfOrCnpj(model.getCpfCnpj())) {
             throw new IllegalArgumentException("Cpf ou cnpj inválido");
         }
     }

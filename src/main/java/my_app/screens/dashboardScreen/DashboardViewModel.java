@@ -10,7 +10,7 @@ import my_app.db.services.ClienteService;
 import my_app.db.services.PesagemService;
 import my_app.db.services.ProdutoService;
 import my_app.domain.components.Components;
-import my_app.utils.DateUtils;
+import pack.utilities.DatePack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +41,7 @@ public class DashboardViewModel {
                 int clientes = clienteService.listar().size();
                 int pesagens = pesagemService.listar().size();
 
-                long inicioMes = DateUtils.localDateParaMillis(LocalDate.now().withDayOfMonth(1));
+                long inicioMes = DatePack.localDateParaMillis(LocalDate.now().withDayOfMonth(1));
                 long agora = System.currentTimeMillis();
                 // filtrar() já anexa Cliente/Produto/Desconto a cada pesagem (feito pra tela de
                 // listagem) — redundante aqui, só queremos o tamanho, mas o volume mensal de
