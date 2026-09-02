@@ -7,13 +7,18 @@ import megalodonte.base.state.State;
 import megalodonte.router.v4.ScreenContext;
 import megalodonte.utils.ThrowingSupplier;
 import my_app.db.services.ClienteService;
+import my_app.db.services.ConexaoBalancaService;
 import my_app.db.services.PesagemService;
 import my_app.db.services.ProdutoService;
 import my_app.domain.components.Components;
+import my_app.infra.balanca.LeitorBalanca;
+import my_app.infra.balanca.LeitorBalancaFactory;
+import my_app.infra.balanca.PesagemCalculo;
 import pack.utilities.DatePack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public class DashboardViewModel {
@@ -22,6 +27,14 @@ public class DashboardViewModel {
     private final ProdutoService produtoService;
     private final ClienteService clienteService;
     private final PesagemService pesagemService;
+    private final ConexaoBalancaService conexaoBalancaService;
+
+    private final ScreenContext ctx;
+    private LeitorBalanca leitorBalanca;
+
+    /** Peso lido da balança em tempo real (mesmo do formulário de pesagem). */
+    public final State<String> pesoAoVivo = State.of("—");
+    public final State<Boolean> lendoBalanca = State.of(false);
 
     public final State<String> totalProdutos = new State<>("—");
     public final State<String> totalClientes = new State<>("—");
@@ -29,9 +42,11 @@ public class DashboardViewModel {
     public final State<String> totalPesagensMes = new State<>("—");
 
     public DashboardViewModel(ScreenContext ctx) {
+        this.ctx = ctx;
         this.produtoService = createOrReport(ProdutoService::new);
         this.clienteService = createOrReport(ClienteService::new);
         this.pesagemService = createOrReport(PesagemService::new);
+        this.conexaoBalancaService = createOrReport(ConexaoBalancaService::new);
     }
 
     public void carregar() {
@@ -70,11 +85,54 @@ public class DashboardViewModel {
         }
     }
 
+    // ---- balança ----
+
+    /** Liga a leitura contínua da balança, atualizando {@link #pesoAoVivo} (mesmo do formulário). */
+    public void iniciarLeituraBalanca() {
+        ctx.scope().run(() -> {
+            try {
+                var config = conexaoBalancaService.buscarUnico();
+                var leitor = LeitorBalancaFactory.criar(config);
+                leitorBalanca = leitor;
+
+                ctx.scope().onCancel(leitor::parar);
+                if (ctx.scope().isCancelled()) return;
+
+                leitor.iniciar(
+                        peso -> UI.runOnUi(() -> {
+                            pesoAoVivo.set(arrInt(peso));
+                            lendoBalanca.set(true);
+                        }),
+                        erro -> UI.runOnUi(() -> {
+                            lendoBalanca.set(false);
+                            Components.ShowAlertError(erro);
+                        })
+                );
+            } catch (Exception e) {
+                log.error("Erro ao conectar com a balança", e);
+                UI.runOnUi(() -> Components.ShowAlertError("Erro ao conectar com a balança: " + e.getMessage()));
+            }
+        });
+    }
+
+    public void pararLeituraBalanca() {
+        if (leitorBalanca != null) leitorBalanca.parar();
+        lendoBalanca.set(false);
+    }
+
+    /** Converte um peso pra inteiro (sem casas decimais), como o André prefere. */
+    private String arrInt(BigDecimal valor) {
+        var inteiro = PesagemCalculo.arredondarInteiro(valor);
+        return inteiro == null ? "" : inteiro.toBigInteger().toString();
+    }
+
     public void onDestroy() {
         try {
+            pararLeituraBalanca();
             produtoService.close();
             clienteService.close();
             pesagemService.close();
+            conexaoBalancaService.close();
         } catch (Exception e) {
             log.warn("Erro ao fechar serviços do dashboard", e);
         }

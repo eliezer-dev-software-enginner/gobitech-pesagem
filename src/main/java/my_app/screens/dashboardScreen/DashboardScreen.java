@@ -23,6 +23,7 @@ public class DashboardScreen implements ScreenComponent {
     @Override
     public void onMount() {
         vm.carregar();
+        vm.iniciarLeituraBalanca();
     }
 
     @Override
@@ -35,6 +36,8 @@ public class DashboardScreen implements ScreenComponent {
         return new Column(new ColumnProps().paddingAll(20).spacingOf(20).fillHeight())
                 .c_child(new Text("Balanças Gobitech", new TextProps().fontSize(ThemeManager.theme().typography().title()).bold()))
                 .c_child(new Text("Sistema de pesagem", new TextProps().fontSize(ThemeManager.theme().typography().body())))
+                .c_child(new SpacerVertical(10))
+                .c_child(Components.SubtitleWithState("Peso da balança agora (Kg): ", vm.pesoAoVivo))
                 .c_child(new SpacerVertical(10))
                 .c_child(new FlowRow(new FlowRowProps().fillWidth().spacingOf(16))
                         .children(

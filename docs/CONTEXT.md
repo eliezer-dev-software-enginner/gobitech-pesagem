@@ -49,6 +49,13 @@ ver `DECISIONS.md` pras decisões específicas de cada troca.
 criada ainda). Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTREGAS.md`.
 
 ## Estado atual (2026-09-02)
+- **Peso da balança em tempo real no dashboard** (HOME): o `DashboardViewModel` ganhou a mesma
+  leitura contínua da balança do formulário de pesagem (`pesoAoVivo` + `lendoBalanca`, via
+  `ConexaoBalancaService`/`LeitorBalancaFactory`). O `DashboardScreen` exibe "Peso da balança
+  agora (Kg):" no topo e liga/desliga a leitura no `onMount`/`onDestroy`.
+- Testes: `./gradlew test` → **BUILD SUCCESSFUL**.
+
+## Estado atual (2026-09-02)
 - **Utilitários movidos pro pacote `pack-utilities`** (dependência nova
   `com.github.eliezer-dev-software-enginner:pack-utilities:v1.0.0` → pacote `pack.utilities.*`):
   `Utils.java` foi enxugada pra **só `timestampParaArquivo()`**. Validação e formatação agora vêm
