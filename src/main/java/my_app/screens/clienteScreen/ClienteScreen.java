@@ -12,6 +12,7 @@ import megalodonte.props.ColumnProps;
 import megalodonte.props.SimpleTableProps;
 import megalodonte.props.TextProps;
 import megalodonte.router.v4.ScreenContext;
+import my_app.core.AppRoutes;
 import my_app.db.models.ClienteModel;
 import my_app.domain.ContratoTelaCrudV3;
 import my_app.domain.ViewModelScreenContract;
@@ -50,7 +51,12 @@ public class ClienteScreen implements ScreenComponent, ContratoTelaCrudV3<Client
 
 
     @Override
-    public ViewModelScreenContract viewModel() {
+    public String downloadListaPrefixo() {
+        return "clientes";
+    }
+
+    @Override
+    public ViewModelScreenContract<ClienteModel> viewModel() {
         return vm;
     }
 
@@ -68,7 +74,8 @@ public class ClienteScreen implements ScreenComponent, ContratoTelaCrudV3<Client
                 .column("Data de criação", it -> DatePack.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build()
                 .onItemSelectChange(vm.selected::set)
-                .onItemDoubleClick(it -> showItemDetails(it, this.screenContext, 350));
+                //.onItemDoubleClick(it -> showItemDetails(it, this.screenContext, 350));
+                .onItemDoubleClick(it -> screenContext.router().spawnWindow(AppRoutes.Screens.DETAILS_CLIENTE.name() + "/" + it.getId()));
 
         return simpleTable;
     }
@@ -85,19 +92,5 @@ public class ClienteScreen implements ScreenComponent, ContratoTelaCrudV3<Client
                 DatePack.localDateTimeToBrazilianDateTime(c.getDataCriacao())
         )).toList();
         ListaPdfExporter.exportar(destino, empresa, "Lista de Clientes", headers, rows);
-    }
-
-    public Component itemDetails(ClienteModel model) {
-        return new Column(new ColumnProps().paddingAll(20))
-                .c_child(new Text("Detalhes do cliente", new TextProps().fontSize(ThemeManager.theme().typography().subtitle())))
-                .c_child(new SpacerVertical(20))
-                .c_child(Components.TextWithDetails("ID: ", model.getId()))
-                .c_child(Components.TextWithDetails("Loja: ", model.getLoja()))
-                .c_child(Components.TextWithDetails("Razão social: ", model.getRazaoSocial()))
-                .c_child(Components.TextWithDetails("CPF/CNPJ: ", FormatterPack.formatCpfCnpj(model.getCpfCnpj())))
-                .c_child(Components.TextWithDetails("Telefone: ", FormatterPack.formatPhone(model.getTelefone())))
-                .c_child(Components.ItemDetailEndereco(model.getEndereco()))
-                .c_child(Components.TextWithDetails("Complemento: ", model.getComplemento()))
-                .c_child(Components.TextWithDetails("Data de criação: ", DatePack.localDateTimeToBrazilianDateTime(model.getDataCriacao())));
     }
 }

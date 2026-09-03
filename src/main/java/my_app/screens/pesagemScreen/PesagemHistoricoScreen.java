@@ -1,33 +1,27 @@
 package my_app.screens.pesagemScreen;
 
-import javafx.stage.Stage;
 import megalodonte.base.components.Component;
 import megalodonte.base.components.ScreenComponent;
-import megalodonte.base.theme.ThemeManager;
 import megalodonte.components.Button;
 import megalodonte.components.Card;
 import megalodonte.components.SimpleTable;
 import megalodonte.components.layout_components.Column;
-import megalodonte.components.layout_components.Container;
 import megalodonte.components.layout_components.FlowRow;
 import megalodonte.components.layout_components.Row;
 import megalodonte.components.layout_components.Stack;
 import megalodonte.props.ButtonProps;
 import megalodonte.props.CardProps;
 import megalodonte.props.ColumnProps;
-import megalodonte.props.ContainerProps;
 import megalodonte.props.FlowRowProps;
 import megalodonte.props.RowProps;
 import megalodonte.props.SimpleTableProps;
-import megalodonte.props.TextProps;
 import megalodonte.router.v4.ScreenContext;
-import megalodonte.v2.Show;
+import my_app.core.AppRoutes;
 import my_app.db.models.EmpresaModel;
 import my_app.db.models.PesagemModel;
 import my_app.domain.ContratoTelaCrudV3;
 import my_app.domain.ViewModelScreenContract;
 import my_app.domain.components.Components;
-import my_app.infra.ListaPdfExporter;
 import my_app.infra.RelatorioPesagemPdfExporter;
 import pack.utilities.DatePack;
 import org.kordamp.ikonli.entypo.Entypo;
@@ -67,7 +61,12 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
     }
 
     @Override
-    public ViewModelScreenContract viewModel() {
+    public String downloadListaPrefixo() {
+        return "relatório";
+    }
+
+    @Override
+    public ViewModelScreenContract<PesagemModel> viewModel() {
         return vm;
     }
 
@@ -108,41 +107,12 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
                 .column("Data", it -> DatePack.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build()
                 .onItemSelectChange(vm.selected::set)
-                .onItemDoubleClick(it -> showItemDetailsComAcoes(it, this.screenContext, 500));
+                //.onItemDoubleClick(it -> showItemDetailsComAcoes(it, this.screenContext, 500));
+                .onItemDoubleClick(it -> screenContext.router().spawnWindow(AppRoutes.Screens.DETAILS_PESAGEM.name() + "/" + it.getId()));
 
         return simpleTable;
     }
 
-    /**
-     * O histórico não tem "Criar novo"/"Editar" (formulários são telas à parte) — só o
-     * "Imprimir ticket" (daqui da lista) e "Excluir".
-     */
-
-    public void showItemDetailsComAcoes(PesagemModel model, ScreenContext ctx, int height) {
-        Stage[] modalStage = new Stage[1];
-        Runnable fechar = () -> {
-            if (modalStage[0] != null) modalStage[0].close();
-        };
-
-        Component conteudo = new Column(new ColumnProps().fillWidth().spacingOf(15))
-                .children(
-                        itemDetails(model),
-                        new Row(new RowProps().fillWidth().spacingOf(10))
-                                .children(
-                                        new Button("Baixar ticket", new ButtonProps().bgColor("#16a34a").textColor("white"))
-                                                .onClick(() -> vm.imprimirTicket(model)),
-                                        new Button("Imprimir nota térmica 80mm", new ButtonProps().bgColor("#16a34a").textColor("white"))
-                                                .onClick(() -> vm.imprimirTicketTermica(model)),
-                                        new Button("Excluir", new ButtonProps().bgColor("#ef4444").textColor("white"))
-                                                .onClick(() -> {
-                                                    fechar.run();
-                                                    handleClickMenuDelete();
-                                                })
-                                )
-                );
-
-        modalStage[0] = Components.ShowModal(conteudo, ctx, height);
-    }
 
     /**
      * Sobrescreve o layout padrão do contrato pra trocar a barra de ações flutuante: mostra
@@ -188,32 +158,6 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
                 .icon(Components.ikon(ikon, 10, color));
     }
 
-    @Override
-    public Component itemDetails(PesagemModel model) {
-        return new Column(new ColumnProps().paddingAll(20))
-                .c_child(new megalodonte.components.Text("Detalhes da pesagem", new TextProps().fontSize(ThemeManager.theme().typography().subtitle())))
-                .c_child(new megalodonte.components.SpacerVertical(20))
-                .c_child(Components.TextWithDetails("ID: ", model.getId()))
-                .c_child(new Row(new RowProps().bottomVertically().spacingOf(10))
-                        .r_child(Components.TextWithDetails("Placa: ", model.getPlaca()))
-                        .r_child(new Button("Copiar placa", new ButtonProps().height(32).textColor("black")
-                                .bgColor(ThemeManager.theme().colors().primary())
-                                .borderRadius(ThemeManager.theme().border().radiusSm())
-                                .borderWidth(ThemeManager.theme().border().width())
-                                .borderColor(ThemeManager.theme().colors().primary()))
-                                .onClick(() -> copiarPlaca(model))))
-                .c_child(Components.TextWithDetails("Motorista: ", model.getMotoristaNome()))
-                .c_child(Components.TextWithDetails("Documento do motorista: ", model.getMotoristaDocumento()))
-                .c_child(Components.TextWithDetails("Tipo: ", model.getTipoPesagem()))
-                .c_child(Components.TextWithDetails("Cliente: ", model.getCliente() != null ? model.getCliente().getLoja() : "-"))
-                .c_child(Components.TextWithDetails("Produto: ", model.getProduto() != null ? model.getProduto().getNome() : "-"))
-                .c_child(Components.TextWithDetails("Nota fiscal: ", model.getNotaFiscal()))
-                .c_child(Components.TextWithDetails("Tara: ", pesoStr(model.getPesoVeiculo()) + " Kg"))
-                .c_child(Components.TextWithDetails("Peso bruto: ", pesoStr(model.getPesoTotal()) + " Kg"))
-                .c_child(Components.TextWithDetails("Peso líquido: ", pesoStr(model.getPesoFinal()) + " Kg"))
-                .c_child(Components.TextWithDetails("Data de criação: ", DatePack.localDateTimeToBrazilianDateTime(model.getDataCriacao())))
-                .c_child(Components.TextWithDetails("Observações: ", model.getObservacoes(), true));
-    }
 
     @Override
     public void exportPdf(File destino, EmpresaModel empresa, List<PesagemModel> snapshotFiltrado) throws Exception {
@@ -313,13 +257,5 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
         if (dataHora == null) return "";
         if (soHora) return dataHora.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
         return dataHora.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-    }
-
-    /** Copia a placa pra área de transferência (útil pra colar na busca da pesagem de saída). */
-    private void copiarPlaca(PesagemModel model) {
-        var content = new javafx.scene.input.ClipboardContent();
-        content.putString(model.getPlaca() == null ? "" : model.getPlaca());
-        javafx.scene.input.Clipboard.getSystemClipboard().setContent(content);
-        Components.ShowPopup(screenContext, "Placa copiada: " + model.getPlaca());
     }
 }

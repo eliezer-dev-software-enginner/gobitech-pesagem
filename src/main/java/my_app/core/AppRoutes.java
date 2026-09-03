@@ -8,15 +8,19 @@ import my_app.screens.acessoBloqueadoScreen.AcessoBloqueadoScreen;
 import my_app.screens.clienteScreen.AddOrEditClienteScreen;
 import my_app.screens.authScreen.AuthScreen;
 import my_app.screens.clienteScreen.ClienteScreen;
+import my_app.screens.clienteScreen.DetailsClienteScreen;
 import my_app.screens.conexaoBalancaScreen.ConexaoBalancaScreen;
 import my_app.screens.conexaoCameraScreen.ConexaoCameraScreen;
 import my_app.screens.empresaScreen.CadastroEmpresaScreen;
 import my_app.screens.homeScreen.HomeScreen;
 import my_app.screens.licensaScreen.LicensaScreen;
 import my_app.screens.logsScreen.LogsScreen;
+import my_app.screens.pesagemScreen.DetailsPesagemScreen;
 import my_app.screens.produtoScreen.AddOrEditProdutoScreen;
+import my_app.screens.produtoScreen.DetailsProdutoScreen;
 import my_app.screens.produtoScreen.ProdutoScreen;
 import my_app.screens.usuarioScreen.AddOrEditUsuarioScreen;
+import my_app.screens.usuarioScreen.DetailsUsuarioScreen;
 import my_app.screens.usuarioScreen.UsuarioScreen;
 
 import java.util.Set;
@@ -38,6 +42,10 @@ public class AppRoutes {
         ADD_OR_EDIT_PRODUTO,
         ADD_OR_EDIT_CLIENTE,
         ADD_OR_EDIT_USUARIO,
+        DETAILS_PRODUTO,
+        DETAILS_CLIENTE,
+        DETAILS_USUARIO,
+        DETAILS_PESAGEM,
     }
 
     final int MIN_WIDTH = 600;
@@ -59,6 +67,10 @@ public class AppRoutes {
                 new Router.Route(Screens.ADD_OR_EDIT_PRODUTO.name()+"/${id}/${type}", AddOrEditProdutoScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Gerenciar produto", true)),
                 new Router.Route(Screens.ADD_OR_EDIT_CLIENTE.name()+"/${id}/${type}", AddOrEditClienteScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Gerenciar cliente", true)),
                 new Router.Route(Screens.ADD_OR_EDIT_USUARIO.name()+"/${id}/${type}", AddOrEditUsuarioScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Gerenciar usuário", true)),
+                new Router.Route(Screens.DETAILS_PRODUTO.name()+"/${id}", DetailsProdutoScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Detalhes do produto", true)),
+                new Router.Route(Screens.DETAILS_CLIENTE.name()+"/${id}", DetailsClienteScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Detalhes do cliente", true)),
+                new Router.Route(Screens.DETAILS_USUARIO.name()+"/${id}", DetailsUsuarioScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Detalhes do usuário", true)),
+                new Router.Route(Screens.DETAILS_PESAGEM.name()+"/${id}", DetailsPesagemScreen::new, new RouteProps(MAX_WIDTH, MEDIUM_HEIGHT, "Detalhes da pesagem", true)),
                 new Router.Route(Screens.USUARIOS.name(), UsuarioScreen::new, new RouteProps(MAX_WIDTH, MAX_HEIGHT, "Gerenciamento de usuários", true)),
                 new Router.Route(Screens.EMPRESA.name(), CadastroEmpresaScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Informações da empresa", false)),
                 new Router.Route(Screens.CLIENTES.name(), ClienteScreen::new, new RouteProps(MAX_WIDTH, MEDIUM_HEIGHT, "Gerenciamento de clientes", true)),

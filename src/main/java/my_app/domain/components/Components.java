@@ -81,6 +81,25 @@ public class Components {
                 .c_child(Components.TextWithDetails("Número: ", endereco.numero()));
     }
 
+    public static Component ItemDetailEnderecoState(ReadableState<Endereco> enderecoState) {
+        return new Container()
+                .c_child(Components.TextWithDetailsState("UF: ", enderecoField(enderecoState, Endereco::uf)))
+                .c_child(Components.TextWithDetailsState("CEP: ", enderecoField(enderecoState, e -> formatCep(e.cep()))))
+                .c_child(Components.TextWithDetailsState("Cidade: ", enderecoField(enderecoState, Endereco::cidade)))
+                .c_child(Components.TextWithDetailsState("Bairro: ", enderecoField(enderecoState, Endereco::bairro)))
+                .c_child(Components.TextWithDetailsState("Rua: ", enderecoField(enderecoState, Endereco::rua)))
+                .c_child(Components.TextWithDetailsState("Número: ", enderecoField(enderecoState, Endereco::numero)));
+    }
+
+    private static ComputedState<String> enderecoField(ReadableState<Endereco> state, Function<Endereco, String> extract) {
+        return ComputedState.of(() -> {
+            var endereco = state.get();
+            if (endereco == null) return "";
+            var value = extract.apply(endereco);
+            return value == null ? "" : value;
+        }, state);
+    }
+
     public static Component enderecoComponent(EnderecoState enderecoState) {
         return new Container().children(
                 Components.FormTitle("Endereço"),
@@ -111,6 +130,23 @@ public class Components {
 
     public static Row TextWithDetails(String label, Object value) {
         return TextWithDetails(label, value, false);
+    }
+
+    public static Row TextWithDetailsState(String label, ReadableState<String> valueState, boolean wrapText) {
+        var comp = new Text(valueState,
+                new TextProps().fontSize(ThemeManager.theme().typography().body()));
+
+        var textValueComponent = wrapText ? new TextFlow(comp) : comp;
+
+        return new Row()
+                .children(
+                        new Text(label, new TextProps().fontSize(ThemeManager.theme().typography().body()).bold()),
+                        textValueComponent
+                );
+    }
+
+    public static Row TextWithDetailsState(String label, ReadableState<String> valueState) {
+        return TextWithDetailsState(label, valueState, false);
     }
 
     public static Component actionButtons(ComputedState<String> btnText, RunnableThrowing onClick) {

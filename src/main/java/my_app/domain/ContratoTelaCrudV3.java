@@ -49,6 +49,8 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
 
     Logger log = LoggerFactory.getLogger(ContratoTelaCrudV3.class);
 
+    String downloadListaPrefixo();
+
     ViewModelScreenContract<T> viewModel();
 
     default void handleClickNew() {
@@ -58,7 +60,8 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
     default void handleClickBaixarLista() {
         var fileChooser = new FileChooser();
         fileChooser.setTitle("Salvar lista em PDF");
-        fileChooser.setInitialFileName("relatório - " + Utils.timestampParaArquivo() + ".pdf");
+        //fileChooser.setInitialFileName("relatório - " + Utils.timestampParaArquivo() + ".pdf");
+        fileChooser.setInitialFileName(downloadListaPrefixo() + " - " + Utils.timestampParaArquivo() + ".pdf");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF", "*.pdf"));
         File destino = fileChooser.showSaveDialog(viewModel().ctx.selfStage());
         if (destino == null) return;
@@ -97,8 +100,6 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
     }
 
     SimpleTable<T> table();
-
-    Component itemDetails(T model);
 
     /**
      * Conteúdo extra no topo da página de lista, antes da busca/tabela — ex.: o filtro
@@ -160,17 +161,6 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
                 .textColor(color))
                 .onClick(onclick)
                 .icon(Components.ikon(ikon,10, color));
-    }
-
-    /**
-     * Duplo-clique numa linha abre isso: os detalhes de {@code model} + Editar/Excluir/Clonar
-     * embaixo. Cada ação fecha o modal (é uma janela própria, ver {@code Components.ShowModal})
-     * antes de disparar — a edição de fato acontece na tela principal, atrás do modal.
-     */
-    default void showItemDetails(T model, ScreenContext ctx, int height) {
-        Components.ShowModal(new Column(new ColumnProps().fillWidth().spacingOf(15))
-                .children(itemDetails(model)),
-                ctx, height);
     }
 
     default void onDestroy() {

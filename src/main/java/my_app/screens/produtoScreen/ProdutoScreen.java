@@ -7,11 +7,11 @@ import megalodonte.components.SimpleTable;
 import megalodonte.components.SpacerVertical;
 import megalodonte.components.Text;
 import megalodonte.components.layout_components.Column;
-import megalodonte.components.layout_components.Container;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.SimpleTableProps;
 import megalodonte.props.TextProps;
 import megalodonte.router.v4.ScreenContext;
+import my_app.core.AppRoutes;
 import my_app.db.models.ProdutoModel;
 import my_app.domain.ContratoTelaCrudV3;
 import my_app.domain.ViewModelScreenContract;
@@ -48,7 +48,12 @@ public class ProdutoScreen implements ScreenComponent, ContratoTelaCrudV3<Produt
     }
 
     @Override
-    public ViewModelScreenContract viewModel() {
+    public String downloadListaPrefixo() {
+        return "produtos";
+    }
+
+    @Override
+    public ViewModelScreenContract<ProdutoModel> viewModel() {
         return vm;
     }
 
@@ -65,7 +70,8 @@ public class ProdutoScreen implements ScreenComponent, ContratoTelaCrudV3<Produt
                 .column("Data de criação", it -> DatePack.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build()
                 .onItemSelectChange(vm.selected::set)
-                .onItemDoubleClick(it -> showItemDetails(it, this.screenContext, 350));
+                //.onItemDoubleClick(it -> showItemDetails(it, this.screenContext, 350));
+                .onItemDoubleClick(it -> screenContext.router().spawnWindow(AppRoutes.Screens.DETAILS_PRODUTO.name() + "/" + it.getId()));
 
         return simpleTable;
     }
@@ -81,17 +87,5 @@ public class ProdutoScreen implements ScreenComponent, ContratoTelaCrudV3<Produt
                 DatePack.localDateTimeToBrazilianDateTime(p.getDataCriacao())
         )).toList();
         ListaPdfExporter.exportar(destino, empresa, "Lista de Produtos", headers, rows);
-    }
-
-    public Component itemDetails(ProdutoModel model) {
-        return new Column(new ColumnProps().paddingAll(20))
-                .c_child(new Text("Detalhes do produto", new TextProps().fontSize(ThemeManager.theme().typography().subtitle())))
-                .c_child(new SpacerVertical(20))
-                .c_child(Components.TextWithDetails("ID: ", model.getId()))
-                .c_child(Components.TextWithDetails("Nome: ", model.getNome()))
-                .c_child(Components.TextWithDetails("Unidade: ", model.getUnidade()))
-                .c_child(Components.TextWithDetails("Desconto padrão (%): ", model.getDesconto() == null ? "0" : model.getDesconto().toPlainString()))
-                .c_child(Components.TextWithDetails("Data de criação: ", DatePack.localDateTimeToBrazilianDateTime(model.getDataCriacao())))
-                .c_child(Components.TextWithDetails("Observações: ", model.getObservacoes(), true));
     }
 }
