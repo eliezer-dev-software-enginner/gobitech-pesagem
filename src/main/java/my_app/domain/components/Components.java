@@ -91,6 +91,18 @@ public class Components {
                 .c_child(Components.TextWithDetailsState("Número: ", enderecoField(enderecoState, Endereco::numero)));
     }
 
+    public static Button actionButton(String title, String color, String bgColor, Ikon ikon, RunnableThrowing onclick){
+        return new Button(title, new ButtonProps()
+                .bgColor(bgColor!=null? bgColor : ThemeManager.theme().colors().primary())
+                .paddingTop(ThemeManager.theme().padding().md())
+                .paddingDown(ThemeManager.theme().padding().md())
+                .paddingLeft(ThemeManager.theme().padding().md())
+                .paddingRight(ThemeManager.theme().padding().md())
+                .textColor(color))
+                .onClick(onclick)
+                .icon(Components.ikon(ikon,10, color));
+    }
+
     private static ComputedState<String> enderecoField(ReadableState<Endereco> state, Function<Endereco, String> extract) {
         return ComputedState.of(() -> {
             var endereco = state.get();
@@ -464,9 +476,23 @@ public class Components {
 
     /** Input numérico de inteiro (sem casa decimal), com separador de milhar (ponto). */
     public static Component InputColumnInteger(String label, State<String> inputState, String placeholder) {
-        var inputProps = getInputPropsV2(placeholder).width(140);
+        return InputColumnInteger(label, inputState, placeholder, false);
+    }
 
-        var input = new Input(inputState, inputProps)
+    /**
+     * Input numérico de inteiro (sem casa decimal), com separador de milhar (ponto).
+     * {@code disableInput} deixa somente-leitura — usado nos pesos que só podem ser capturados
+     * da balança (não digitados), com a mesma borda vermelha dos campos não-editáveis.
+     */
+    public static Component InputColumnInteger(String label, State<String> inputState, String placeholder, boolean disableInput) {
+        var inputProps = getInputPropsV2(placeholder).width(140);
+        if (disableInput) inputProps.disable();
+        String corBorda = disableInput ? "#e74c3c" : ThemeManager.theme().colors().border();
+
+        var input = new Input(inputState, inputProps
+                        .borderWidth(ThemeManager.theme().border().width())
+                        .borderColor(corBorda)
+                        .borderRadius(ThemeManager.theme().border().radiusMd()))
                 .onInitialize(value -> {
                     if (value == null || value.trim().isEmpty()) {
                         return OnChangeResult.of("", "");
@@ -491,8 +517,16 @@ public class Components {
 
     /** Igual a {@link #InputWithButtonRow}, mas com o input numérico inteiro (sem decimais). */
     public static Component InputWithButtonRowInteger(String label, String placeholder, String btnTitle, State<String> inputState, RunnableThrowing onClick) {
+        return InputWithButtonRowInteger(label, placeholder, btnTitle, inputState, onClick, false);
+    }
+
+    /**
+     * Input numérico inteiro + botão. {@code disableInput} deixa o campo somente-leitura —
+     * o valor só muda ao clicar no botão (capturar da balança), nunca digitando.
+     */
+    public static Component InputWithButtonRowInteger(String label, String placeholder, String btnTitle, State<String> inputState, RunnableThrowing onClick, boolean disableInput) {
         return new Row(new RowProps().bottomVertically())
-                .r_child(Components.InputColumnInteger(label, inputState, placeholder))
+                .r_child(Components.InputColumnInteger(label, inputState, placeholder, disableInput))
                 .r_child(new Button(btnTitle, new ButtonProps().height(32).textColor("black")
                                 .bgColor(ThemeManager.theme().colors().primary())
                                 .borderRadius(ThemeManager.theme().border().radiusSm()).borderWidth(ThemeManager.theme().border().width()).borderColor(ThemeManager.theme().colors().primary())

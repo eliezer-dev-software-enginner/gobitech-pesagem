@@ -96,8 +96,9 @@ public class PesagemService extends BaseService<PesagemModel> {
     }
 
     public List<PesagemModel> filtrar(String placa, String motoristaNome, Integer clienteId,
-                                       Integer produtoId, Long dataInicioMillis, Long dataFimMillis) throws SQLException {
-        var lista = pesagemRepository.filtrar(placa, motoristaNome, clienteId, produtoId, dataInicioMillis, dataFimMillis);
+                                       Integer produtoId, Long dataInicioMillis, Long dataFimMillis,
+                                       String tipoPesagem) throws SQLException {
+        var lista = pesagemRepository.filtrar(placa, motoristaNome, clienteId, produtoId, dataInicioMillis, dataFimMillis, tipoPesagem);
         for (var pesagem : lista) anexarRelacoes(pesagem);
         return lista;
     }

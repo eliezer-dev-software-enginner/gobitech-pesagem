@@ -61,7 +61,7 @@ public class DashboardViewModel {
                 // filtrar() já anexa Cliente/Produto/Desconto a cada pesagem (feito pra tela de
                 // listagem) — redundante aqui, só queremos o tamanho, mas o volume mensal de
                 // pesagens é baixo o bastante pra não valer a pena criar um COUNT(*) dedicado.
-                int pesagensMes = pesagemService.filtrar(null, null, null, null, inicioMes, agora).size();
+                int pesagensMes = pesagemService.filtrar(null, null, null, null, inicioMes, agora, null).size();
 
                 UI.runOnUi(() -> {
                     totalProdutos.set(String.valueOf(produtos));

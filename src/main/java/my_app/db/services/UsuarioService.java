@@ -136,6 +136,16 @@ public class UsuarioService extends BaseService<UsuarioModel> {
         return usuario;
     }
 
+    @Override
+    public UsuarioModel buscarById(long id) throws SQLException {
+        var usuario = repository.buscarById(id);
+        if (usuario == null) return null;
+        var crypto = new CryptoManager();
+        usuario.setLogin(crypto.decrypt(usuario.getLogin()));
+        usuario.setSenha(crypto.decrypt(usuario.getSenha()));
+        return usuario;
+    }
+
     public List<UsuarioModel> listarAtivos() throws SQLException {
         var lista = usuarioRepository.listarAtivos();
         var crypto = new CryptoManager();

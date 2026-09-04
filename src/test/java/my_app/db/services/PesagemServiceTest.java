@@ -173,7 +173,7 @@ class PesagemServiceTest extends BaseServiceTest {
     void filtrarComRelacoesRetornaClienteEProdutoAnexados() throws Exception {
         pesagemService.salvar(pesagemValida());
 
-        var resultado = pesagemService.filtrar("ABC1D23", null, null, null, null, null);
+        var resultado = pesagemService.filtrar("ABC1D23", null, null, null, null, null, null);
 
         assertEquals(1, resultado.size());
         assertNotNull(resultado.getFirst().getCliente());

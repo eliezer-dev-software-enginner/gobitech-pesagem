@@ -43,7 +43,8 @@ public class PesagemRepository extends BaseRepository<PesagemModel> {
      * de cliente/produto ignorar os outros campos preenchidos.
      */
     public List<PesagemModel> filtrar(String placa, String motoristaNome, Integer clienteId,
-                                       Integer produtoId, Long dataInicioMillis, Long dataFimMillis) throws SQLException {
+                                       Integer produtoId, Long dataInicioMillis, Long dataFimMillis,
+                                       String tipoPesagem) throws SQLException {
         var condicoes = new ArrayList<String>();
         var valores = new ArrayList<Object>();
 
@@ -62,6 +63,10 @@ public class PesagemRepository extends BaseRepository<PesagemModel> {
         if (produtoId != null) {
             condicoes.add("produto_id = ?");
             valores.add(produtoId);
+        }
+        if (tipoPesagem != null && !tipoPesagem.isBlank()) {
+            condicoes.add("tipo_pesagem = ?");
+            valores.add(tipoPesagem);
         }
         if (dataInicioMillis != null) {
             condicoes.add("dataCriacao >= ?");

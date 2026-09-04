@@ -22,7 +22,7 @@ public class PesagemSaidaScreen extends PesagemFormScreen {
 
     @Override
     protected boolean permitirCapturarTara() {
-        return false;
+        return true;
     }
 
     @Override

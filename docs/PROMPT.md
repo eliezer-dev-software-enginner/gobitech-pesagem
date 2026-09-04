@@ -28,4 +28,4 @@ Após cada tarefa:
 - Atualize docs/TODO.md.
 - Mantenha os arquivos concisos.
 
-Prompt: Em testes-pesagem.md adicione a coluna de Resultado assim como em testes-manuais.md.
+Prompt: em UsuariosDetails está mostrando o dado hasheado, corrija isso.

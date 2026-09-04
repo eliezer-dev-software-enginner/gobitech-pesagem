@@ -1,5 +1,26 @@
 # TODO
 
+## Concluído (pesos da pesagem: captura x digitação por tipo de tela — 2026-09-03)
+- [x] `PesagemFormScreen`: novos hooks `taraEditavel()`/`brutoEditavel()` + lógica no
+      `secaoPesos` — campo com botão "Capturar" fica somente-leitura (borda vermelha); campo sem
+      botão e não-editável também fica somente-leitura
+- [x] `Components`: overloads `InputColumnInteger(..., disableInput)` e
+      `InputWithButtonRowInteger(..., disableInput)`
+- [x] **Entrada**: tara + bruto só capturam (não digitam)
+- [x] **Saída**: tara somente-leitura sem botão (vem da entrada, `taraEditavel()=false`); bruto
+      só captura
+- [x] **Avulsa**: tara digitada (sem botão — reverte o Item 7); bruto só captura
+- [x] **Manual**: tara + bruto digitados, sem botão (inalterado)
+- [x] `./gradlew test`: **BUILD SUCCESSFUL**
+
+## Concluído (fix — Details usuário exibindo login hasheado — 2026-09-03)
+- [x] `UsuarioService.buscarById(long)` agora decripta `login`/`senha` antes de devolver o
+      model (override sobre o `BaseService`), mesmo padrão de `buscarPorLogin`/`listarAtivos` —
+      corrige `DetailsUsuarioScreen` (mostrava o login criptografado) e `AddOrEditUsuarioScreen`
+      (`populateFieldsFromModel`)
+- [x] `UsuarioServiceTest.deveRetornarLoginESenhaEmTextoPuroAoBuscarPorId` novo — `./gradlew
+      test`: **BUILD SUCCESSFUL**
+
 ## Concluído (lote de melhorias de UX/polimento — 2026-09-02)
 - [x] **Item 1 — botão copiar placa**: novo botão "Copiar placa" no modal de detalhes do
       histórico (`PesagemHistoricoScreen.itemDetails`) que copia a placa pra área de

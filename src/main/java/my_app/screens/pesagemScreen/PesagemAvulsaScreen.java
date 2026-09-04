@@ -16,4 +16,9 @@ public class PesagemAvulsaScreen extends PesagemFormScreen {
     protected PesagemFormViewModel criarViewModel(ScreenContext ctx) {
         return new PesagemAvulsaViewModel(ctx);
     }
+
+    @Override
+    protected boolean permitirCapturarTara() {
+        return false;
+    }
 }

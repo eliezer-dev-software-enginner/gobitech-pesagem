@@ -48,6 +48,32 @@ ver `DECISIONS.md` pras decisões específicas de cada troca.
 **Fora da Fase 1, adiado pra Fase 2**: câmera Intelbras (`camera_settings` — tabela nem foi
 criada ainda). Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTREGAS.md`.
 
+## Estado atual (2026-09-03)
+- **Inputs desativados com borda vermelha**: os pesos somente-captura (Entrada/Saída) e a tara
+  somente-leitura da Saída agora usam a mesma borda vermelha (`#e74c3c`) do "Peso líquido" —
+  `Components.InputColumnInteger(..., disableInput=true)` aplica borda vermelha quando desativado
+  (antes os desativados ficavam com a borda padrão). Ver `DECISIONS.md`.
+- Testes: `./gradlew test` → **BUILD SUCCESSFUL**.
+
+## Estado atual (2026-09-03)
+- **Pesos da pesagem: captura x digitação por tipo** — `PesagemFormScreen` agora separa
+  `permitirCapturar*` (mostra botão "Capturar") de `*Editavel()` (aceita digitação); quando há
+  botão de captura o campo fica somente-leitura (borda vermelha), e novos overloads
+  `InputColumnInteger`/`InputWithButtonRowInteger` com `disableInput`. Resultado: **Entrada** =
+  tara+bruto captura-only; **Saída** = tara somente-leitura (vem da entrada) + bruto captura-only;
+  **Avulsa** = tara digitada (sem botão) + bruto captura-only; **Manual** = tara+bruto digitados
+  (sem botão). Reverte o Item 7 (botão "Capturar" na tara da avulsa). Ver `DECISIONS.md`.
+- Testes: `./gradlew test` → **BUILD SUCCESSFUL**.
+
+## Estado atual (2026-09-03)
+- **Fix — Details/Busca de usuário exibiam o login hasheado**: `UsuarioService` ganhou
+  override de `buscarById(long)` que decripta `login`/`senha` (texto puro na fronteira com as
+  telas, igual `buscarPorLogin`/`listarAtivos`). Corrige `DetailsUsuarioScreen` (que mostrada o
+  login criptografado) e `AddOrEditUsuarioScreen` (`populateFieldsFromModel`). Login/senha
+  continuam sempre criptografados em repouso — ver `DECISIONS.md`.
+- Testes: `./gradlew test` → **BUILD SUCCESSFUL** (novo
+  `UsuarioServiceTest.deveRetornarLoginESenhaEmTextoPuroAoBuscarPorId`).
+
 ## Estado atual (2026-09-02)
 - **Peso da balança em tempo real no dashboard** (HOME): o `DashboardViewModel` ganhou a mesma
   leitura contínua da balança do formulário de pesagem (`pesoAoVivo` + `lendoBalanca`, via

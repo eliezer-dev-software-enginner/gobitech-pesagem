@@ -70,29 +70,22 @@ public class HomeScreen implements ScreenComponent {
     }
 
     private Component menuBar() {
-        var suporteMenu = new Menu("Logs")
-                .textColor(Sidebar.TEXT_COLOR)
-                .item("Ver logs da aplicação", () -> ctx.router().spawnWindow(AppRoutes.Screens.LOGS.name(), e -> {}));
-        
-        var gerencialMenu = new Menu("Gerencial")
-                .textColor(Sidebar.TEXT_COLOR)
-                .item("Empresa", () -> ctx.router().spawnWindow(AppRoutes.Screens.EMPRESA.name(), e -> {}))
-                .item("Conexão da balança", () -> ctx.router().spawnWindow(AppRoutes.Screens.CONEXAO_BALANCA.name(), e -> {}))
-                .item("Produtos", () -> ctx.router().spawnWindow(AppRoutes.Screens.PRODUTOS.name(), e -> {}))
-                .item("Clientes", () -> ctx.router().spawnWindow(AppRoutes.Screens.CLIENTES.name(), e -> {}))
-                //TODO: Só deve liverar se admin SessaoUsuario.isAdmin()
-                .item("Usuários do sistema", () -> ctx.router().spawnWindow(AppRoutes.Screens.USUARIOS.name(), e -> {}));
+        boolean isAdmin = SessaoUsuario.isAdmin();
                // .item("Conexão das câmeras", () -> ctx.router().spawnWindow(AppRoutes.Screens.CONEXAO_CAMERA.name(), e -> {}));
-
-        // Só quem está logado como admin vê a opção de gerar licença — ver
-        // SessaoUsuario/DECISIONS.md (André usa seu login de admin em qualquer PC).
-        if (SessaoUsuario.isAdmin()) {
-            gerencialMenu.item("Gerar licença", () -> ctx.router().spawnWindow(AppRoutes.Screens.LICENSA.name(), e -> {}));
-        }
 
         return new MenuBar()
                 .bgColor(Sidebar.BG)
-                .menu(gerencialMenu)
-                .menu(suporteMenu);
+                .menu(new Menu("Gerencial")
+                        .textColor(Sidebar.TEXT_COLOR)
+                        .item("Empresa", () -> ctx.router().spawnWindow(AppRoutes.Screens.EMPRESA.name(), e -> {}))
+                        .item("Conexão da balança", () -> ctx.router().spawnWindow(AppRoutes.Screens.CONEXAO_BALANCA.name(), e -> {}))
+                        .item("Produtos", () -> ctx.router().spawnWindow(AppRoutes.Screens.PRODUTOS.name(), e -> {}))
+                        .item("Clientes", () -> ctx.router().spawnWindow(AppRoutes.Screens.CLIENTES.name(), e -> {}))
+                        //TODO: Só deve liverar se admin SessaoUsuario.isAdmin()
+                        .itemIf(isAdmin,"Usuários do sistema", () -> ctx.router().spawnWindow(AppRoutes.Screens.USUARIOS.name(), e -> {}))
+                        .itemIf(isAdmin,"Gerar licença", () -> ctx.router().spawnWindow(AppRoutes.Screens.LICENSA.name(), e -> {})))
+                .menu(new Menu("Logs")
+                        .textColor(Sidebar.TEXT_COLOR)
+                        .item("Ver logs da aplicação", () -> ctx.router().spawnWindow(AppRoutes.Screens.LOGS.name(), e -> {})));
     }
 }

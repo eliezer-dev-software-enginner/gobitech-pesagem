@@ -45,8 +45,27 @@ public abstract class PesagemFormScreen implements ScreenComponent {
         return true;
     }
 
+    /**
+     * Se o campo de peso bruto aceita digitação. Quando {@code permitirCapturarBruto()} é
+     * verdadeiro o campo fica somente-leitura (o valor só entra pelo botão "Capturar") —
+     * este hook cobre os casos sem botão de captura onde o peso também não deve ser digitado.
+     */
+    protected boolean brutoEditavel() {
+        return true;
+    }
+
     /** Se o botão "Capturar" da tara fica visível (Manual não; Saída puxa da entrada). */
     protected boolean permitirCapturarTara() {
+        return true;
+    }
+
+    /**
+     * Se o campo da tara aceita digitação. Quando {@code permitirCapturarTara()} é verdadeiro o
+     * campo fica somente-leitura (o valor só entra pelo botão "Capturar") — este hook cobre os
+     * casos sem botão de captura onde a tara também não deve ser digitada (ex.: a Saída, que
+     * recebe a tara da entrada).
+     */
+    protected boolean taraEditavel() {
         return true;
     }
 
@@ -118,16 +137,28 @@ public abstract class PesagemFormScreen implements ScreenComponent {
 
         var linha = new FlowRow(new FlowRowProps().spacingOf(10));
         linha.children(
-                permitirCapturarTara()
-                        ? Components.InputWithButtonRowInteger("Tara (Kg)", "Ex: 8500", "Capturar", vm.pesoVeiculo, vm::capturarTara)
-                        : Components.InputColumnInteger("Tara (Kg)", vm.pesoVeiculo, "Ex: 8500"),
-                permitirCapturarBruto()
-                        ? Components.InputWithButtonRowInteger("Peso bruto (Kg)", "Ex: 32000", "Capturar", vm.pesoTotal, vm::capturarPesoBruto)
-                        : Components.InputColumnInteger("Peso bruto (Kg)", vm.pesoTotal, "Ex: 32000"),
-                Components.InputColumn("Peso líquido (Kg)", vm.pesoFinal, "", true)
+                componenteTara(),
+                componenteBruto(),
+                Components.InputColumnInteger("Peso líquido (Kg)", vm.pesoFinal, "", true)
         );
 
         return pesos.c_child(linha);
+    }
+
+    private Component componenteTara() {
+        if (permitirCapturarTara()) {
+            return Components.InputWithButtonRowInteger("Tara (Kg)", "Ex: 8500", "Capturar",
+                    vm.pesoVeiculo, vm::capturarTara, true);
+        }
+        return Components.InputColumnInteger("Tara (Kg)", vm.pesoVeiculo, "Ex: 8500", !taraEditavel());
+    }
+
+    private Component componenteBruto() {
+        if (permitirCapturarBruto()) {
+            return Components.InputWithButtonRowInteger("Peso bruto (Kg)", "Ex: 32000", "Capturar",
+                    vm.pesoTotal, vm::capturarPesoBruto, true);
+        }
+        return Components.InputColumnInteger("Peso bruto (Kg)", vm.pesoTotal, "Ex: 32000", !brutoEditavel());
     }
 
     private Component secaoDescontos() {

@@ -105,4 +105,12 @@ class UsuarioServiceTest extends BaseServiceTest {
     void deveLancarExcecaoAoInativarUsuarioInexistente() {
         assertThrows(IllegalArgumentException.class, () -> usuarioService.inativar(9999));
     }
+
+    @Test
+    void deveRetornarLoginESenhaEmTextoPuroAoBuscarPorId() throws Exception {
+        var salvo = usuarioService.salvar(usuarioValido());
+        var buscado = usuarioService.buscarById(salvo.getId());
+        assertEquals("maria", buscado.getLogin());
+        assertEquals("1234", buscado.getSenha());
+    }
 }

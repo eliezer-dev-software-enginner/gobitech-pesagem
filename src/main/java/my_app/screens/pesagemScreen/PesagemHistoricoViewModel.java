@@ -4,9 +4,12 @@ import megalodonte.base.async.Async;
 import megalodonte.base.UI;
 import megalodonte.base.state.State;
 import megalodonte.router.v4.ScreenContext;
+import megalodonte.v2.ListState;
 import my_app.core.events.PesagemEvent;
 import my_app.core.events.EventBus;
+import my_app.db.models.ClienteModel;
 import my_app.db.models.PesagemModel;
+import my_app.db.services.ClienteService;
 import my_app.db.services.EmpresaService;
 import my_app.db.services.PesagemService;
 import my_app.domain.ViewModelScreenContract;
@@ -21,6 +24,10 @@ import org.slf4j.LoggerFactory;
 import javafx.stage.FileChooser;
 import java.io.File;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
 
 /**
  * ViewModel do histórico de pesagens (a única tela de pesagem que é CRUD de listagem —
@@ -33,6 +40,7 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
 
     private final PesagemService pesagemService;
     private final EmpresaService empresaService;
+    private final ClienteService clienteService;
     private final TicketPdfExporter ticketPdfExporter = new TicketPdfExporter();
     private final TicketThermalExporter ticketThermalExporter = new TicketThermalExporter();
     @SuppressWarnings("rawtypes")
@@ -40,15 +48,42 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
 
     final State<String> filtroPlaca = new State<>("");
     final State<String> filtroMotorista = new State<>("");
+    final State<String> filtroTipo = State.of(null);
+    final State<ClienteModel> filtroCliente = State.of(null);
+    final ListState<ClienteModel> clientesFiltroState = ListState.ofEmpty();
     final State<LocalDate> filtroDataInicio = State.of(null);
     final State<LocalDate> filtroDataFim = State.of(null);
+
+    static final String TIPO_TODOS = "Todos";
+    static final List<String> tiposPesagemOpcoes = List.of(
+            TIPO_TODOS, "Entrada", "Saída", "Avulsa", "Manual");
 
     public PesagemHistoricoViewModel(ScreenContext ctx) {
         super(ctx);
         this.pesagemService = createOrReport(PesagemService::new);
         this.empresaService = createOrReport(EmpresaService::new);
+        this.clienteService = createOrReport(ClienteService::new);
 
         EventBus.getInstance().subscribe(eventListener);
+        carregarClientes();
+    }
+
+    private void carregarClientes() {
+        Async.Run(() -> {
+            try {
+                var clientes = clienteService.listar();
+                UI.runOnUi(() -> {
+                    var todos = new ClienteModel();
+                    var lista = new ArrayList<ClienteModel>();
+                    lista.add(todos);
+                    if (clientes != null) lista.addAll(clientes);
+                    clientesFiltroState.set(lista);
+                });
+            } catch (Exception e) {
+                log.error("Erro ao carregar clientes pro filtro", e);
+                UI.runOnUi(() -> Components.ShowAlertError("Erro ao carregar clientes: " + e.getMessage()));
+            }
+        });
     }
 
     // Reage a pesagem criada/excluída pra manter a lista atualizada — desinscrito no
@@ -90,10 +125,14 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
                 Long fimMillis = filtroDataFim.get() == null ? null
                         : DatePack.localDateParaMillis(filtroDataFim.get()) + 86399999L;
 
+                var cliente = filtroCliente.get();
+                Integer clienteId = (cliente == null || cliente.getId() == null) ? null : cliente.getId();
+                String tipo = tipoChave(filtroTipo.get());
+
                 var list = pesagemService.filtrar(
                         filtroPlaca.get().isBlank() ? null : filtroPlaca.get().trim(),
                         filtroMotorista.get().isBlank() ? null : filtroMotorista.get().trim(),
-                        null, null, inicioMillis, fimMillis
+                        clienteId, null, inicioMillis, fimMillis, tipo
                 );
                 UI.runOnUi(() -> allDataList.set(list));
             } catch (Exception e) {
@@ -101,6 +140,17 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
                 UI.runOnUi(() -> Components.ShowAlertError("Erro ao filtrar: " + e.getMessage()));
             }
         });
+    }
+
+    private String tipoChave(String label) {
+        if (label == null || TIPO_TODOS.equals(label)) return null;
+        return switch (label) {
+            case "Entrada" -> "entrada";
+            case "Saída" -> "saida";
+            case "Avulsa" -> "avulsa";
+            case "Manual" -> "manual";
+            default -> null;
+        };
     }
 
     @Override
@@ -147,6 +197,7 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
         EventBus.getInstance().unsubscribe(eventListener);
         this.pesagemService.close();
         this.empresaService.close();
+        this.clienteService.close();
     }
 
     /**

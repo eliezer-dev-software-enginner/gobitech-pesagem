@@ -131,7 +131,7 @@ class PesagemRepositoryTest extends BaseRepositoryTest {
         repository.salvar(outraPlaca);
 
         // placa E motorista devem combinar (AND) — não bastar um dos dois
-        var resultado = repository.filtrar("AAA1111", "Outro Motorista", null, null, null, null);
+        var resultado = repository.filtrar("AAA1111", "Outro Motorista", null, null, null, null, null);
 
         assertTrue(resultado.isEmpty());
     }
@@ -154,7 +154,7 @@ class PesagemRepositoryTest extends BaseRepositoryTest {
         // filtrando pela placa da primeira pesagem, mas pelo cliente da segunda — não
         // deve retornar nada, já que os filtros são combinados por AND (bug do app
         // original: um OR aqui faria essa combinação "vazar" e retornar a primeira)
-        var resultado = repository.filtrar("AAA1111", null, outroClienteId, null, null, null);
+        var resultado = repository.filtrar("AAA1111", null, outroClienteId, null, null, null, null);
 
         assertTrue(resultado.isEmpty());
     }
@@ -164,7 +164,7 @@ class PesagemRepositoryTest extends BaseRepositoryTest {
         repository.salvar(novaPesagem("AAA1111"));
         repository.salvar(novaPesagem("BBB2222"));
 
-        var resultado = repository.filtrar(null, null, null, null, null, null);
+        var resultado = repository.filtrar(null, null, null, null, null, null, null);
 
         assertEquals(2, resultado.size());
     }
@@ -201,8 +201,27 @@ class PesagemRepositoryTest extends BaseRepositoryTest {
     void filtrarPorPlacaIgnoraMaiusculaMinuscula() throws SQLException {
         repository.salvar(novaPesagem("abc1d23"));
 
-        var resultado = repository.filtrar("ABC1D23", null, null, null, null, null);
+        var resultado = repository.filtrar("ABC1D23", null, null, null, null, null, null);
 
         assertEquals(1, resultado.size());
+    }
+
+    @Test
+    void filtrarPorTipoRetornaSomenteDesseTipo() throws SQLException {
+        repository.salvar(novaPesagem("AAA1111")); // entrada
+        var saida = novaPesagem("BBB2222");
+        saida.setTipoPesagem("saida");
+        repository.salvar(saida);
+        var avulsa = novaPesagem("CCC3333");
+        avulsa.setTipoPesagem("avulsa");
+        repository.salvar(avulsa);
+
+        var entradas = repository.filtrar(null, null, null, null, null, null, "entrada");
+        var saidas = repository.filtrar(null, null, null, null, null, null, "saida");
+
+        assertEquals(1, entradas.size());
+        assertEquals("entrada", entradas.get(0).getTipoPesagem());
+        assertEquals(1, saidas.size());
+        assertEquals("saida", saidas.get(0).getTipoPesagem());
     }
 }

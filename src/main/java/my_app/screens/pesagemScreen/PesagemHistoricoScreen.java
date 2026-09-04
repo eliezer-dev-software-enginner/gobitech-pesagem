@@ -83,6 +83,9 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
                                 .children(
                                         Components.InputColumn("Placa", vm.filtroPlaca, "Ex: ABC1D23"),
                                         Components.InputColumn("Motorista", vm.filtroMotorista, "Ex: João"),
+                                        Components.SelectColumn("Tipo", PesagemHistoricoViewModel.tiposPesagemOpcoes, vm.filtroTipo, it -> it),
+                                        Components.SelectColumn("Cliente", vm.clientesFiltroState, vm.filtroCliente,
+                                                c -> c.getId() == null ? "Todos" : c.getLoja(), true),
                                         Components.DatePickerColumn(vm.filtroDataInicio, "Data início"),
                                         Components.DatePickerColumn(vm.filtroDataFim, "Data fim")
                                 )
@@ -144,20 +147,28 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
 
     private Row acoesLista() {
         return new Row(new RowProps().spacingOf(10).hugWidth()).children(
-                botaoAcao("Exportar relatório", "black", "#CDD7D6", Entypo.DOWNLOAD, this::handleClickBaixarLista),
-                botaoAcao("Excluir", "white", "#E55934", Entypo.TRASH, this::handleClickMenuDelete)
+                Components.actionButton("Baixar ticket", "white", "#16a34a", Entypo.DOWNLOAD,  ()-> {
+                   var m = vm.selected.get();
+                   if(m == null){
+                       Components.ShowAlertError("Selecione o item primeiro");
+                       return;
+                   }
+                   vm.imprimirTicket(m);
+                }),
+                Components.actionButton("Imprimir nota térmica 80mm", "white", "#16a34a", Entypo.DOWNLOAD,  ()-> {
+                    var m = vm.selected.get();
+                    if(m == null){
+                        Components.ShowAlertError("Selecione o item primeiro");
+                        return;
+                    }
+                    vm.imprimirTicketTermica(m);
+                }),
+                //botaoAcao("Exportar relatório", "black", "#CDD7D6", Entypo.DOWNLOAD, this::handleClickBaixarLista),
+                //botaoAcao("Exportar relatório", "black", "#CDD7D6", Entypo.DOWNLOAD, this::handleClickBaixarLista),
+                Components.actionButton("Exportar relatório", "black", "#CDD7D6", Entypo.DOWNLOAD, this::handleClickBaixarLista),
+                Components.actionButton("Excluir", "white", "#E55934", Entypo.TRASH, this::handleClickMenuDelete)
         );
     }
-
-    private Button botaoAcao(String title, String color, String bgColor, org.kordamp.ikonli.Ikon ikon,
-                             megalodonte.base.async.RunnableThrowing onclick) {
-        return new Button(title, new ButtonProps()
-                .bgColor(bgColor)
-                .textColor(color))
-                .onClick(onclick)
-                .icon(Components.ikon(ikon, 10, color));
-    }
-
 
     @Override
     public void exportPdf(File destino, EmpresaModel empresa, List<PesagemModel> snapshotFiltrado) throws Exception {

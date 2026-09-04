@@ -1,5 +1,54 @@
 # Decisões Arquiteturais
 
+## 2026-09-03: Pesos da pesagem — captura x digitação por tipo de tela
+
+**Contexto:** o usuário definiu o papel de cada campo de peso nas 4 telas de pesagem:
+- **Avulsa**: a tara é digitada (não capturável); o bruto é capturado.
+- **Entrada e Saída**: os pesos não podem ser digitados — só capturados da balança.
+
+**Decisão:** a tela-base `PesagemFormScreen` passou a separar dois conceitos por campo,
+`permitirCapturar*` (mostra o botão "Capturar") e `*Editavel()` (aceita digitação). Regra no
+`secaoPesos`:
+- Tem botão "Capturar" → campo **somente-leitura** (borda vermelha) + botão:
+  `InputWithButtonRowInteger(..., disableInput=true)` (novo overload).
+- Sem botão mas `*Editavel()=false` → campo somente-leitura sem botão:
+  `InputColumnInteger(..., disableInput=true)` (novo overload).
+- Sem botão e editável → campo digitável como antes.
+
+**Comportamento resultante por tela:**
+- **Entrada**: tara e bruto = captura-only.
+- **Saída**: tara = somente-leitura sem botão (vem da entrada, `taraEditavel()=false`); bruto =
+  captura-only.
+- **Avulsa**: tara = digitável (sem botão, revertido do Item 7); bruto = captura-only.
+- **Manual**: tara e bruto = digitáveis, sem botão (já era assim).
+
+Nota: isso **reverte** a decisão do Item 7 (2026-09-02) que habilitava "Capturar" na tara da
+avulsa — o usuário confirmou que a tara da avulsa é digitada.
+
+**Testado:** `./gradlew test` → **BUILD SUCCESSFUL**.
+
+---
+
+## 2026-09-03: Fix — Details usuario exibindo login/senha hasheados
+
+**Contexto:** a tela `DetailsUsuarioScreen` (`usuarioScreen`) exibia o **Login hasheado**
+(criptografado), porque chamava `usuarioService.buscarById(id)` que vinha do `BaseService` e
+retornava o model cru com `login`/`senha` criptografados, sem decriptar.
+
+**Decisão:** `UsuarioService` ganhou um **override de `buscarById(long)`** que decripta
+`login` e `senha` antes de devolver o model — mesmo padrão já usado por `buscarPorLogin` e
+`listarAtivos` (texto puro na fronteira com as telas, criptografado em repouso no banco). Isso
+corrige o `DetailsUsuarioScreen` **e** o `AddOrEditUsuarioScreen` (que também usa
+`buscarById` → `populateFieldsFromModel`), que passam a receber login/senha legíveis no
+preenchimento/formulário. No salvar/atualizar o `UsuarioService` continua re-criptografando
+(login/senha ficam sempre cifrados em repouso).
+
+**Testado:** novo `UsuarioServiceTest.deveRetornarLoginESenhaEmTextoPuroAoBuscarPorId`
+(persiste, busca por id e confere login `maria`/senha `1234` em texto puro). `./gradlew test`
+→ **BUILD SUCCESSFUL**.
+
+---
+
 ## 2026-09-02: Migrar utilitários da classe Utils para o pacote `pack-utilities`
 
 **Contexto:** o usuário adicionou a dependência `com.github.eliezer-dev-software-enginner:pack-utilities:v1.0.0` (JitPack → pacote `pack.utilities.*`) e pediu pra usar os métodos do pacote e enxugar a classe `my_app.utils.Utils`, deixando **somente `timestampParaArquivo()`**.
