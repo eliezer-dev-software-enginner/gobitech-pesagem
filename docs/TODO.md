@@ -51,10 +51,15 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
   **Corrigido: `PesagemService.salvar/atualizar` validam `tipoPesagem` obrigatório e bruto<tara
   (só quando ambos pesos > 0 — fluxo "só Tara"/C1 permitido); `DescontoService.salvar/atualizar`
   validam soma>100. Testes novos em `PesagemServiceTest`/`DescontoServiceTest`.**
-- **A9** Testes — **nenhum teste de ViewModel**; regras críticas só em teste manual
+- **[x] A9** Testes — **nenhum teste de ViewModel**; regras críticas só em teste manual
   (`testes-pesagem.md` H4/G4): soma>100, bruto<tara, salvar sem peso, `preencherDaEntrada`,
-  `capturarFotos`. — Sugestão: extrair regras pra classes puras (padrão `PesagemCalculo`) e
-  testar.
+  `capturarFotos`. — **Corrigido 2026-09-08: regras extraídas pro `my_app/domain/pesagem/
+  PesagemRegras.java` (classe pura, padrão `PesagemCalculo` — importável em teste JUnit sem
+  thread do JavaFX): `somarDescontos`/`descontosUltrapassam100`, `liquidoNegativo`,
+  `nenhumPesoInformado`, `preencherDaEntrada` (record `PreenchimentoEntrada`), `usarSlot2`/
+  `nomeArquivoFoto`. `PesagemFormViewModel.salvar/calcLiquido` e `PesagemSaidaViewModel.
+  preencherDaEntrada` delegam a ela. `PesagemRegrasTest` novo (20 casos) — `./gradlew test` →
+  BUILD SUCCESSFUL.**
 - **[x] A10** `scripts/updater_config.py:9`, `scripts/create-msi-with-updater.py` — `UPDATER_MAIN_CLASS
   = "my_app.updater.Main"` aponta pra pacote/classe **inexistentes** (UpdaterService removido) →
   jpackage gera launcher "Updater" morto. — **Corrigido: 3 scripts "with-updater" +

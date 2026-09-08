@@ -1,5 +1,34 @@
 # Decisões Arquiteturais
 
+## 2026-09-08: A9 — regras críticas da pesagem extraídas pro `PesagemRegras` (testáveis)
+
+**Contexto:** a vistoria (A9) apontou que as ViewModels de pesagem não tinham teste nenhum e que
+regras críticas (H4: descontos > 100%; G4: bruto < tara; F2/G6: salvar sem peso;
+`preencherDaEntrada`; `capturarFotos`) só eram cobertas por teste manual. A ViewModel não pode
+ser instanciada em teste JUnit puro: o construtor dispara `Async.Run`/`UI.runOnUi`, que exigem o
+toolkit do JavaFX (mesma razão do `PesagemCalculo`).
+
+**Decisão:** as regras foram extraídas pra **classe pura** `my_app/domain/pesagem/PesagemRegras.java`
+(padrão `PesagemCalculo`), com a ViewModel passando a delegar:
+- `somarDescontos(String...)` / `descontosUltrapassam100(BigDecimal)` — soma dos 8 descontos e
+  teto de 100% (parse igual ao antigo `parseDecimal`: campo com vírgula ok, texto inválido = 0);
+- `liquidoNegativo(bruto, tara, percentual)` — com algum peso vazio retorna `false` (fluxo "só
+  Tara"/manual sem bruto continua permitido, mesmo comportamento de antes);
+- `nenhumPesoInformado(tara, bruto)` — ambos vazios → pede confirmação;
+- `preencherDaEntrada(entrada, clientes, produtos)` → `record PreenchimentoEntrada` (campos
+  nulos viram vazio, pesos arredondados pra inteiro, cliente/produto resolvidos por id na lista
+  carregada, sem tocar em State nem banco);
+- `usarSlot2(tipoPesagem)` / `nomeArquivoFoto(...)` — slot 1 pra entrada/avulsa/manual e slot 2
+  pra saída, nome `pesagem_<id>_<frente|costas>_<1|2>.jpg`.
+
+`PesagemFormViewModel.salvar()`/`calcLiquido()` e `PesagemSaidaViewModel.preencherDaEntrada()`
+agora delegam à classe pura — comportamento idêntico, só o local da regra mudou.
+
+**Testado:** `PesagemRegrasTest` novo com 20 casos cobrindo as 5 regras; `./gradlew test` →
+**BUILD SUCCESSFUL**.
+
+---
+
 ## 2026-09-08: M9 — validações de telefone/CEP/CPF/CNPJ centralizadas em `Validacoes`
 
 **Contexto:** a vistoria (M9) apontou que as validações de formato de campos opcionais estavam

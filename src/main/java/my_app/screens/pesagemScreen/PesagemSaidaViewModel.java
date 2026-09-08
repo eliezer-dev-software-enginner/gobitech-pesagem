@@ -5,6 +5,7 @@ import megalodonte.base.async.Async;
 import megalodonte.router.v4.ScreenContext;
 import my_app.db.models.PesagemModel;
 import my_app.domain.components.Components;
+import my_app.domain.pesagem.PesagemRegras;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,29 +53,14 @@ public class PesagemSaidaViewModel extends PesagemFormViewModel {
     }
 
     private void preencherDaEntrada(PesagemModel entrada) {
-        motoristaNome.set(entrada.getMotoristaNome() == null ? "" : entrada.getMotoristaNome());
-        motoristaDocumento.set(entrada.getMotoristaDocumento() == null ? "" : entrada.getMotoristaDocumento());
-        notaFiscal.set(entrada.getNotaFiscal() == null ? "" : entrada.getNotaFiscal());
-
-        if (entrada.getPesoVeiculo() != null) {
-            pesoVeiculo.set(arrInt(entrada.getPesoVeiculo()));
-        }
-        if (entrada.getPesoTotal() != null) {
-            pesoTotal.set(arrInt(entrada.getPesoTotal()));
-        }
-
-        if (entrada.getClienteId() != null) {
-            clientesState.get().stream()
-                    .filter(c -> c.getId().equals(entrada.getClienteId()))
-                    .findFirst()
-                    .ifPresent(clienteSelected::set);
-        }
-        if (entrada.getProdutoId() != null) {
-            produtosState.get().stream()
-                    .filter(p -> p.getId().equals(entrada.getProdutoId()))
-                    .findFirst()
-                    .ifPresent(produtoSelected::set);
-        }
+        var dados = PesagemRegras.preencherDaEntrada(entrada, clientesState.get(), produtosState.get());
+        motoristaNome.set(dados.motoristaNome());
+        motoristaDocumento.set(dados.motoristaDocumento());
+        notaFiscal.set(dados.notaFiscal());
+        pesoVeiculo.set(dados.pesoVeiculo());
+        pesoTotal.set(dados.pesoTotal());
+        if (dados.cliente() != null) clienteSelected.set(dados.cliente());
+        if (dados.produto() != null) produtoSelected.set(dados.produto());
     }
 
     @Override

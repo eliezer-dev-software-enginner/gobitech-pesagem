@@ -51,6 +51,16 @@ menu "Conexão das câmeras" está **comentado** em `HomeScreen.java:74`, deixan
 pela UI (pendência M3 da vistoria). Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTREGAS.md`.
 
 ## Estado atual (2026-09-08)
+- **A9 corrigido** (Vistoria pendente): regras críticas da pesagem deixaram de morar só na
+  ViewModel — extraídas pro **`my_app/domain/pesagem/PesagemRegras.java`** (classe pura, padrão
+  `PesagemCalculo`, testável sem a thread do JavaFX): `somarDescontos`/`descontosUltrapassam100`
+  (H4), `liquidoNegativo` (G4), `nenhumPesoInformado` (F2/G6), `preencherDaEntrada` (D2 → record
+  `PreenchimentoEntrada`) e `usarSlot2`/`nomeArquivoFoto` (capturarFotos). `PesagemFormViewModel.
+  salvar`/`calcLiquido` e `PesagemSaidaViewModel.preencherDaEntrada` delegam a ela. Ver
+  `DECISIONS.md` 2026-09-08. Testes: `./gradlew test` → **BUILD SUCCESSFUL**
+  (`PesagemRegrasTest` novo, +20).
+
+## Estado atual (2026-09-08)
 - **M9 corrigido** (Vistoria pendente): validações de telefone/CEP/CPF/CNPJ centralizadas em
   `my_app/utils/Validacoes.java` (`validarTelefone`/`validarCep`/`validarCpfCnpj` — nulo/branco
   passa, formato inválido lança `IllegalArgumentException` com mensagem padronizada), usado

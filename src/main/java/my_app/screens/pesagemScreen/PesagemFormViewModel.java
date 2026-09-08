@@ -22,6 +22,7 @@ import my_app.db.services.DescontoService;
 import my_app.db.services.PesagemService;
 import my_app.db.services.ProdutoService;
 import my_app.domain.components.Components;
+import my_app.domain.pesagem.PesagemRegras;
 import my_app.infra.balanca.LeitorBalanca;
 import my_app.infra.balanca.LeitorBalancaFactory;
 import my_app.infra.balanca.PesagemCalculo;
@@ -237,17 +238,13 @@ public abstract class PesagemFormViewModel {
     }
 
     /**
-     * Soma os 8 percentuais de desconto da pesagem.
+     * Soma os 8 percentuais de desconto da pesagem, delegando a {@link PesagemRegras} (testável
+     * isoladamente).
      */
     private BigDecimal somaDescontos() {
-        return parseDecimal(avariados.get())
-                .add(parseDecimal(ardidos.get()))
-                .add(parseDecimal(quebraArdidos.get()))
-                .add(parseDecimal(impurezas.get()))
-                .add(parseDecimal(quebraImpurezas.get()))
-                .add(parseDecimal(umidade.get()))
-                .add(parseDecimal(quebraUmidade.get()))
-                .add(parseDecimal(outros.get()));
+        return PesagemRegras.somarDescontos(avariados.get(), ardidos.get(),
+                quebraArdidos.get(), impurezas.get(), quebraImpurezas.get(),
+                umidade.get(), quebraUmidade.get(), outros.get());
     }
 
     /**
@@ -345,18 +342,15 @@ public abstract class PesagemFormViewModel {
      */
     public void salvar() {
         var percentualDesconto = somaDescontos();
-        if (percentualDesconto.compareTo(new BigDecimal("100")) > 0) {
+        if (PesagemRegras.descontosUltrapassam100(percentualDesconto)) {
             Components.ShowAlertError("A soma dos descontos não pode ultrapassar 100%.");
             return;
         }
-        if (!pesoTotal.get().isBlank() && !pesoVeiculo.get().isBlank()) {
-            var liquidoFinal = calcLiquido();
-            if (liquidoFinal != null && liquidoFinal.compareTo(BigDecimal.ZERO) < 0) {
-                Components.ShowAlertError("Peso bruto não pode ser menor que a Tara (peso líquido estaria negativo).");
-                return;
-            }
+        if (PesagemRegras.liquidoNegativo(pesoTotal.get(), pesoVeiculo.get(), percentualDesconto)) {
+            Components.ShowAlertError("Peso bruto não pode ser menor que a Tara (peso líquido estaria negativo).");
+            return;
         }
-        if (pesoVeiculo.get().isBlank() && pesoTotal.get().isBlank()) {
+        if (PesagemRegras.nenhumPesoInformado(pesoVeiculo.get(), pesoTotal.get())) {
             Components.ShowAlertAdvice(
                     "Nenhum peso foi informado (Tara e Peso bruto vazios). Deseja salvar mesmo assim?",
                     this::executarSalvamento);
@@ -410,7 +404,7 @@ public abstract class PesagemFormViewModel {
         }
         if (config == null) return;
 
-        boolean slot2 = "saida".equals(tipoPesagem());
+        boolean slot2 = PesagemRegras.usarSlot2(tipoPesagem());
         boolean mudou = false;
 
         if (config.getFrenteIp() != null && !config.getFrenteIp().isBlank() && config.getFrentePorta() != null) {
@@ -445,7 +439,7 @@ public abstract class PesagemFormViewModel {
         try {
             var jpeg = cameraSnapshotClient.capturarSnapshot(ip, porta, usuario == null ? "" : usuario,
                     senha == null ? "" : senha, canal == null ? 1 : canal);
-            String nomeArquivo = "pesagem_" + pesagemId + "_" + rotulo + "_" + (slot2 ? "2" : "1") + ".jpg";
+            String nomeArquivo = PesagemRegras.nomeArquivoFoto(pesagemId, rotulo, slot2);
             return FotoPesagemStorage.salvar(jpeg, nomeArquivo);
         } catch (Exception e) {
             log.warn("Falha ao capturar foto da câmera de {} pra pesagem id={}", rotulo, pesagemId, e);
