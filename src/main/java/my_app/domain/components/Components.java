@@ -159,6 +159,15 @@ public class Components {
         return TextWithDetailsState(label, valueState, false);
     }
 
+    public static Component actionButtons(State<String> btnText, RunnableThrowing onClick) {
+        return new Button(btnText,
+                new ButtonProps()
+                        .fillWidth()
+                        .fontSize(16)
+                        .textColor("black").bgColor(ThemeManager.theme().colors().primary())
+        ).onClick(onClick);
+    }
+
     public static Component actionButtons(ComputedState<String> btnText, RunnableThrowing onClick) {
         return new Button(btnText,
                 new ButtonProps()

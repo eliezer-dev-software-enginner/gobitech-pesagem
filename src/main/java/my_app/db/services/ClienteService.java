@@ -54,18 +54,22 @@ public class ClienteService extends BaseService<ClienteModel> {
         }
 
         var existenteLoja = clienteRepository.buscarPorLoja(model.getLoja());
-        if (existenteLoja != null && !existenteLoja.getId().equals(model.getId())) {
+        if (existenteLoja != null && !mesmoId(existenteLoja.getId(), model.getId())) {
             throw new IllegalArgumentException("Já existe um cliente cadastrado com essa loja");
         }
 
         if (model.getCpfCnpj() != null && !model.getCpfCnpj().isBlank()) {
             var existenteDoc = clienteRepository.buscarPorCpfCnpj(model.getCpfCnpj());
-            if (existenteDoc != null && !existenteDoc.getId().equals(model.getId())) {
+            if (existenteDoc != null && !mesmoId(existenteDoc.getId(), model.getId())) {
                 throw new IllegalArgumentException("CPF/CNPJ já cadastrado para outro cliente");
             }
         }
 
         Validacoes.validarTelefone(model.getTelefone());
         Validacoes.validarCep(model.getCep());
+        Validacoes.validarCpfCnpj(model.getCpfCnpj());
+    }
+    private boolean mesmoId(Number a, Number b) {
+        return a != null && b != null && a.longValue() == b.longValue();
     }
 }
