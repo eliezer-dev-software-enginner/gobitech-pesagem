@@ -99,9 +99,14 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
   `tipoPesagem` (só `salvar()`); e o Service impõe `tipoPesagem` obrigatório além da regra "só
   placa" do domínio. — **Corrigido junto do A8: `atualizar()` valida `tipoPesagem` e bruto<tara
   (mesma regra de `salvar()`).**
-- **M9** `db/services/ClienteService:70`, `EmpresaService:58-67`, `UsuarioService:47-49` —
+- **[x] M9** `db/services/ClienteService:70`, `EmpresaService:58-67`, `UsuarioService:47-49` —
   validações de telefone/CEP/CPF duplicadas com estilos divergentes (`isValidPhone` importado ×
-  `ValidatorPack.`). — Sugestão: centralizar.
+  `ValidatorPack.`). — **Corrigido 2026-09-08: novo `my_app/utils/Validacoes.java` centraliza
+  "campo opcional + formato" (`validarTelefone`/`validarCep`/`validarCpfCnpj` — no-op se
+  null/branco, `IllegalArgumentException` com mensagem padronizada), usado pelos 3 Services
+  (`EmpresaService` canaliza também o CPF/CNPJ pelo helper; mensagem vira "CPF/CNPJ inválido");
+  `UsuarioService` padronizou `isBlank()`. Comportamento de domínio preservado — Cliente segue
+  **sem** validação de formato de CPF/CNPJ (só unicidade). `ValidacoesTest` novo (11 casos).**
 - **[x] M10** `scripts/updater_config.py` / `Docs pendentes` — branding "Plics" resíduos:
   `Main.java:36` (`plics.appVersion`), `build.gradle.kts:144` (`-Dplics.appVersion`),
   `ProcessKiller.java:12,29` (`plics-killer.log`), `create-flatpak.py:19` (`PlicsSW`). —

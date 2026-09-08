@@ -4,6 +4,7 @@ import my_app.db.DB;
 import my_app.db.models.UsuarioModel;
 import my_app.db.repositories.UsuarioRepository;
 import my_app.security.CryptoManager;
+import my_app.utils.Validacoes;
 import net.sf.persism.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,8 +12,6 @@ import org.slf4j.LoggerFactory;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
-
-import static pack.utilities.ValidatorPack.isValidPhone;
 
 /**
  * Login e senha ficam sempre criptografados em repouso (coluna {@code login}/{@code senha} da
@@ -44,9 +43,7 @@ public class UsuarioService extends BaseService<UsuarioModel> {
     public UsuarioModel salvar(UsuarioModel model) throws SQLException {
         validarCamposObrigatorios(model);
 
-        if (model.getTelefone() != null && !model.getTelefone().isEmpty() && !isValidPhone(model.getTelefone())) {
-            throw new IllegalArgumentException("Telefone inválido (informe DDD + Número)");
-        }
+        Validacoes.validarTelefone(model.getTelefone());
 
         if (model.getAtivo() == null) model.setAtivo(true);
         if (model.getAdmin() == null) model.setAdmin(false);
@@ -78,9 +75,7 @@ public class UsuarioService extends BaseService<UsuarioModel> {
     public void atualizar(UsuarioModel model) throws SQLException {
         validarCamposObrigatorios(model);
 
-        if (model.getTelefone() != null && !model.getTelefone().isEmpty() && !isValidPhone(model.getTelefone())) {
-            throw new IllegalArgumentException("Telefone inválido (informe DDD + Número)");
-        }
+        Validacoes.validarTelefone(model.getTelefone());
 
         var crypto = new CryptoManager();
         String loginPlain = model.getLogin();

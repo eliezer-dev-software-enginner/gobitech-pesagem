@@ -1,5 +1,27 @@
 # Decisões Arquiteturais
 
+## 2026-09-08: M9 — validações de telefone/CEP/CPF/CNPJ centralizadas em `Validacoes`
+
+**Contexto:** a vistoria (M9) apontou que as validações de formato de campos opcionais estavam
+duplicadas e com estilos divergentes: `ClienteService`/`UsuarioService` usavam static import de
+`ValidatorPack.isValidPhone/isValidCep` enquanto `EmpresaService` contextualizava com
+`ValidatorPack.`; mensagens diferentes ("Telefone inválido (informe DDD + Número)" × "Telefone
+inválido"; "Cpf ou cnpj inválido"); `UsuarioService` usava `isEmpty()` em vez de `isBlank()`.
+
+**Decisão:** novo `my_app/utils/Validacoes.java` com `validarTelefone`/`validarCep`/
+`validarCpfCnpj` — campo nulo ou em branco passa sem validar (opcional), senão delega pro
+`ValidatorPack` e lança `IllegalArgumentException` com mensagem padrão e consistente
+("Telefone inválido (informe DDD + Número)", "CEP inválido", "CPF/CNPJ inválido"). Os 3 Services
+passam a chamar o helper (`EmpresaService` inclui o CPF/CNPJ, que já validava). Comportamento de
+domínio preservado: `ClienteService` **não** ganhou validação de formato de CPF/CNPJ (só a
+checagem de unicidade) — adicionar rejeitaria os CPFs "123.456.789-00"/"987.654.321-00" usados em
+teste, que não passam no dígito verificador real do pacote.
+
+**Testado:** `ValidacoesTest` novo (11 casos: telefone/CEP/CPF/CNPJ com e sem máscara,
+nulo/vazio, inválidos) e suíte completa → `./gradlew test` → **BUILD SUCCESSFUL**.
+
+---
+
 ## 2026-09-08: M7 — mensagens de erro amigáveis nas telas (detalhe técnico só no log)
 
 **Contexto:** a vistoria (M7) apontou que muitas telas exibiam `e.getMessage()` cru (SQL do

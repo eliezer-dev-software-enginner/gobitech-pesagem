@@ -3,15 +3,13 @@ package my_app.db.services;
 import my_app.db.DB;
 import my_app.db.models.ClienteModel;
 import my_app.db.repositories.ClienteRepository;
+import my_app.utils.Validacoes;
 import net.sf.persism.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
-
-import static pack.utilities.ValidatorPack.isValidCep;
-import static pack.utilities.ValidatorPack.isValidPhone;
 
 public class ClienteService extends BaseService<ClienteModel> {
 
@@ -67,11 +65,7 @@ public class ClienteService extends BaseService<ClienteModel> {
             }
         }
 
-        if (model.getTelefone() != null && !model.getTelefone().isBlank() && !isValidPhone(model.getTelefone())) {
-            throw new IllegalArgumentException("Telefone inválido (informe DDD + Número)");
-        }
-        if (model.getCep() != null && !model.getCep().isBlank() && !isValidCep(model.getCep())) {
-            throw new IllegalArgumentException("CEP inválido");
-        }
+        Validacoes.validarTelefone(model.getTelefone());
+        Validacoes.validarCep(model.getCep());
     }
 }

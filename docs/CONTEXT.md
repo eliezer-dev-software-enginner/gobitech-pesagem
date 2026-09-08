@@ -51,6 +51,15 @@ menu "Conexão das câmeras" está **comentado** em `HomeScreen.java:74`, deixan
 pela UI (pendência M3 da vistoria). Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTREGAS.md`.
 
 ## Estado atual (2026-09-08)
+- **M9 corrigido** (Vistoria pendente): validações de telefone/CEP/CPF/CNPJ centralizadas em
+  `my_app/utils/Validacoes.java` (`validarTelefone`/`validarCep`/`validarCpfCnpj` — nulo/branco
+  passa, formato inválido lança `IllegalArgumentException` com mensagem padronizada), usado
+  pelos 3 Services (`ClienteService`, `EmpresaService`, `UsuarioService`). Cliente segue **sem**
+  validação de formato de CPF/CNPJ (só unicidade); `UsuarioService` padronizou `isBlank()`.
+  `ValidacoesTest` novo (11 casos). Ver `DECISIONS.md` 2026-09-08. Testes: `./gradlew test` →
+  **BUILD SUCCESSFUL**.
+
+## Estado atual (2026-09-08)
 - **M7 corrigido** (Vistoria pendente): telas/ViewModels deixaram de exibir `e.getMessage()` cru
   (SQL/SO) pro usuário. Regra: mensagem amigável fixa no alerta + detalhe técnico só em
   `log.error`; `catch (IllegalArgumentException)` mantém o `getMessage()` (validação de domínio
