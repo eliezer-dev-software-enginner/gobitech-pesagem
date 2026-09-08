@@ -62,6 +62,13 @@ deixando a tela inalcançável pela UI. Ver `/home/eliezer/Desktop/dev/outros/ba
   **A9** — regras críticas da pesagem extraídas pra classe pura testável `PesagemRegras` (soma
   descontos ≤ 100%, líquido negativo, nenhum peso informado, `preencherDaEntrada`, fotos). Ver
   `DECISIONS.md` 2026-09-08.
+- **Fix (2026-09-08)**: `EmpresaViewModel.handleSave` descartava `e.getMessage()` e exibia uma
+  mensagem genérica fixa ao salvar a empresa — o `IllegalArgumentException` de validação (ex.:
+  "Telefone inválido (informe DDD + Número)") chegava à exceção, mas o `catch (Exception e)`
+  mostrava "Não foi possível salvar os dados da empresa. Tente novamente.". Era o único CRUD VM
+  que o padrão M7 tinha deixado de fora (só o `fetchData` havia sido ajustado). Corrigido com o
+  mesmo padrão dos demais (ver **Histórico** 2026-09-08). Degustado: varredura de todos os
+  ViewModels/Services/telas confirmou que os demais já seguem o padrão correto.
 - **Corrigido na vistoria (2026-09-07, rodadas 1-3)**: A5 (filtro por data com epoch-ms — o
   Persism grava INTEGER, não texto), A6 (onDestroy), A7 (parseLong seguro), A8 (validações na
   camada de serviço), A10 (updater), A11/M12 (README), M2/M4/M5/M6/M8/M10/M11/M13/M16/M17/M18/
@@ -80,6 +87,23 @@ deixando a tela inalcançável pela UI. Ver `/home/eliezer/Desktop/dev/outros/ba
 - Testes: **235** `@Test` → `./gradlew test` → **BUILD SUCCESSFUL**.
 
 ## Histórico
+
+### 2026-09-08 — Fix: `EmpresaViewModel.handleSave` descartava a mensagem de validação
+- Bug real reportado: salvar a empresa com telefone inválido mostrava a mensagem genérica "Não
+  foi possível salvar os dados da empresa. Tente novamente." em vez de "Telefone inválido
+  (informe DDD + Número)". Causa raiz: no `handleSave`, o `catch (Exception e)` capturava o
+  `IllegalArgumentException` lançado por `EmpresaService.validarCampos()`/`Validacoes.validarTelefone`
+  mas **descartava `e.getMessage()`** e exibia uma string fixa. O `fetchData` da mesma classe já
+  tinha sido ajustado na rodada M7, mas o `handleSave` tinha ficado de fora.
+- **Corrigido**: `catch (IllegalArgumentException e)` → exibe `e.getMessage()`; `catch (Exception e)`
+  genérico mantido como fallback (mensagem amigável fixa) pras exceções realmente inesperadas
+  (SQL, NPE, infra). Mesmo padrão já usado por `ClienteViewModel`/`UsuarioScreenViewModel`/
+  `ProdutoScreenViewModel`/`ConexaoBalancaViewModel`/`ConexaoCameraViewModel`/
+  `PesagemFormViewModel`.
+- **Varredura completa**: todos os ViewModels, Services e telas revisados em busca do mesmo
+  padrão — nenhum outro caso real encontrado (os demais já seguem o padrão M7). `LicensaViewModel.
+  gerar()` tem um catch genérico, mas o `LicensaService.gerarNova` gera UUID randômico (colisão/
+  valor-blank em prática impossíveis) → **mantido como está por decisão do usuário**.
 
 ### 2026-09-07 — Vistoria completa: rodadas de correção (1ª altas, 2ª-3ª médias/baixas)
 - **A5/M13** — filtro por data: descoberta empírica de que Persism/sqlite-jdbc grava

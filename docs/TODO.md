@@ -99,7 +99,10 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
   amigável fixa; detalhe técnico só em `log.error`. `catch (IllegalArgumentException)`
   continua exibindo `getMessage()` (validação de domínio). Mesmo padrão aplicado por
   consistência nos CRUD VMs, `LicensaVM`/`EmpresaVM`/`AddOrEdit*` e nos `onErro` dos leitores
-  Serial/TCP (ver DECISIONS.md 2026-09-08).**
+  Serial/TCP (ver DECISIONS.md 2026-09-08).** — **Follow-up 2026-09-08: a nota dizia que
+  `EmpresaVM` já estava coberto, mas só o `fetchData` tinha sido ajustado — o `handleSave` ainda
+  descartava `e.getMessage()`. Corrigido (ver CONTEXT.md Histórico 2026-09-08) e feita varredura
+  em todos os ViewModels/Services/telas: nenhum outro caso real remanescente.**
 - **[x] M8** `db/services/PesagemService.java:47-49,58-62` — `atualizar()` não valida
   `tipoPesagem` (só `salvar()`); e o Service impõe `tipoPesagem` obrigatório além da regra "só
   placa" do domínio. — **Corrigido junto do A8: `atualizar()` valida `tipoPesagem` e bruto<tara

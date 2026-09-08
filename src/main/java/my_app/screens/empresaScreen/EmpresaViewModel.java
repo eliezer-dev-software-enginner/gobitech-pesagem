@@ -106,8 +106,10 @@ public class EmpresaViewModel {
             try {
                 empresaService.salvarOuAtualizar(model);
                 UI.runOnUi(() -> Components.ShowPopup(ctx, "Empresa atualizada com sucesso"));
+            } catch (IllegalArgumentException e) {
+                UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
             } catch (Exception e) {
-                log.error("Erro ao salvar dados da empresa", e);
+                log.error("Erro inesperado ao salvar dados da empresa", e);
                 UI.runOnUi(() -> Components.ShowAlertError("Não foi possível salvar os dados da empresa. Tente novamente."));
             }
         });
