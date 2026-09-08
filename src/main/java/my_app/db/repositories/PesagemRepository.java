@@ -102,4 +102,29 @@ public class PesagemRepository extends BaseRepository<PesagemModel> {
     private static long millisDoFimDoDia(LocalDate dia) {
         return dia.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli() - 1;
     }
+
+    /**
+     * Contagem de pesagens entre duas datas (inclusivas, mesmo critério de {@link #filtrar})
+     * — o dashboard só quer o tamanho do mês, sem trafegar as linhas nem montar relações.
+     */
+    public long contarPorPeriodo(LocalDate dataInicio, LocalDate dataFim) throws SQLException {
+        var condicoes = new ArrayList<String>();
+        var valores = new ArrayList<Object>();
+        if (dataInicio != null) {
+            condicoes.add("dataCriacao >= ?");
+            valores.add(millisDoInicioDoDia(dataInicio));
+        }
+        if (dataFim != null) {
+            condicoes.add("dataCriacao <= ?");
+            valores.add(millisDoFimDoDia(dataFim));
+        }
+        if (condicoes.isEmpty()) return count();
+        String where = " WHERE " + String.join(" AND ", condicoes);
+        var resultado = session().query(
+                Integer.class,
+                sql("SELECT COUNT(*) FROM pesagens" + where),
+                params(valores.toArray())
+        );
+        return resultado.isEmpty() ? 0 : resultado.getFirst().longValue();
+    }
 }

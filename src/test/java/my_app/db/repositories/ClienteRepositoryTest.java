@@ -122,4 +122,33 @@ class ClienteRepositoryTest extends BaseRepositoryTest {
         assertNotNull(encontrado);
         assertEquals("Cliente CPF", encontrado.getLoja());
     }
+
+    @Test
+    void count() throws SQLException {
+        repository.salvar(novoCliente("Um"));
+        repository.salvar(novoCliente("Dois"));
+
+        assertEquals(2, repository.count());
+    }
+
+    @Test
+    void buscarPorIds() throws SQLException {
+        var a = repository.salvar(novoCliente("A"));
+        var b = repository.salvar(novoCliente("B"));
+        repository.salvar(novoCliente("C"));
+
+        var encontrados = repository.buscarPorIds(List.of(a.getId(), b.getId()));
+
+        assertEquals(2, encontrados.size());
+        var lojas = encontrados.stream().map(ClienteModel::getLoja).toList();
+        assertTrue(lojas.contains("A"));
+        assertTrue(lojas.contains("B"));
+        assertFalse(lojas.contains("C"));
+    }
+
+    @Test
+    void buscarPorIdsVazioRetornaListaVazia() throws SQLException {
+        assertTrue(repository.buscarPorIds(List.of()).isEmpty());
+        assertTrue(repository.buscarPorIds(null).isEmpty());
+    }
 }

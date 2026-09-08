@@ -88,7 +88,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
                 UI.runOnUi(() -> allDataList.set(list));
             } catch (Exception e) {
                 log.error("Erro ao buscar usuários", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao buscar usuários: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível carregar a lista de usuários."));
             }
         });
     }
@@ -108,7 +108,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
                 });
             } catch (Exception e) {
                 log.error("Erro ao inativar usuário id={}", model.getId(), e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao tentar inativar: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível inativar o usuário. Tente novamente."));
             }
         }));
     }
@@ -142,7 +142,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
                 UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
             } catch (Exception e) {
                 log.error("Erro inesperado ao salvar usuário", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro inesperado: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível salvar o usuário. Tente novamente."));
             } finally {
                 endSalvar();
             }

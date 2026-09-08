@@ -78,7 +78,7 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
                 });
             } catch (Exception e) {
                 log.error("Erro ao carregar clientes pro filtro", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao carregar clientes: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível carregar a lista de clientes."));
             }
         });
     }
@@ -109,7 +109,7 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
                 UI.runOnUi(() -> allDataList.set(list));
             } catch (Exception e) {
                 log.error("Erro ao buscar pesagens", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao buscar pesagens: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível buscar as pesagens."));
             }
         });
     }
@@ -129,7 +129,7 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
                 UI.runOnUi(() -> allDataList.set(list));
             } catch (Exception e) {
                 log.error("Erro ao filtrar pesagens", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao filtrar: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível aplicar o filtro das pesagens."));
             }
         });
     }
@@ -160,7 +160,7 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
                 });
             } catch (Exception e) {
                 log.error("Erro ao excluir pesagem id={}", model.getId(), e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao tentar excluir: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível excluir a pesagem."));
             }
         }));
     }
@@ -214,7 +214,7 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
                 UI.runOnUi(() -> Components.ShowPopup(ctx, "Ticket salvo em: " + destino.getAbsolutePath()));
             } catch (Exception e) {
                 log.error("Erro ao gerar ticket da pesagem id={}", model.getId(), e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao gerar ticket: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível gerar o ticket em PDF. Tente novamente."));
             }
         });
     }
@@ -238,7 +238,7 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
                 });
             } catch (Exception e) {
                 log.error("Erro ao imprimir ticket térmico da pesagem id={}", model.getId(), e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao imprimir ticket térmico: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível imprimir o ticket na impressora térmica."));
             }
         });
     }

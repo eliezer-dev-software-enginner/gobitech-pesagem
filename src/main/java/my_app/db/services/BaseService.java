@@ -30,6 +30,11 @@ public abstract class BaseService<M> implements AutoCloseable {
         return repository.listar();
     }
 
+    /** Total de registros — sem trafegar a lista inteira (ex.: dashboard). */
+    public long count() throws SQLException {
+        return repository.count();
+    }
+
     public void atualizar(M model) throws SQLException {
         repository.atualizar(model);
         log.info("{} atualizado", modelName());

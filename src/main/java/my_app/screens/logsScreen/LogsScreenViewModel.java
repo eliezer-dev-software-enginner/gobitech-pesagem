@@ -68,7 +68,7 @@ public class LogsScreenViewModel {
                 UI.runOnUi(() -> conteudoLogs.set(textoFinal.isBlank() ? "(log vazio)" : textoFinal));
             } catch (IOException e) {
                 log.error("Erro ao ler arquivo de log", e);
-                UI.runOnUi(() -> conteudoLogs.set("Erro ao ler o log: " + e.getMessage()));
+                UI.runOnUi(() -> conteudoLogs.set("Erro ao ler o arquivo de log."));
             }
         });
     }
@@ -96,7 +96,7 @@ public class LogsScreenViewModel {
                 }
             } catch (Exception e) {
                 log.error("Erro ao abrir pasta de logs", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao abrir a pasta de logs: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível abrir a pasta de logs. Tente novamente."));
             }
         });
     }

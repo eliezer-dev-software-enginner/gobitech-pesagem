@@ -60,7 +60,8 @@ public class DetailsClienteScreen implements ScreenComponent {
                 var m = clienteService.buscarById(id);
                 UI.runOnUi(() -> model.set(m));
             } catch (Exception e) {
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao buscar cliente: " + e.getMessage()));
+                log.error("Erro ao buscar cliente id={}", id, e);
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível carregar os dados do cliente."));
             }
         });
     }

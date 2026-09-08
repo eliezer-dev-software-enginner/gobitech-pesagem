@@ -54,7 +54,8 @@ public class DetailsUsuarioScreen implements ScreenComponent {
                 var m = usuarioService.buscarById(id);
                 UI.runOnUi(() -> model.set(m));
             } catch (Exception e) {
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao buscar usuário: " + e.getMessage()));
+                log.error("Erro ao buscar usuário id={}", id, e);
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível carregar os dados do usuário."));
             }
         });
     }

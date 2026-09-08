@@ -69,7 +69,8 @@ public class DetailsPesagemScreen implements ScreenComponent {
                 var m = pesagemService.buscarComRelacoes(id);
                 UI.runOnUi(() -> model.set(m));
             } catch (Exception e) {
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao buscar pesagem: " + e.getMessage()));
+                log.error("Erro ao buscar pesagem id={}", id, e);
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível carregar os dados da pesagem."));
             }
         });
     }

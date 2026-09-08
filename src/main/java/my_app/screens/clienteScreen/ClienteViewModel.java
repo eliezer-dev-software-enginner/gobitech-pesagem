@@ -101,7 +101,7 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
                 UI.runOnUi(() -> allDataList.set(list));
             } catch (Exception e) {
                 log.error("Erro ao buscar clientes", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao buscar clientes: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível carregar a lista de clientes."));
             }
         });
     }
@@ -121,7 +121,7 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
                 });
             } catch (Exception e) {
                 log.error("Erro ao excluir cliente id={}", model.getId(), e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao tentar excluir: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível excluir o cliente. Tente novamente."));
             }
         }));
     }
@@ -160,7 +160,7 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
                 UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
             } catch (Exception e) {
                 log.error("Erro inesperado ao salvar cliente", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro inesperado: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível salvar o cliente. Tente novamente."));
             } finally {
                 endSalvar();
             }

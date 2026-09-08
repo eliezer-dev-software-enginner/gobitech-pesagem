@@ -1,5 +1,57 @@
 # Decisões Arquiteturais
 
+## 2026-09-08: M7 — mensagens de erro amigáveis nas telas (detalhe técnico só no log)
+
+**Contexto:** a vistoria (M7) apontou que muitas telas exibiam `e.getMessage()` cru (SQL do
+SQLite, exceções de serial/JSSC, NPE etc.) direto pro usuário via `Components.ShowAlertError`.
+
+**Decisão:** em catch genérico (`catch (Exception e)`) de qualquer **tela/ViewModel**, o alerta
+pro usuário agora é **sempre uma mensagem fixa e amigável** (ex.: "Não foi possível salvar o
+cliente. Tente novamente.") e o detalhe técnico vai **só** pro `log.error("...", e)`. Mantidos
+como estão:
+- `catch (IllegalArgumentException e)` → exibe `e.getMessage()` (**é a mensagem de validação de
+  domínio** — ex.: "Placa é obrigatória"), em `ClienteVM:160`, `ProdutoVM:147`, `UsuarioVM:142`,
+  `ConexaoBalancaVM:108`, `ConexaoCameraVM:98`, `PesagemFormVM:389` e `Main.java:150`;
+- classes de infra (`CryptoManager`, `ProcessKiller`, `TelegramNotifier`, `Components` debug) —
+  erros internos/logados, não exibidos;
+- `DetailsCliente/Produto/Usuario/PesagemScreen` ainda não logavam no catch — agora logam
+  (`log.error` com o id) antes de mostrar o alerta amigável.
+
+Fora da lista literal da vistoria, o mesmo padrão foi aplicado por consistência: CRUD VMs
+(Cliente/Produto/Usuário), `LicensaViewModel`, `EmpresaViewModel`, `AddOrEdit*Screen` e os
+`onErro` de `LeitorBalancaSerial`/`LeitorBalancaTcp` (que chegam ao usuário via
+`ShowAlertError(erro)` no Dashboard/Form — mantida a porta/IP, que é contexto útil).
+
+**Testado:** `./gradlew test` → **BUILD SUCCESSFUL** (sem mudança de comportamento de DOMÍNIO;
+grep `getMessage()` em `src/main/java` volta só os casos "manter" acima).
+
+---
+
+## 2026-09-08: M20 — fim do N+1 nas relações de pesagem + COUNT no dashboard
+
+**Contexto:** a vistoria (M20) apontou que `PesagemService.anexarRelacoes` fazia 1+n×4 SELECTs
+(listagem/filtro de N pesagens) e que o `DashboardViewModel` trafegava listas inteiras só pra
+chamar `size()`.
+
+**Decisão:**
+- `BaseRepository.buscarPorIds(Collection<Integer>)` novo — lote por `WHERE id IN (...)`;
+  `BaseRepository.count()` e `BaseService.count()` novos (`SELECT COUNT(*)`).
+- `PesagemService.anexarRelacoes(List<PesagemModel>)` substitui o loop com `buscarById` por 4
+  lotes (um por entidade relacionada), montando um `Map<id, Model>` pra atribuição. A versão de
+  entidade única delega pra lista.
+- `PesagemRepository.contarPorPeriodo(LocalDate, LocalDate)` novo (mesma conversão pra
+  epoch-millis de `filtrar`); dashboard usa `count()`/`contarPorPeriodo()` em vez de `.listar()`/
+  `.filtrar().size()`.
+- Detalhe de implementação: `COUNT(*)` do sqlite-jdbc vem como **Integer** no scalar do Persism
+  (não Long) — o retorno é `long`, mas o bind do scalar é `Integer.class`.
+
+**Testado:** `./gradlew test` → **BUILD SUCCESSFUL** (+7 testes: `count`/`buscarPorIds`/
+`buscarPorIdsVazio` no `ClienteRepositoryTest`; `countRetornaOTotalDePesagens`/
+`contarPorPeriodoContaSoAsPesagensDoPeriodo`/`contarPorPeriodoComDataIgualECoberta`/
+`listarComRelacoesAnexaClientesDistintosEmLote` no `PesagemServiceTest`).
+
+---
+
 ## 2026-09-07: Manter a encriptação atual — sem endurecimento de segurança
 
 **Contexto:** a vistoria completa (2026-09-07) apontou como pendências: chave AES-256 fixa

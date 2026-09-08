@@ -42,12 +42,12 @@ public class LeitorBalancaSerial implements LeitorBalanca {
                     if (peso != null) onPeso.accept(peso);
                 } catch (SerialPortException e) {
                     log.error("Erro ao ler porta {}", portaCom, e);
-                    onErro.accept("Erro ao ler porta " + portaCom + ": " + e.getMessage());
+                    onErro.accept("Falha na comunicação com a balança na porta " + portaCom + ".");
                 }
             });
         } catch (SerialPortException e) {
             log.error("Erro ao abrir porta {}", portaCom, e);
-            onErro.accept("Erro ao abrir porta " + portaCom + ": " + e.getMessage());
+            onErro.accept("Não foi possível abrir a porta " + portaCom + ". Verifique o cabo e se nenhum outro programa está usando a balança.");
         }
     }
 

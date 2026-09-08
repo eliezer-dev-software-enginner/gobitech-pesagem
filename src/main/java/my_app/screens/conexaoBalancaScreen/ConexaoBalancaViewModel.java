@@ -67,7 +67,7 @@ public class ConexaoBalancaViewModel {
 //                }
             } catch (Throwable e) {
                 log.error("Erro ao carregar portas seriais: {}", e.getMessage(), e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao carregar portas seriais: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível listar as portas seriais. Verifique se o cabo USB está conectado."));
             }
 
             try {
@@ -83,7 +83,7 @@ public class ConexaoBalancaViewModel {
                 }
             } catch (Exception e) {
                 log.error("Erro ao carregar conexão da balança", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao carregar conexão da balança: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível carregar a conexão da balança."));
             }
         });
     }
@@ -108,7 +108,7 @@ public class ConexaoBalancaViewModel {
                 UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
             } catch (Exception e) {
                 log.error("Erro ao salvar conexão da balança", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao salvar: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível salvar a conexão da balança. Tente novamente."));
             }
         });
     }

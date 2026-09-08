@@ -1,12 +1,17 @@
 package my_app.db.services;
 
 import my_app.db.DB;
+import my_app.db.models.ClienteModel;
+import my_app.db.models.DescontoModel;
 import my_app.db.models.PesagemModel;
+import my_app.db.models.ProdutoModel;
+import my_app.db.models.UsuarioModel;
 import my_app.db.repositories.ClienteRepository;
 import my_app.db.repositories.DescontoRepository;
 import my_app.db.repositories.PesagemRepository;
 import my_app.db.repositories.ProdutoRepository;
 import my_app.db.repositories.UsuarioRepository;
+import my_app.core.Identifier;
 import net.sf.persism.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +21,11 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class PesagemService extends BaseService<PesagemModel> {
 
@@ -82,13 +91,13 @@ public class PesagemService extends BaseService<PesagemModel> {
 
     public PesagemModel buscarComRelacoes(long id) throws SQLException {
         var pesagem = repository.buscarById(id);
-        if (pesagem != null) anexarRelacoes(pesagem);
+        if (pesagem != null) anexarRelacoes(List.of(pesagem));
         return pesagem;
     }
 
     public List<PesagemModel> listarComRelacoes() throws SQLException {
         var lista = repository.listar();
-        for (var pesagem : lista) anexarRelacoes(pesagem);
+        anexarRelacoes(lista);
         return lista;
     }
 
@@ -96,23 +105,50 @@ public class PesagemService extends BaseService<PesagemModel> {
                                        Integer produtoId, LocalDate dataInicio, LocalDate dataFim,
                                        String tipoPesagem) throws SQLException {
         var lista = pesagemRepository.filtrar(placa, motoristaNome, clienteId, produtoId, dataInicio, dataFim, tipoPesagem);
-        for (var pesagem : lista) anexarRelacoes(pesagem);
+        anexarRelacoes(lista);
         return lista;
     }
 
-    private void anexarRelacoes(PesagemModel pesagem) throws SQLException {
-        if (pesagem.getClienteId() != null) {
-            pesagem.setCliente(clienteRepository.buscarById(pesagem.getClienteId()));
+    /** Total de pesagens de um período (datas inclusivas) — sem anexar relações nem trafegar linhas. */
+    public long contarPorPeriodo(LocalDate dataInicio, LocalDate dataFim) throws SQLException {
+        return pesagemRepository.contarPorPeriodo(dataInicio, dataFim);
+    }
+
+    /**
+     * Anexa Cliente/Produto/Desconto/Usuario a uma lista inteira com 4 SELECTs em lote
+     * ({@code WHERE id IN (...)}) no lugar de N×4 SELECTs individuais (N+1 do M20).
+     */
+    public void anexarRelacoes(List<PesagemModel> pesagens) throws SQLException {
+        if (pesagens == null || pesagens.isEmpty()) return;
+
+        Set<Integer> clienteIds = new HashSet<>();
+        Set<Integer> produtoIds = new HashSet<>();
+        Set<Integer> descontoIds = new HashSet<>();
+        Set<Integer> usuarioIds = new HashSet<>();
+        for (var pesagem : pesagens) {
+            if (pesagem.getClienteId() != null) clienteIds.add(pesagem.getClienteId());
+            if (pesagem.getProdutoId() != null) produtoIds.add(pesagem.getProdutoId());
+            if (pesagem.getDescontoId() != null) descontoIds.add(pesagem.getDescontoId());
+            if (pesagem.getUsuarioId() != null) usuarioIds.add(pesagem.getUsuarioId());
         }
-        if (pesagem.getProdutoId() != null) {
-            pesagem.setProduto(produtoRepository.buscarById(pesagem.getProdutoId()));
+
+        Map<Integer, ClienteModel> clientes = emMapa(clienteRepository.buscarPorIds(clienteIds));
+        Map<Integer, ProdutoModel> produtos = emMapa(produtoRepository.buscarPorIds(produtoIds));
+        Map<Integer, DescontoModel> descontos = emMapa(descontoRepository.buscarPorIds(descontoIds));
+        Map<Integer, UsuarioModel> usuarios = emMapa(usuarioRepository.buscarPorIds(usuarioIds));
+
+        for (var pesagem : pesagens) {
+            if (pesagem.getClienteId() != null) pesagem.setCliente(clientes.get(pesagem.getClienteId()));
+            if (pesagem.getProdutoId() != null) pesagem.setProduto(produtos.get(pesagem.getProdutoId()));
+            if (pesagem.getDescontoId() != null) pesagem.setDesconto(descontos.get(pesagem.getDescontoId()));
+            if (pesagem.getUsuarioId() != null) pesagem.setUsuario(usuarios.get(pesagem.getUsuarioId()));
         }
-        if (pesagem.getDescontoId() != null) {
-            pesagem.setDesconto(descontoRepository.buscarById(pesagem.getDescontoId()));
-        }
-        if (pesagem.getUsuarioId() != null) {
-            pesagem.setUsuario(usuarioRepository.buscarById(pesagem.getUsuarioId()));
-        }
+    }
+
+    private static <M extends Identifier> Map<Integer, M> emMapa(List<M> modelos) {
+        var mapa = new HashMap<Integer, M>();
+        for (var modelo : modelos) mapa.put(modelo.getId(), modelo);
+        return mapa;
     }
 
     /**
@@ -122,7 +158,7 @@ public class PesagemService extends BaseService<PesagemModel> {
     public PesagemModel buscarEntradaVinculada(PesagemModel pesagem) throws SQLException {
         if (pesagem.getEntradaId() == null) return null;
         var entrada = repository.buscarById(pesagem.getEntradaId());
-        if (entrada != null) anexarRelacoes(entrada);
+        if (entrada != null) anexarRelacoes(List.of(entrada));
         return entrada;
     }
 

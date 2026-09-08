@@ -75,7 +75,7 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
                 UI.runOnUi(() -> Components.ShowPopup(viewModel().ctx, "PDF salvo em: " + destino.getAbsolutePath()));
             } catch (Exception e) {
                 log.error("Erro ao exportar PDF", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao exportar: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível exportar a lista em PDF. Tente novamente."));
             }
         });
     }

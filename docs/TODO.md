@@ -86,11 +86,15 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
   isso (divergente). — **Corrigido: trava `tryBeginSalvar()/endSalvar()` na classe base
   `ViewModelScreenContract` (AtomicBoolean liberado no `finally` do Async.Run) — o 2º clique é
   ignorado até a gravação terminar; vale pras 3 telas e fecha o divair das 2 com a de usuário.**
-- **M7** Muitas telas exibem `e.getMessage()` cru (stack de SQL/SO) ao usuário:
+- **[x] M7** Muitas telas exibem `e.getMessage()` cru (stack de SQL/SO) ao usuário:
   `AuthScreenViewModel:79`, `DashboardViewModel:74,113`, `ConexaoBalancaViewModel:72,88,113`,
   `ConexaoCameraViewModel:70,101,150`, `PesagemFormViewModel:170,199,392`,
   `PesagemHistoricoViewModel:84,115,140,171,225,249`, `Details*`, `ContratoTelaCrudV3:81`,
-  `LogsScreenViewModel:71`. — Sugestão: mensagem amigável fixa; detalhe só em `log.error`.
+  `LogsScreenViewModel:71`. — **Corrigido 2026-09-08: alerta pro usuário sempre com mensagem
+  amigável fixa; detalhe técnico só em `log.error`. `catch (IllegalArgumentException)`
+  continua exibindo `getMessage()` (validação de domínio). Mesmo padrão aplicado por
+  consistência nos CRUD VMs, `LicensaVM`/`EmpresaVM`/`AddOrEdit*` e nos `onErro` dos leitores
+  Serial/TCP (ver DECISIONS.md 2026-09-08).**
 - **[x] M8** `db/services/PesagemService.java:47-49,58-62` — `atualizar()` não valida
   `tipoPesagem` (só `salvar()`); e o Service impõe `tipoPesagem` obrigatório além da regra "só
   placa" do domínio. — **Corrigido junto do A8: `atualizar()` valida `tipoPesagem` e bruto<tara
@@ -138,9 +142,15 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
 - **[x] M19** `HOTRELOAD.md:23-28` — descreve compilação `javac` + classe `Reloader` que não
   existe; o `dev.py` real reinicia via `gradlew run`. — **Corrigido: reescrito pro comportamento
   real (hashes SHA-256 + kill/restart; comandos Windows/Linux; ruído ignorado).**
-- **M20** `db/services/PesagemService.java:106-119` — `anexarRelacoes` faz **N+1** SELECTs por
-  pesagem (listas); `DashboardViewModel` ainda lista tudo só pra `size()`. — Sugestão: JOINs/
-  `WHERE id IN`; `COUNT(*)` no dashboard.
+- **[x] M20** `db/services/PesagemService.java:106-119` — `anexarRelacoes` faz **N+1** SELECTs por
+  pesagem (listas); `DashboardViewModel` ainda lista tudo só pra `size()`. — **Corrigido:
+  `BaseRepository.buscarPorIds(Collection)` novo (`WHERE id IN (...)`) e `PesagemService.
+  anexarRelacoes(List)` anexa Cliente/Produto/Desconto/Usuario de uma lista inteira com **4
+  SELECTs em lote** (N×4 → 4). Dashboard usa `count()`/`contarPorPeriodo` (`SELECT COUNT(*)`)
+  no lugar de trafegar listas; `PesagemRepository.contarPorPeriodo` reaproveita o critério de
+  datas de `filtrar`. Testes novos: `count`/`buscarPorIds`/`buscarPorIdsVazio` em
+  `ClienteRepositoryTest` e `countRetornaOTotalDePesagens`/`contarPorPeriodo*`/
+  `listarComRelacoesAnexaClientesDistintosEmLote` em `PesagemServiceTest`.**
 - **[x] M21** `build.gradle.kts:143` — `-Dprism.verbose=true` fixo no `run` (debug do JavaFX). —
   **Corrigido: só entra no `jvmArgs` quando `DEV_MODE` está setado no ambiente de quem chamou o
   gradle.**

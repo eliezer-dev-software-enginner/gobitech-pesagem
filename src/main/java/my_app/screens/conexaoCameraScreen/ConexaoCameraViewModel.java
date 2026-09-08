@@ -67,7 +67,7 @@ public class ConexaoCameraViewModel {
                 });
             } catch (Exception e) {
                 log.error("Erro ao carregar conexão das câmeras", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao carregar conexão das câmeras: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível carregar a conexão das câmeras."));
             }
         });
     }
@@ -98,7 +98,7 @@ public class ConexaoCameraViewModel {
                 UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
             } catch (Exception e) {
                 log.error("Erro ao salvar conexão das câmeras", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao salvar: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível salvar a conexão das câmeras. Tente novamente."));
             }
         });
     }
@@ -147,7 +147,7 @@ public class ConexaoCameraViewModel {
                 });
             } catch (Exception e) {
                 log.error("Erro ao testar câmera da {}", rotulo, e);
-                UI.runOnUi(() -> Components.ShowAlertError("Falha ao conectar na câmera da " + rotulo + ": " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Falha ao conectar na câmera da " + rotulo + ". Verifique IP, porta, usuário e senha."));
             }
         });
     }

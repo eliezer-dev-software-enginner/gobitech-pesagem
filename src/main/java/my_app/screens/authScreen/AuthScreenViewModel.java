@@ -76,7 +76,7 @@ public class AuthScreenViewModel {
                 });
             } catch (Exception e) {
                 log.error("Erro ao fazer login", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao entrar: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível entrar. Tente novamente."));
             }
         });
     }

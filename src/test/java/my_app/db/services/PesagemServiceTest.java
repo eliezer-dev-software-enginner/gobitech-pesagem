@@ -7,6 +7,9 @@ import my_app.db.models.UsuarioModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class PesagemServiceTest extends BaseServiceTest {
@@ -343,5 +346,65 @@ class PesagemServiceTest extends BaseServiceTest {
         var salva = pesagemService.salvar(avulsa);
 
         assertNull(pesagemService.buscarEntradaVinculada(salva));
+    }
+
+    @Test
+    void countRetornaOTotalDePesagens() throws Exception {
+        assertEquals(0, pesagemService.count());
+        pesagemService.salvar(pesagemValida());
+        pesagemService.salvar(pesagemValida());
+        assertEquals(2, pesagemService.count());
+    }
+
+    @Test
+    void contarPorPeriodoContaSoAsPesagensDoPeriodo() throws Exception {
+        pesagemComDataCriacao(LocalDateTime.of(2020, 1, 15, 10, 0));
+
+        assertEquals(1, pesagemService.contarPorPeriodo(LocalDate.of(2020, 1, 15), LocalDate.of(2020, 1, 16)));
+        // dias diferentes, fora do período
+        assertEquals(0, pesagemService.contarPorPeriodo(LocalDate.of(2020, 2, 1), LocalDate.of(2020, 2, 28)));
+    }
+
+    @Test
+    void contarPorPeriodoComDataIgualECoberta() throws Exception {
+        pesagemComDataCriacao(LocalDateTime.of(2021, 6, 10, 8, 0));
+
+        assertEquals(1, pesagemService.contarPorPeriodo(LocalDate.of(2021, 6, 10), LocalDate.of(2021, 6, 10)));
+    }
+
+    /**
+     * Salva uma pesagem com dataCriacao própria direto pelo repositório (o {@code salvar()} do
+     * service sobrescreve a data com "agora"). Os pesos vão zerados explicitamente porque o
+     * {@code validarCampos()} do service (que os zera) também é contornado aqui.
+     */
+    private PesagemModel pesagemComDataCriacao(LocalDateTime quando) throws Exception {
+        var p = pesagemValida();
+        p.setPesoVeiculo(java.math.BigDecimal.ZERO);
+        p.setPesoTotal(java.math.BigDecimal.ZERO);
+        p.setPesoFinal(java.math.BigDecimal.ZERO);
+        p.setDataCriacao(quando);
+        return pesagemService.repository.salvar(p);
+    }
+
+    @Test
+    void listarComRelacoesAnexaClientesDistintosEmLote() throws Exception {
+        var segundoCliente = new ClienteModel();
+        segundoCliente.setLoja("Usina B");
+        segundoCliente.setRazaoSocial("Usina B Ltda");
+        var segundoClienteId = clienteService.salvar(segundoCliente).getId();
+
+        var segundaPlaca = pesagemValida();
+        segundaPlaca.setPlaca("XYZ9X99");
+        segundaPlaca.setClienteId(segundoClienteId);
+        pesagemService.salvar(pesagemValida());
+        pesagemService.salvar(segundaPlaca);
+
+        var lista = pesagemService.listarComRelacoes();
+
+        assertEquals(2, lista.size());
+        var comClienteA = lista.stream().filter(it -> "ABC1D23".equals(it.getPlaca())).findFirst().orElseThrow();
+        var comClienteB = lista.stream().filter(it -> "XYZ9X99".equals(it.getPlaca())).findFirst().orElseThrow();
+        assertEquals("Fazenda Teste", comClienteA.getCliente().getLoja());
+        assertEquals("Usina B", comClienteB.getCliente().getLoja());
     }
 }

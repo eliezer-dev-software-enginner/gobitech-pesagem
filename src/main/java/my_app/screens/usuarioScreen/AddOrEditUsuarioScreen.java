@@ -102,7 +102,7 @@ public class AddOrEditUsuarioScreen implements ScreenComponent {
             viewModel.handleAddOrUpdate();
         } catch (Exception e) {
             log.error("Erro em handleAddOrUpdate", e);
-            UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
+            UI.runOnUi(() -> Components.ShowAlertError("Não foi possível salvar. Tente novamente."));
         }
     }
 

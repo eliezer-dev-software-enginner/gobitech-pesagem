@@ -61,7 +61,7 @@ public class LeitorBalancaTcp implements LeitorBalanca {
             } catch (Exception e) {
                 if (rodando) {
                     log.error("Erro na conexão TCP com a balança ({}:{})", ip, porta, e);
-                    onErro.accept("Erro na conexão TCP com a balança (" + ip + ":" + porta + "): " + e.getMessage());
+                    onErro.accept("Falha na conexão com a balança (" + ip + ":" + porta + "). Verifique IP, porta e cabo de rede.");
                 }
             }
         });

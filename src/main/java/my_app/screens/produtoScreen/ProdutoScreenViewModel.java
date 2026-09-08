@@ -92,7 +92,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
                 UI.runOnUi(() -> allDataList.set(list));
             } catch (Exception e) {
                 log.error("Erro ao buscar produtos", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao buscar produtos: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível carregar a lista de produtos."));
             }
         });
     }
@@ -112,7 +112,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
                 });
             } catch (Exception e) {
                 log.error("Erro ao excluir produto id={}", model.getId(), e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao tentar excluir: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível excluir o produto. Tente novamente."));
             }
         }));
     }
@@ -147,7 +147,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
                 UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
             } catch (Exception e) {
                 log.error("Erro inesperado ao salvar produto", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro inesperado: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível salvar o produto. Tente novamente."));
             } finally {
                 endSalvar();
             }

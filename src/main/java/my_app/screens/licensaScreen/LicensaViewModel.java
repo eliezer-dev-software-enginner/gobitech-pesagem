@@ -69,7 +69,7 @@ public class LicensaViewModel {
                 UI.runOnUi(() -> licensasState.set(lista));
             } catch (Exception e) {
                 log.error("Erro ao listar licenças", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao listar licenças: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível carregar a lista de licenças."));
             }
         });
     }
@@ -95,7 +95,7 @@ public class LicensaViewModel {
                 });
             } catch (Exception e) {
                 log.error("Erro ao gerar licença", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao gerar licença: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível gerar a licença. Tente novamente."));
             }
         });
     }

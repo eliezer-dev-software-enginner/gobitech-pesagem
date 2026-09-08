@@ -50,6 +50,22 @@ ver `DECISIONS.md` pras decisões específicas de cada troca.
 menu "Conexão das câmeras" está **comentado** em `HomeScreen.java:74`, deixando a tela inalcançável
 pela UI (pendência M3 da vistoria). Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTREGAS.md`.
 
+## Estado atual (2026-09-08)
+- **M7 corrigido** (Vistoria pendente): telas/ViewModels deixaram de exibir `e.getMessage()` cru
+  (SQL/SO) pro usuário. Regra: mensagem amigável fixa no alerta + detalhe técnico só em
+  `log.error`; `catch (IllegalArgumentException)` mantém o `getMessage()` (validação de domínio
+  ex.: "Placa é obrigatória"). Coberto: Auth, Dashboard, Conexão balança/câmera, Pesagem
+  (form + histórico), Logs, Licença, Empresa, CRUDs (Cliente/Produto/Usuário + Add/Edit +
+  Details*), exportação de lista (`ContratoTelaCrudV3`) e os `onErro` dos leitores Serial/TCP.
+  Ver `DECISIONS.md` 2026-09-08. Testes: `./gradlew test` → **BUILD SUCCESSFUL**.
+
+## Estado atual (2026-09-08)
+- **M20 corrigido** (Vistoria pendente): fim do **N+1** em `PesagemService.anexarRelacoes` —
+  `BaseRepository.buscarPorIds` (`WHERE id IN`) + `anexarRelacoes(List)` com 4 lotes no lugar de
+  N×4 SELECTs. Dashboard passou a usar **`count()`/`contarPorPeriodo`** (`SELECT COUNT(*)`) em
+  vez de listar tudo pra `size()`. Detalhe: `COUNT(*)` via Persism vem como `Integer` no scalar.
+  Ver `DECISIONS.md` 2026-09-08. Testes: `./gradlew test` → **BUILD SUCCESSFUL** (+7).
+
 ## Estado atual (2026-09-07)
 - **Vistoria completa** concluída (auditoria *read-only*): **40 pendências registradas em
   `docs/TODO.md`** (11 alta, 21 média, 8 baixa). Decisões e correções desta rodada em

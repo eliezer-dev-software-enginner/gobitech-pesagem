@@ -167,7 +167,7 @@ public abstract class PesagemFormViewModel {
                 });
             } catch (Exception e) {
                 log.error("Erro ao carregar clientes/produtos", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao carregar clientes/produtos: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível carregar clientes e produtos."));
             }
         });
     }
@@ -196,7 +196,7 @@ public abstract class PesagemFormViewModel {
                 );
             } catch (Exception e) {
                 log.error("Erro ao conectar com a balança", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao conectar com a balança: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível conectar com a balança."));
             }
         });
     }
@@ -389,7 +389,7 @@ public abstract class PesagemFormViewModel {
                 UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
             } catch (Exception e) {
                 log.error("Erro inesperado ao salvar pesagem", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro inesperado: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível salvar a pesagem. Tente novamente."));
             }
         });
     }

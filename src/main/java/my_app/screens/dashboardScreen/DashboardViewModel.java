@@ -51,16 +51,13 @@ public class DashboardViewModel {
     public void carregar() {
         Async.Run(() -> {
             try {
-                int produtos = produtoService.listar().size();
-                int clientes = clienteService.listar().size();
-                int pesagens = pesagemService.listar().size();
+                long produtos = produtoService.count();
+                long clientes = clienteService.count();
+                long pesagens = pesagemService.count();
 
                 LocalDate inicioMes = LocalDate.now().withDayOfMonth(1);
                 LocalDate hoje = LocalDate.now();
-                // filtrar() já anexa Cliente/Produto/Desconto a cada pesagem (feito pra tela de
-                // listagem) — redundante aqui, só queremos o tamanho, mas o volume mensal de
-                // pesagens é baixo o bastante pra não valer a pena criar um COUNT(*) dedicado.
-                int pesagensMes = pesagemService.filtrar(null, null, null, null, inicioMes, hoje, null).size();
+                long pesagensMes = pesagemService.contarPorPeriodo(inicioMes, hoje);
 
                 UI.runOnUi(() -> {
                     totalProdutos.set(String.valueOf(produtos));
@@ -70,7 +67,7 @@ public class DashboardViewModel {
                 });
             } catch (Exception e) {
                 log.error("Erro ao carregar o dashboard", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao carregar o dashboard: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Erro ao carregar o painel de resumo."));
             }
         });
     }
@@ -109,7 +106,7 @@ public class DashboardViewModel {
                 );
             } catch (Exception e) {
                 log.error("Erro ao conectar com a balança", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Erro ao conectar com a balança: " + e.getMessage()));
+                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível conectar com a balança."));
             }
         });
     }
