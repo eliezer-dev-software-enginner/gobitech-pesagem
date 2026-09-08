@@ -517,6 +517,8 @@ public class Components {
                 })
                 .lockCursorToEnd();
 
+        if(disableInput)input.left(Components.ikon(Entypo.BLOCK,13,"red").getJavaFxNode());
+
         return new Column()
                 .c_child(new Text(label, new TextProps().fontSize(ThemeManager.theme().typography().small())))
                 .c_child(input);

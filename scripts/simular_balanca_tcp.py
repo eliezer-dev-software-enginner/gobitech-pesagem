@@ -42,6 +42,11 @@ DURACAO_RAMPA = float(sys.argv[4]) if len(sys.argv) > 4 else 20.0
 # que atrapalhe a ordem — só dá aquele tremidinho de balança de verdade.
 RUIDO = 1.0
 
+# Erros que só significam "o outro lado derrubou a conexão" — variam por SO/cenário
+# (Linux costuma dar BrokenPipeError/ConnectionResetError; Windows também pode dar
+# ConnectionAbortedError quando o app fecha o socket enquanto ainda há dados chegando).
+ERROS_DESCONEXAO = (BrokenPipeError, ConnectionResetError, ConnectionAbortedError)
+
 
 def main():
     servidor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -69,7 +74,7 @@ def main():
                     conn.sendall(linha.encode("utf-8"))
                     print(f"  enviado: {linha.strip()} kg (rampa {progresso * 100:.0f}%)", end="\r")
                     time.sleep(1)
-        except (BrokenPipeError, ConnectionResetError):
+        except ERROS_DESCONEXAO:
             print("\nApp desconectou (tela de Pesagem fechada/trocada). Esperando nova conexão...")
 
 
