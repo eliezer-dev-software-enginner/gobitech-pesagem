@@ -26,7 +26,7 @@ class UsuarioRepositoryTest extends BaseRepositoryTest {
 
     @BeforeEach
     void cleanUsuarios() throws Exception {
-        try (var conn = DriverManager.getConnection("jdbc:sqlite:file:testdb?mode=memory&cache=shared");
+        try (var conn = DriverManager.getConnection(testUrl());
              var stmt = conn.createStatement()) {
             stmt.execute("DELETE FROM usuarios");
         }

@@ -26,7 +26,9 @@ public abstract class BaseServiceTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        String testUrl = "jdbc:sqlite:file:testdb?mode=memory&cache=shared";
+        // Banco em memória por classe de teste — sem compartilhar o mesmo "testdb"
+        // com os testes de repositório (evita vazamento de dados/estado entre classes).
+        String testUrl = "jdbc:sqlite:file:testdb-" + getClass().getSimpleName() + "?mode=memory&cache=shared";
         rawConnection = DriverManager.getConnection(testUrl);
         rawConnection.createStatement().execute("PRAGMA foreign_keys = OFF");
         Flyway.configure()

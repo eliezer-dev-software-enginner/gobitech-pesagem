@@ -1,6 +1,192 @@
 # TODO
 
-## Concluído (pesos da pesagem: captura x digitação por tipo de tela — 2026-09-03)
+## Vistoria completa do projeto (2026-09-07) — pendências encontradas
+
+Formato: **PR.** `arquivo:linha` — descrição — sugestão. (Vistoria exaustiva de todo
+`src/main`, `src/test`, migrations, build, scripts e docs; sem alteração de código. Ver
+`CONTEXT.md`.)
+
+### Decidido: manter (2026-09-07)
+Os 5 itens abaixo **ficam como estão por decisão do usuário** — app de estação única, usuários
+seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
+- **A1** `security/CryptoManager.java:13-15` — chave AES-256 fixa hardcoded + modo `ECB`
+  (sem IV, determinístico). Qualquer um com o código/JAR decripta senhas/logins de todos os
+  usuários. — Decidido: manter.
+- **A2** `domain/telegram/TelegramNotifierFactory.java:4-5` — token/chatId do bot cifrados com a
+  mesma chave hardcoded → decriptáveis. — Decidido: manter.
+- **A3** `flyway_migrations/V10__dados_padrao.sql:7-9` — login/senha do admin padrão cifrados,
+  mas com chave exposta no código (A1) → credenciais recuperáveis. — Decidido: manter.
+- **A4** `flyway_migrations/V13__criar_conexao_camera.sql:7,12` — `frente_senha`/`costas_senha`
+  (câmeras) em **texto puro** no banco. — Decidido: manter.
+- **M1** `screens/usuarioScreen/AddOrEditUsuarioScreen.java:63` — edição de usuário carrega a
+  senha decriptada no campo (`InputColumnAuth` sem máscara). — Decidido: manter (exibição
+  restrita a admin; parte da decisão de encriptação).
+
+### Alta
+- **[x] A5** `db/repositories/PesagemRepository.java:71-78` + `DashboardViewModel.java:59-64` +
+  `V10:2,12` — filtro de data bind Long epoch-millis contra `dataCriacao` gravado pelo Persism
+  como texto `yyyy-MM-dd HH:mm:ss(.f)`; INTEGER < TEXT sempre no SQLite → "até" nunca casa (0
+  linhas) e "a partir de" nunca filtra. "Pesagens do mês" do dashboard fica 0; filtro de período
+  do histórico incorreto. **Sem teste cobrindo o filtro por data.** — **Corrigido 2026-09-07
+  (ver DECISIONS.md): a premissa "Persism grava texto" estava errada — confirmado com o driver
+  (sqlite-jdbc 3.45.1.0) e numa cópia do banco real que `dataCriacao` é **INTEGER epoch-ms**
+  (setTimestamp do Persism). Filtro agora converte `LocalDate` (inclusivos) pra epoch-ms no fuso
+  do sistema e compara numericamente (`dataCriacao >=`/`<=`); API continua recebendo `LocalDate`.
+  Teste novo `filtrarPorPeriodoFiltraPelaDataEmInclusivos` em `PesagemRepositoryTest`.**
+- **[x] A6** `screens/*/AddOrEditClienteScreen.java`, `AddOrEditProdutoScreen.java`,
+  `AddOrEditUsuarioScreen.java` — as 3 telas criam `ViewModel` que faz
+  `EventBus.getInstance().subscribe(...)` e Service próprios, mas **não têm `onDestroy()`** →
+  listener no bus global + sessão/DB abertas a cada abertura de formulário. É exatamente o
+  padrão do NPE de session nula já corrigido em 2026-08-28. — **Corrigido: `onDestroy()`
+  implementado nas 3 telas (chama `viewModel.onDestroy()` + fecha o service, log warn).**
+- **[x] A7** `AddOrEditClienteScreen:32`, `AddOrEditProdutoScreen:33`, `AddOrEditUsuarioScreen:33`,
+  `DetailsClienteScreen:44`, `DetailsProdutoScreen:38`, `DetailsUsuarioScreen:38`,
+  `DetailsPesagemScreen:52` — `Long.parseLong(ctx.getParams().get("id"))` sem try/catch → rota
+  malformada quebra o construtor da tela (NPE/NFE). — **Corrigido: try/catch `parseLong` nas 6
+  telas com log + `ShowAlertError` + fechamento do stage (Details).**
+- **[x] A8** `db/services/PesagemService.java:132-143` + `DescontoService.java:22-44` — as regras
+  "bruto ≥ tara" e "soma dos descontos ≤ 100%" existem **só na ViewModel**
+  (`PesagemFormViewModel.salvar()`); o Service **defaulta pesos null pra ZERO** (pesoFinal
+  negativo persistível) e `DescontoService` valida nada. Salvar fora da UI persiste inválido. —
+  **Corrigido: `PesagemService.salvar/atualizar` validam `tipoPesagem` obrigatório e bruto<tara
+  (só quando ambos pesos > 0 — fluxo "só Tara"/C1 permitido); `DescontoService.salvar/atualizar`
+  validam soma>100. Testes novos em `PesagemServiceTest`/`DescontoServiceTest`.**
+- **A9** Testes — **nenhum teste de ViewModel**; regras críticas só em teste manual
+  (`testes-pesagem.md` H4/G4): soma>100, bruto<tara, salvar sem peso, `preencherDaEntrada`,
+  `capturarFotos`. — Sugestão: extrair regras pra classes puras (padrão `PesagemCalculo`) e
+  testar.
+- **[x] A10** `scripts/updater_config.py:9`, `scripts/create-msi-with-updater.py` — `UPDATER_MAIN_CLASS
+  = "my_app.updater.Main"` aponta pra pacote/classe **inexistentes** (UpdaterService removido) →
+  jpackage gera launcher "Updater" morto. — **Corrigido: 3 scripts "with-updater" +
+  `updater_config.py` removidos; referências em comentários limpas.**
+- **[x] A11** `README.md:1-149` + `scripts/create-flatpak.py` — README descreve o **Plics SW** (ERP:
+  compras/estoque/PDV/fornecedores), funções inexistentes ("Buscar atualização", `Main.isFlatpak`,
+  `flatpak/README.md` — diretório `flatpak/` **não existe**) e versão errada (1.1.2 vs 1.0.1). —
+  **Corrigido: README reescrito pro produto real (Gobitech pesagem), incluindo pré-requisitos
+  (M12); branding do `create-flatpak.py` ajustado (M10).**
+
+### Média
+- **[x] M2** `screens/homeScreen/HomeScreen.java:87-89` — menu "Logs" visível **para todos** os
+  usuários, sem `.itemIf(isAdmin, ...)`; logs podem conter logins/SQL. — **Corrigido: item
+  "Ver logs da aplicação" agora é `itemIf(isAdmin, ...)`.**
+- **M3** `screens/homeScreen/HomeScreen.java:74` — item "Conexão das câmeras" **comentado** →
+  a tela `CONEXAO_CAMERA` (implementada, teste incluído) fica inalcançável pela UI. —
+  **Decidido (2026-09-07): manter desativado** — câmera entra no fluxo só na Fase 2/uso real.
+- **[x] M4** `screens/clienteScreen/ClienteScreen.java:86`, `ProdutoScreen.java:82`,
+  `UsuarioScreen.java:81` — `exportPdf` ignora o `snapshotFiltrado` do contrato
+  (`ContratoTelaCrudV3`) e relê `vm.filteredList` → PDF pode divergir do que o usuário viu. —
+  **Corrigido: as 3 telas exportam a lista recebida no parâmetro (mesmo padrão já usado pelo
+  `PesagemHistoricoScreen`).**
+- **[x] M5** `screens/empresaScreen/EmpresaViewModel.java:71-73` — `fetchData()` lança
+  `RuntimeException` na lambda do `Async.Run` sem `UI.runOnUi`/alerta — divergente das demais
+  ViewModels. — **Corrigido: `log.error` + `UI.runOnUi(() -> ShowAlertError(...))`.**
+- **[x] M6** `AddOrEditClienteScreen.java:92` / `AddOrEditProdutoScreen.java:88` —
+  `viewModel.modoEdicaoState().set(false)` síncrono após `handleAddOrUpdate` assíncrono →
+  duplo-clique grava 2 registros (o 2º cai no ramo de criação); `AddOrEditUsuarioScreen` não faz
+  isso (divergente). — **Corrigido: trava `tryBeginSalvar()/endSalvar()` na classe base
+  `ViewModelScreenContract` (AtomicBoolean liberado no `finally` do Async.Run) — o 2º clique é
+  ignorado até a gravação terminar; vale pras 3 telas e fecha o divair das 2 com a de usuário.**
+- **M7** Muitas telas exibem `e.getMessage()` cru (stack de SQL/SO) ao usuário:
+  `AuthScreenViewModel:79`, `DashboardViewModel:74,113`, `ConexaoBalancaViewModel:72,88,113`,
+  `ConexaoCameraViewModel:70,101,150`, `PesagemFormViewModel:170,199,392`,
+  `PesagemHistoricoViewModel:84,115,140,171,225,249`, `Details*`, `ContratoTelaCrudV3:81`,
+  `LogsScreenViewModel:71`. — Sugestão: mensagem amigável fixa; detalhe só em `log.error`.
+- **[x] M8** `db/services/PesagemService.java:47-49,58-62` — `atualizar()` não valida
+  `tipoPesagem` (só `salvar()`); e o Service impõe `tipoPesagem` obrigatório além da regra "só
+  placa" do domínio. — **Corrigido junto do A8: `atualizar()` valida `tipoPesagem` e bruto<tara
+  (mesma regra de `salvar()`).**
+- **M9** `db/services/ClienteService:70`, `EmpresaService:58-67`, `UsuarioService:47-49` —
+  validações de telefone/CEP/CPF duplicadas com estilos divergentes (`isValidPhone` importado ×
+  `ValidatorPack.`). — Sugestão: centralizar.
+- **[x] M10** `scripts/updater_config.py` / `Docs pendentes` — branding "Plics" resíduos:
+  `Main.java:36` (`plics.appVersion`), `build.gradle.kts:144` (`-Dplics.appVersion`),
+  `ProcessKiller.java:12,29` (`plics-killer.log`), `create-flatpak.py:19` (`PlicsSW`). —
+  **Corrigido: tudo renomeado pra `gobitech.*` (ver DECISIONS.md 2026-09-07).**
+- **[x] M11** `build.gradle.kts:53-54,94` — JUnit em **dois níveis** (BOM 5.10.0 + jupiter 5.13.1);
+  `jna:66-67` e `jackson:109-111` **sem nenhum uso** no código. — **Corrigido: BOM único 5.13.1,
+  jna/jackson removidos, declarações duplicadas implementation/testImplementation unificadas.**
+- **[x] M12** Envs esperadas sem documentação (README): `JAVAFX_MODULES_HOME` (obrigatória pro
+  `gradlew run`, `build.gradle.kts:127-131`), `DEV_MODE`, `GITHUB_TOKEN`. — **Corrigido: seção
+  "Pré-requisitos" no README novo (A11).**
+- **[x] M13** `flyway_migrations/V10:2,12` — `dataCriacao` seed em **INTEGER** (epoch-ms) vs "Persism
+  gravando TEXT" → ordenação e comparações inconsistentes (relacionado a A5). — **Corrigido
+  2026-09-07: a premissa estava errada — Persism grava INTEGER epoch-ms (confirmado no driver e
+  no banco real). Seeds já são INTEGER consistentes; migration `V20` criada nesta rodada foi
+  **removida** (criaria tipos mistos). Sem alteração de schema.**
+- **M14** `docs/CONTEXT.md` — 17 seções "Estado atual" fora de ordem cronológica, datas
+  duplicadas; cita `Utils.isValidDocumento`/"UtilsTest 7 casos" já movidos pro `pack-utilities`;
+  contagem de testes desatualizada (**199** nos docs vs **189** `@Test` reais). — Sugestão:
+  consolidar numa seção "Estado atual" + "Histórico".
+- **M15** `docs/TODO.md:412-418` — "Pendente" desatualizado: `Main.APP_NAME` já é "Gobitech"
+  (só as chaves `plics.*` sobraram — M10); parcialmente resolvido. — Sugestão: revisar com esta
+  vistoria.
+- **[x] M16** `src/test/java/my_app/DevicesTest.java` — é um `main()` manual (JSSC) **não-JUnit**
+  dependente de hardware, fazendo parte do source set de teste. — **Corrigido: **removido** — não
+  era `public static void main` (nem rodava) e a listagem de portas já existe na UI
+  (`ConexaoBalancaViewModel`).**
+- **[x] M17** `infra/balanca/` — `LeitorBalancaSerial`/`LeitorBalancaTcp`/`Factory` **sem teste**
+  (só `PesoParser`); nunca validado contra hardware real. Existe `scripts/simular_balanca_tcp.py`.
+  — **Corrigido: novo `LeitorBalancaTcpTest`** — ServerSocket em loopback (porta efêmera) simula
+  o indicador transmitindo o peso continuamente; também cobre o erro de conexão recusada com
+  porta efêmera liberada na hora.
+- **[x] M18** Testes frágeis: `LicensaServiceTest:61` (`Thread.sleep(2)` pra diferenciar
+  dataCriacao); `CameraSnapshotClientTest:114-119` conecta em `127.0.0.1:1`;
+  `BaseRepositoryTest`/`BaseServiceTest` compartilham `file:testdb?mode=memory&cache=shared` sem
+  isolamento entre classes. — **Corrigido: `LicensaServiceTest` gera até ter timestamp distinto
+  (loop, sem sleep); câmera usa porta efêmera recém-liberada; cada classe de teste usa banco
+  em memória próprio (`testdb-<Classe>`) via `testUrl()`.**
+- **[x] M19** `HOTRELOAD.md:23-28` — descreve compilação `javac` + classe `Reloader` que não
+  existe; o `dev.py` real reinicia via `gradlew run`. — **Corrigido: reescrito pro comportamento
+  real (hashes SHA-256 + kill/restart; comandos Windows/Linux; ruído ignorado).**
+- **M20** `db/services/PesagemService.java:106-119` — `anexarRelacoes` faz **N+1** SELECTs por
+  pesagem (listas); `DashboardViewModel` ainda lista tudo só pra `size()`. — Sugestão: JOINs/
+  `WHERE id IN`; `COUNT(*)` no dashboard.
+- **[x] M21** `build.gradle.kts:143` — `-Dprism.verbose=true` fixo no `run` (debug do JavaFX). —
+  **Corrigido: só entra no `jvmArgs` quando `DEV_MODE` está setado no ambiente de quem chamou o
+  gradle.**
+
+### Baixa
+- **[x] B1** `domain/Parcela.java` — classe morta (só import não usado em `Components:36`), divisão em
+  `double` sem `RoundingMode` (centavos imprecisos); `domain/Data.java:35-37` — `main()` de teste
+  órfão; `TelegramNotifier.java:132-135` — `main()` manual sobrando; `AppRoutes:40` —
+  `ACESSO_BLOQUEADO` sem rota/tela. — **Corrigido: `Parcela.java` deletado (import removido das
+  `Components`); `main()` órfãos removidos; `ACESSO_BLOQUEADO` removido do enum.**
+- **[x] B2** Imports não usados: `PesagemService:5`, `CryptoManager:7-8`, `AuthScreen:3`,
+  `Sidebar:22`, `UsuarioScreenViewModel:8`, `PesagemHistoricoViewModel:28-29`,
+  `PesagemFormScreen:5,11`, `PesagemHistoricoScreen:5,12`, `ConexaoBalancaViewModel:18`,
+  `ContratoTelaCrudV3:27,34`, `ViewModelScreenContract:10`, `Components:34,36,38`. — **Corrigido:
+  todos removidos (`UsuarioModel`/`Files`/`Path`/`Redirect`/`SessaoUsuario`/`ProdutoEvent`/
+  `Comparator`/`HashSet`/`Button`×2/`ButtonProps`×2/`jSerialComm.SerialPort`/`Stage`/`Show`/
+  `AntDesignIconsOutlined`/`persism.Column`; `Show`+`Parcela` nas `Components`).**
+- **[x] B3** `build.gradle.kts` — comentários obsoletos (`:12-13`, ":41", ":63"); dependências
+  repetidas em `implementation`+`testImplementation` (`:80/100, :82/103, :83/97, :93/106`);
+  `tasks.jar enabled=false` + `publishing` com `components["java"]` órfão. — **Corrigido:
+  comentários órfãos removidos; `publishing`/plugin `maven-publish` removidos (nada usa — os
+  scripts empacotam com `shadowJar`); bloco morto do `tasks.jar` enxugado (fica `enabled=false`),
+  com comentário explicando por quê. As duplicatas de dependência já haviam sido removidas em
+  M11.**
+- **B4** `.github/workflows/package.yml:100-103` — passo MSI usa `python3` no runner Windows
+  (Python do `setup-python` é `python.exe`); comentário de outro projeto (`:3-5`). — Sugestão:
+  normalizar invocação. **⚠ Fora do clone atual** — o workflow mora no repositório
+  `megalodonte-world` (PU), não nesta pasta. Registrar no repo do PU quando atualizar por lá.
+- **[x] B5** `ProdutoService.java:52-54` — checa duplicidade com `trim()` mas persiste sem `trim` →
+  "Arroz" vs "Arroz ". — Sugestão: normalizar no salvar. `LicensaService:47-51` — `expiraEm`
+  null = licença eterna; `DB.java:37` loga URL completa; `DB.java:83`/`ProcessKiller:19`/
+  `ListaPdfExporter:59` — `catch (Exception ignored)` sem log. — **Corrigido: `ProdutoService`
+  normaliza `model.setNome(nome.trim())` em `salvar`/`atualizar`; catches silenciosos agora
+  logam (warn no `DB.closeAllSessions` e no logo do `ListaPdfExporter`; System.err no
+  `ProcessKiller`, onde logar via slf4j falharia no mesmo arquivo). `expiraEm` null = licença
+  eterna **já era** o comportamento correto (testado) — mantido e documentado; o log de URL no
+  `DB` é caminho local do arquivo (não sensível) — mantido.**
+- **[x] B6** PDFs gerados commitados no repo: `lista.pdf`, `relatorio.pdf`, `ticket_pesagem_20/34.pdf`,
+  `relatorios/*.pdf`, `tickets/*.pdf`, `META-INF/MANIFEST.MF`. — **Corrigido: adicionados ao
+  `.gitignore` e removidos do índice (`git rm --cached`).**
+- **[x] B7** `.gitignore:5` — resíduo `plics-sw-new-version-for-test/`. — **Corrigido: removido.**
+- **[x] B8** `screens/pesagemScreen/PesagemSaidaScreen.java:23-26` — `permitirCapturarTara()=true`
+  é o default e **contradiz** o javadoc da própria classe ("a Tara vem da entrada — não é
+  capturada de novo"); sinaliza botão "Capturar" na tara da Saída. — **Corrigido: retorna `false`
+  e `taraEditavel()=false` (tara somente-leitura, vem da Entrada) — alinhado ao comportamento
+  documentado (Item 2026-09-03 e CONTEXT).**
 - [x] `PesagemFormScreen`: novos hooks `taraEditavel()`/`brutoEditavel()` + lógica no
       `secaoPesos` — campo com botão "Capturar" fica somente-leitura (borda vermelha); campo sem
       botão e não-editável também fica somente-leitura
@@ -408,12 +594,14 @@
       `DECISIONS.md` pro relato completo (inclusive a correção de uma explicação errada que eu
       mesmo tinha documentado antes de rodar os testes de verdade).
 
-## Pendente — branding/empacotamento (herdado do plics-sw, ainda não trocado)
-- [ ] `Main.APP_NAME`/`BASE_TITLE` ainda dizem "Plics SW" — trocar quando for empacotar de
-      verdade pro cliente
-- [ ] `gradle.properties`, `scripts/*.py` (MSI/DEB/Flatpak) ainda referenciam Plics SW —
-      revisar antes de gerar o instalador final
-- [ ] "Buscar atualização" foi removido da Home porque `my_app.infra.UpdaterService` não existe
-      nesta cópia do projeto — se for reintroduzir, é trabalho de infraestrutura de release, não
-      de tela
+## Resolvido — branding/empacotamento (herdado do plics-sw)
+- [x] `Main.APP_NAME`/`BASE_TITLE` já dizem "Gobitech" (feito em rodada anterior); o que sobrava
+      eram as chaves `plics.*` — corrigido em 2026-09-07 (M10): `Main.java` lê
+      `gobitech.appVersion`, `build.gradle.kts`/`scripts/config.py` passam `-Dgobitech.appVersion`,
+      `ProcessKiller` usa `gobitech-killer.log`, `create-flatpak.py` usa `APP_ID ...gobitech`.
+- [x] `gradle.properties` usa `appName`/`appDisplayName` = gobitech; scripts MSI/DEB/Flatpak
+      leem tudo de `config.py`/`gradle.properties`. Scripts "with-updater" (que apontavam pra
+      `my_app.updater.Main` inexistente) removidos em 2026-09-07 (A10).
+- [x] "Buscar atualização" removido da Home porque `my_app.infra.UpdaterService` não existe —
+      se for reintroduzir, é trabalho de infraestrutura de release, não de tela.
 

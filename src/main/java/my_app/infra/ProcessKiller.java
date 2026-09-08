@@ -9,14 +9,16 @@ import java.time.format.DateTimeFormatter;
 
 public class ProcessKiller {
 
-    private static final Path LOG_FILE = Path.of(System.getProperty("java.io.tmpdir"), "plics-killer.log");
+    private static final Path LOG_FILE = Path.of(System.getProperty("java.io.tmpdir"), "gobitech-killer.log");
 
     private static void log(String msg) {
         try {
             Files.writeString(LOG_FILE,
                     java.time.Instant.now() + " " + msg + "\n",
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-        } catch (IOException ignored) {}
+        } catch (IOException e) {
+            System.err.println("ProcessKiller: não foi possível escrever em " + LOG_FILE + ": " + e);
+        }
     }
 
     /**
@@ -26,7 +28,7 @@ public class ProcessKiller {
      * taskkill.exe diretamente e se autodeleta com /z após rodar.
      */
     public static void killPidAsync(long pid) {
-        String taskName = "PlicsKill_" + System.currentTimeMillis();
+        String taskName = "GobitechKill_" + System.currentTimeMillis();
         String startTime = LocalTime.now().plusMinutes(1)
                 .format(DateTimeFormatter.ofPattern("HH:mm"));
 

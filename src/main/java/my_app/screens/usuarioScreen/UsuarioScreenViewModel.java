@@ -5,7 +5,6 @@ import megalodonte.base.UI;
 import megalodonte.base.async.Async;
 import megalodonte.router.v4.ScreenContext;
 import my_app.core.AppRoutes;
-import my_app.core.events.ProdutoEvent;
 import my_app.db.models.UsuarioModel;
 import my_app.db.services.UsuarioService;
 import my_app.core.events.UsuarioEvent;
@@ -117,6 +116,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
     @Override
     public void handleAddOrUpdate() {
         if (modoEdicao.get() && selected.get() == null) return;
+        if (!tryBeginSalvar()) return;
 
         boolean editando = modoEdicao.get();
         var model = populateModelFromFields();
@@ -143,6 +143,8 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
             } catch (Exception e) {
                 log.error("Erro inesperado ao salvar usuário", e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro inesperado: " + e.getMessage()));
+            } finally {
+                endSalvar();
             }
         });
     }

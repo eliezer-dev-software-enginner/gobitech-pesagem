@@ -80,7 +80,9 @@ public final class DB {
             var copy = new ArrayList<>(activeSessions);
             activeSessions.clear();
             for (var s : copy) {
-                try { s.close(); } catch (Exception ignored) {}
+                try { s.close(); } catch (Exception e) {
+                    log.warn("Erro ao fechar sessão Persism", e);
+                }
             }
         }
     }

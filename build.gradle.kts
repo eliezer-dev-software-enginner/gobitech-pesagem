@@ -3,14 +3,11 @@ import java.util.Properties
 
 plugins {
     id("java")
-    id("maven-publish")
     id("application")
 
-    // 🛑 CORREÇÃO: Usando o ID e a versão CORRETOS conforme a documentação oficial.
     id("org.openjfx.javafxplugin") version "0.1.0"
 
-    //shadow jar para iconly funcionar
-    //id("com.github.johnrengelman.shadow") version "8.1.1" (NÃO FUNCIONA)
+    // shadow jar pro app empacotado (nativa: MSI/DEB/Flatpak) rodar sem JavaFX no classpath
     id("com.gradleup.shadow") version "8.3.5"
 }
 
@@ -38,7 +35,6 @@ java {
     }
 }
 
-// 🛑 2. CONFIGURA O PLUGIN DO JAVAFX
 javafx {
     version = "25.0.1"
     modules("javafx.controls", "javafx.graphics")
@@ -49,8 +45,8 @@ dependencies {
     implementation("com.fazecast:jSerialComm:2.11.0")
 
 
-    // Dependências de teste (mantidas)
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
+    // Dependências de teste
+    testImplementation(platform("org.junit:junit-bom:5.13.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
@@ -59,12 +55,6 @@ dependencies {
     implementation("megalodonte:megalodonte-reactivity:1.0.0-beta")
     implementation("megalodonte:megalodonte-router:1.0.0-beta")
     implementation("megalodonte:megalodonte-theme:1.0.0-beta")
-
-    //implementation("org.controlsfx:controlsfx:11.2.4-SNAPSHOT")
-
-    //
-    implementation("net.java.dev.jna:jna:5.14.0")
-    implementation("net.java.dev.jna:jna-platform:5.14.0")
 
     //Java library for ESC/POS printer commands
     implementation("com.github.anastaciocintra:escpos-coffee:4.1.0")
@@ -91,24 +81,9 @@ dependencies {
     //logs
     implementation("org.slf4j:slf4j-api:2.0.17")
     implementation("ch.qos.logback:logback-classic:1.5.18")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.13.1")
 
-    // Flyway também para testes
-    testImplementation("org.flywaydb:flyway-core:10.15.0")
-
-    // SQLite também para testes
-    testImplementation("org.xerial:sqlite-jdbc:3.45.1.0")
-
-    // Persism também para testes
-    testImplementation("io.github.sproket:persism:2.3")
-
-    // SLF4J/Logback para testes
-    testImplementation("ch.qos.logback:logback-classic:1.5.18")
-
-    //jackson
-    implementation("com.fasterxml.jackson.core:jackson-core:2.17.0")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.0")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.0")
+    // SQLite/Persism/Flyway/logback também no classpath de teste (herdados do
+    // implementation — sem duplicar declaração)
 
     //geracao de PDF (tela de Relatorios)
     implementation("org.apache.pdfbox:pdfbox:2.0.29")
@@ -136,13 +111,20 @@ tasks.named<JavaExec>("run") {
         "$javafxModulesHome/linux-25.0.1/lib"
     }
 
-    jvmArgs = listOf(
+    val jvmArgsList = mutableListOf(
         "--module-path", fxPath,
         "--add-modules", "javafx.controls,javafx.graphics",
         "--enable-native-access=ALL-UNNAMED",
-        "-Dprism.verbose=true",
-        "-Dplics.appVersion=$fullVersion"
+        "-Dgobitech.appVersion=$fullVersion"
     )
+
+    // Prism verbose é debug do JavaFX — só liga quando o próprio DEV_MODE foi
+    // setado no ambiente de quem chamou o gradle (senão polui todo log de run).
+    if (System.getenv("DEV_MODE") == "true") {
+        jvmArgsList.add("-Dprism.verbose=true")
+    }
+
+    jvmArgs = jvmArgsList
 
     environment("DEV_MODE", "true")
 }
@@ -172,31 +154,8 @@ tasks.shadowJar {
     exclude("META-INF/*.RSA")
 }
 
+// O jar simples fica desabilitado de propósito: o artefato utilizável é o shadowJar
+// (os scripts de MSI/DEB/Flatpak rodam "clean shadowJar").
 tasks.jar {
     enabled = false
-    archiveBaseName.set(props.getProperty("appName"))
-
-    manifest {
-        attributes(
-            "Implementation-Title" to "JavaFX ${props.getProperty("appName")} app",
-            "Implementation-Version" to project.version,
-            "Main-Class" to props.getProperty("appMainClass")
-        )
-    }
-
-    from(configurations.runtimeClasspath.get().map {
-        if (it.isDirectory) it else zipTree(it)
-    })
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
-
-// Configuração de Publicação (mantida)
-publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            from(components["java"])
-            artifactId = props.getProperty("appName")
-        }
-    }
 }

@@ -1,31 +1,59 @@
-Você é o agente oficial deste projeto.
+# Agente Oficial do Projeto
 
-Antes de executar qualquer tarefa:
+Você é o agente oficial deste projeto. Siga este processo em toda sessão.
 
-1. Leia docs/AI_RULES.md.
-2. Leia README.md.
-3. Analise a estrutura atual do projeto.
-4. Identifique padrões já utilizados.
-5. Siga os padrões existentes.
-6. Nunca introduza tecnologias diferentes sem autorização.
-7. Sempre explique brevemente o plano antes de modificar arquivos.
-8. Mantenha um histórico das decisões em docs/DECISIONS.md.
-9. Ao finalizar uma tarefa, registre:
-    - O que foi alterado.
-    - Motivo da alteração.
-    - Arquivos modificados.
-    - Próximos passos recomendados.
+## 1. Contexto obrigatório (leia antes de qualquer ação)
+- docs/AI_RULES.md
+- docs/CONTEXT.md
+- docs/DECISIONS.md
+- docs/TODO.md
+- README.md
 
-Toda nova sessão deve consultar AI_RULES.md e DECISIONS.md antes de iniciar.
+Não inicie nenhuma tarefa sem ter lido esses arquivos primeiro.
 
-Leia docs/AI_RULES.md, docs/CONTEXT.md, docs/DECISIONS.md e docs/TODO.md.
+## 2. Entendimento do projeto
+- Analise a estrutura atual de pastas e arquivos.
+- Identifique os padrões de código, arquitetura e nomenclatura já em uso.
+- Siga os padrões existentes. Nunca introduza bibliotecas, frameworks ou tecnologias diferentes das já usadas sem autorização explícita.
 
-Entenda o projeto antes de agir.
+## 3. Antes de modificar arquivos
+- Explique brevemente o plano da tarefa antes de executar qualquer mudança.
 
-Após cada tarefa:
-- Atualize docs/CONTEXT.md.
-- Atualize docs/DECISIONS.md se houver decisão arquitetural.
-- Atualize docs/TODO.md.
-- Mantenha os arquivos concisos.
+## 4. Tarefa: Vistoria completa do projeto
 
-Prompt: em UsuariosDetails está mostrando o dado hasheado, corrija isso.
+Faça uma varredura **completa e exaustiva** de todo o projeto — não uma amostragem superficial. Isso significa:
+
+- Percorrer **todos os diretórios e arquivos de código-fonte** (não pular pastas por parecerem secundárias).
+- Analisar cada arquivo relevante individualmente, não apenas os arquivos de entrada/principais.
+
+Procure especificamente por:
+
+- **Código incompleto**: funções vazias, `TODO`/`FIXME`/`XXX` no código, stubs sem implementação, trechos comentados como "implementar depois".
+- **Erros e falhas potenciais**: tratamento de erro ausente, exceções não capturadas, validações faltando, possíveis null/undefined não tratados.
+- **Inconsistências**: código que não segue os padrões já identificados no projeto, duplicação de lógica, nomenclatura inconsistente.
+- **Dependências e configuração**: pacotes não utilizados, versões conflitantes, variáveis de ambiente esperadas mas não documentadas.
+- **Segurança**: segredos/chaves hardcoded, endpoints sem autenticação, inputs sem sanitização.
+- **Testes**: funcionalidades sem cobertura de teste, testes quebrados ou desabilitados.
+- **Documentação**: funções/módulos importantes sem documentação, README ou docs desatualizados em relação ao código atual.
+- **Débito técnico visível**: arquivos obsoletos, código morto, imports não usados.
+
+Para cada item encontrado, registre em `docs/TODO.md` com:
+- **Prioridade** (alta / média / baixa)
+- **Arquivo(s) e localização** (caminho + linha, se aplicável)
+- **Descrição do problema**
+- **Sugestão de correção** (se houver)
+
+Não pare na primeira leva de problemas óbvios — continue até ter revisado toda a árvore de arquivos do projeto.
+
+## 5. Ao final da tarefa
+Registre em `docs/DECISIONS.md` (se houve decisão arquitetural) e atualize:
+- **docs/CONTEXT.md**: estado atual do projeto após a vistoria.
+- **docs/DECISIONS.md**: decisões arquiteturais tomadas, se houver.
+- **docs/TODO.md**: lista completa dos pontos encontrados, conforme formato acima.
+
+Mantenha todos os arquivos de documentação concisos e objetivos.
+
+Ao final, resuma para mim:
+- O que foi analisado.
+- Quantos pontos de falha/pendências foram encontrados.
+- Quais são os 3 mais críticos.

@@ -120,6 +120,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
     @Override
     public void handleAddOrUpdate() {
         if (modoEdicao.get() && selected.get() == null) return;
+        if (!tryBeginSalvar()) return;
 
         boolean editando = modoEdicao.get();
         var model = populateModelFromFields();
@@ -147,6 +148,8 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
             } catch (Exception e) {
                 log.error("Erro inesperado ao salvar produto", e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro inesperado: " + e.getMessage()));
+            } finally {
+                endSalvar();
             }
         });
     }

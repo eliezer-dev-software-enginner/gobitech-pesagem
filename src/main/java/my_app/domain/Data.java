@@ -31,8 +31,4 @@ public class Data {
     public static String getNumberWhatsappSupportFormatted() {
         return FormatterPack.formatPhone(numberWhatsappSupport.replace("55",""));
     }
-
-    static void main() {
-        IO.println(getNumberWhatsappSupportFormatted());
-    }
 }

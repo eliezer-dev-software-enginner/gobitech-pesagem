@@ -2,8 +2,6 @@
 build/
 __pycache__/
 .venv/
-plics-sw-new-version-for-test/
-/docs/PROMPT.md
 # Gerado por scripts/create-flatpak.py / flatpak-builder — reproduzível, não versiona
 flatpak/app-image/
 flatpak/_build/
@@ -96,3 +94,15 @@ dist
 HASH.md
 /pdfs/
 /lista2.pdf
+
+### PDFs gerados em execução do app ###
+# Tickets/reportórios/listas exportados durante uso — resultado do app, não fontes
+# (o Roboto_Specimen_Book.pdf em src/main/resources/assets é asset real, não entra aqui)
+/lista.pdf
+/relatorio.pdf
+/ticket_pesagem_*.pdf
+/tickets/
+/relatorios/
+
+### Manifesto gerado por build/jpackage na raiz ###
+/META-INF/

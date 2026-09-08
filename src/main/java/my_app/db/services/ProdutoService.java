@@ -29,6 +29,7 @@ public class ProdutoService extends BaseService<ProdutoModel> {
     @Override
     public ProdutoModel salvar(ProdutoModel model) throws SQLException {
         validar(model);
+        model.setNome(model.getNome().trim());
         if (model.getAtivo() == null) model.setAtivo(true);
         if (model.getDesconto() == null) model.setDesconto(BigDecimal.ZERO);
         model.setDataCriacao(LocalDateTime.now());
@@ -40,6 +41,7 @@ public class ProdutoService extends BaseService<ProdutoModel> {
     @Override
     public void atualizar(ProdutoModel model) throws SQLException {
         validar(model);
+        model.setNome(model.getNome().trim());
         if (model.getDesconto() == null) model.setDesconto(BigDecimal.ZERO);
         repository.atualizar(model);
         log.info("Produto atualizado: id={} nome={}", model.getId(), model.getNome());

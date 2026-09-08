@@ -22,6 +22,7 @@ public class DescontoService extends BaseService<DescontoModel> {
     @Override
     public DescontoModel salvar(DescontoModel model) throws SQLException {
         zerarNulos(model);
+        validar(model);
         model.setDataCriacao(LocalDateTime.now());
         return repository.salvar(model);
     }
@@ -29,7 +30,13 @@ public class DescontoService extends BaseService<DescontoModel> {
     @Override
     public void atualizar(DescontoModel model) throws SQLException {
         zerarNulos(model);
+        validar(model);
         repository.atualizar(model);
+    }
+
+    private void validar(DescontoModel model) {
+        if (model.somaPercentuais().compareTo(new BigDecimal("100")) > 0)
+            throw new IllegalArgumentException("A soma dos descontos não pode ultrapassar 100%.");
     }
 
     private void zerarNulos(DescontoModel model) {

@@ -4,6 +4,8 @@ import my_app.db.models.PesagemModel;
 import net.sf.persism.Session;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,9 +43,15 @@ public class PesagemRepository extends BaseRepository<PesagemModel> {
      * Todos os campos filtram por AND (cada um preenchido restringe mais o resultado) —
      * corrigindo o bug do app original, que misturava AND/OR sem agrupar e fazia um filtro
      * de cliente/produto ignorar os outros campos preenchidos.
+     *
+     * <p>As datas entram como {@link LocalDate} (dia inicial e dia final, inclusivos) e são
+     * convertidas pra epoch-millis no fuso do sistema antes do bind. A coluna {@code dataCriacao}
+     * é TIMESTAMP, e o Persism/sqlite-jdbc grava o valor como INTEGER epoch-millis (ver
+     * {@code DECISIONS.md} 2026-09-07) — por isso a comparação é numérica e cobre o dia inteiro
+     * (início do dia inicial até o fim do dia final).
      */
     public List<PesagemModel> filtrar(String placa, String motoristaNome, Integer clienteId,
-                                       Integer produtoId, Long dataInicioMillis, Long dataFimMillis,
+                                       Integer produtoId, LocalDate dataInicio, LocalDate dataFim,
                                        String tipoPesagem) throws SQLException {
         var condicoes = new ArrayList<String>();
         var valores = new ArrayList<Object>();
@@ -68,13 +76,13 @@ public class PesagemRepository extends BaseRepository<PesagemModel> {
             condicoes.add("tipo_pesagem = ?");
             valores.add(tipoPesagem);
         }
-        if (dataInicioMillis != null) {
+        if (dataInicio != null) {
             condicoes.add("dataCriacao >= ?");
-            valores.add(dataInicioMillis);
+            valores.add(millisDoInicioDoDia(dataInicio));
         }
-        if (dataFimMillis != null) {
+        if (dataFim != null) {
             condicoes.add("dataCriacao <= ?");
-            valores.add(dataFimMillis);
+            valores.add(millisDoFimDoDia(dataFim));
         }
 
         String where = condicoes.isEmpty() ? "" : " WHERE " + String.join(" AND ", condicoes);
@@ -83,5 +91,15 @@ public class PesagemRepository extends BaseRepository<PesagemModel> {
                 sql("SELECT * FROM pesagens" + where + " ORDER BY dataCriacao DESC"),
                 params(valores.toArray())
         );
+    }
+
+    /** Início (00:00:00) de um dia em epoch-millis no fuso do sistema. */
+    private static long millisDoInicioDoDia(LocalDate dia) {
+        return dia.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli();
+    }
+
+    /** Fim (23:59:59.999) de um dia em epoch-millis no fuso do sistema. */
+    private static long millisDoFimDoDia(LocalDate dia) {
+        return dia.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli() - 1;
     }
 }

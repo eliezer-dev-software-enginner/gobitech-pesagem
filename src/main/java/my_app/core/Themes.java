@@ -18,7 +18,10 @@ return new ThemeColors(
         "#A9A9A9",
         "#1e3a5f",                    // selection (escuro o bastante para texto branco)
         "#93c5fd",                    // focusRing (lighter primary)
-        "#2d3a4f"                     // hover
+        "#2d3a4f",                     // hover
+        "#10b981",                    // success
+        "#f59e0b",                    // warning
+        "#ef4444"                      // danger
             );
         }
 
@@ -60,7 +63,10 @@ return new ThemeColors(
                 "#9ca3af",                    // placeholder
                 "#fbe8b8",                     // selection (tom claro do dourado)
                 "#e4c06a",                     // focusRing (tom médio do dourado)
-                "#ffe79a"                      // hover
+                "#ffe79a",                      // hover
+                    "#10b981",                    // success
+                    "#f59e0b",                    // warning
+                    "#ef4444"                      // danger
 
             );
         }

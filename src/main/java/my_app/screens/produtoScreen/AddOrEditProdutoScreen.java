@@ -30,10 +30,24 @@ public class AddOrEditProdutoScreen implements ScreenComponent {
     State<String> titleState = new State<>("");
 
     public AddOrEditProdutoScreen(ScreenContext screenContext){
-        id = Long.parseLong(screenContext.getParams().get("id"));
-        String type = screenContext.getParams().get("type");
         viewModel = new ProdutoScreenViewModel(screenContext);
         produtoService = createOrReport(ProdutoService::new);
+        String type = screenContext.getParams().get("type");
+
+        String idParam = screenContext.getParams().get("id");
+        try {
+            id = Long.parseLong(idParam);
+        } catch (RuntimeException e) {
+            log.error("Parâmetro 'id' inválido na rota de edição/inclusão: {}", idParam, e);
+            try {
+                viewModel.onDestroy();
+                produtoService.close();
+            } catch (Exception cleanup) {
+                log.warn("Erro ao limpar recursos após rota inválida", cleanup);
+            }
+            UI.runOnUi(() -> Components.ShowAlertError("ID inválido na rota de edição/inclusão."));
+            return;
+        }
 
         Async.Run(()->{
             var model = produtoService.buscarById(id);
@@ -89,6 +103,19 @@ public class AddOrEditProdutoScreen implements ScreenComponent {
         } catch (Exception e) {
             log.error("Erro em handleAddOrUpdate", e);
             UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
+        }
+    }
+
+    // A ViewModel se inscreve no EventBus global e abre a própria sessão; o Service da tela
+    // também. Sem o onDestroy, cada abertura do formulário vaza listener + conexão (o padrão
+    // do NPE de session nula já corrigido no projeto).
+    @Override
+    public void onDestroy() {
+        try {
+            viewModel.onDestroy();
+            produtoService.close();
+        } catch (Exception e) {
+            log.warn("Erro ao destruir AddOrEditProdutoScreen", e);
         }
     }
 }

@@ -18,6 +18,8 @@ import java.util.List;
 
 public class ListaPdfExporter {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ListaPdfExporter.class);
+
     private static final float MARGEM = 50;
     private static final float LEADING = 16;
     private static final float LARGURA_UTIL = PDRectangle.A4.getWidth() - 2 * MARGEM;
@@ -56,7 +58,9 @@ public class ListaPdfExporter {
                                 cs.drawImage(pdImage, MARGEM, y - maxHeight, width, maxHeight);
                                 logoHeight = maxHeight;
                             }
-                        } catch (Exception ignored) {}
+                        } catch (Exception e) {
+                            log.warn("Logomarca da empresa ignorada no cabeçalho (erro ao carregar)", e);
+                        }
                     }
 
                     float textX = MARGEM + (logoHeight > 0 ? 110 : 0);

@@ -32,10 +32,9 @@ LINUX_MENU_GROUP = _gradle_props["appLinuxMenuGroup"]
 ICON_PATH = "src/main/resources/assets/app_ico.ico" if os.name == "nt" else "src/main/resources/assets/app_ico.png"
 JAVAFX_VERSION = "25.0.1"
 
-# Upgrade code fixo do MSI (Windows) — não é específico do updater, por isso mora
-# aqui e não em updater_config.py. Precisa ser o mesmo em toda geração de MSI
-# (com ou sem updater) pra o Windows tratar uma nova versão como upgrade da
-# anterior em vez de instalar um produto "diferente" ao lado.
+# Upgrade code fixo do MSI (Windows) — precisa ser o mesmo em toda geração de MSI
+# pra o Windows tratar uma nova versão como upgrade da anterior em vez de instalar
+# um produto "diferente" ao lado.
 UPGRADE_UUID = "e3a2b1c4-7d5f-4a8e-9c6b-2f1d0a3e7b8c"
 
 
@@ -150,9 +149,8 @@ def run_jpackage(temp_dir: Path, pkg_type: str, extra_args: list = None):
         "--name", APP_NAME,
         "--app-version", APP_VERSION,
         "--vendor", VENDOR,
-        # Main.APP_VERSION lê essa property em runtime (mesmo padrão do
-        # isMicrosoftStore) — nada mais fica hardcoded no Main.java.
-        "--java-options", f"-Dplics.appVersion={APP_VERSION}",
+        # Main.APP_VERSION lê essa property em runtime — nada fica hardcoded no Main.java.
+        "--java-options", f"-Dgobitech.appVersion={APP_VERSION}",
         # jSerialComm em Java 24+ exige liberar acesso a código nativo
             # explicitamente — sem isso, a JVM barra o carregamento da lib nativa
             # de portas seriais em runtime.

@@ -111,10 +111,15 @@ class CameraSnapshotClientTest {
     }
 
     @Test
-    void deveLancarExcecaoQuandoCameraNaoResponde() {
+    void deveLancarExcecaoQuandoCameraNaoResponde() throws Exception {
         var client = new CameraSnapshotClient();
-        // Porta 1 é privilegiada e não deve estar escutando localmente — conexão recusada.
+        // Porta efêmera liberada na hora: loopback pronto pra recusar conexão
+        // (mais confiável do que fixar a porta 1, que pode variar entre SOs).
+        int porta;
+        try (var socket = new java.net.ServerSocket(0, 1, java.net.InetAddress.getByName("127.0.0.1"))) {
+            porta = socket.getLocalPort();
+        }
         assertThrows(Exception.class,
-                () -> client.capturarSnapshot("127.0.0.1", 1, USUARIO, SENHA, 1));
+                () -> client.capturarSnapshot("127.0.0.1", porta, USUARIO, SENHA, 1));
     }
 }

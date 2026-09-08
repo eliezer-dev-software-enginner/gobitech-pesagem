@@ -16,7 +16,6 @@ import my_app.domain.ViewModelScreenContract;
 import my_app.domain.components.Components;
 import my_app.infra.TicketPdfExporter;
 import my_app.infra.TicketThermalExporter;
-import pack.utilities.DatePack;
 import my_app.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,8 +24,6 @@ import javafx.stage.FileChooser;
 import java.io.File;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -120,11 +117,6 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
     public void aplicarFiltro() {
         Async.Run(() -> {
             try {
-                Long inicioMillis = filtroDataInicio.get() == null ? null
-                        : DatePack.localDateParaMillis(filtroDataInicio.get());
-                Long fimMillis = filtroDataFim.get() == null ? null
-                        : DatePack.localDateParaMillis(filtroDataFim.get()) + 86399999L;
-
                 var cliente = filtroCliente.get();
                 Integer clienteId = (cliente == null || cliente.getId() == null) ? null : cliente.getId();
                 String tipo = tipoChave(filtroTipo.get());
@@ -132,7 +124,7 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
                 var list = pesagemService.filtrar(
                         filtroPlaca.get().isBlank() ? null : filtroPlaca.get().trim(),
                         filtroMotorista.get().isBlank() ? null : filtroMotorista.get().trim(),
-                        clienteId, null, inicioMillis, fimMillis, tipo
+                        clienteId, null, filtroDataInicio.get(), filtroDataFim.get(), tipo
                 );
                 UI.runOnUi(() -> allDataList.set(list));
             } catch (Exception e) {

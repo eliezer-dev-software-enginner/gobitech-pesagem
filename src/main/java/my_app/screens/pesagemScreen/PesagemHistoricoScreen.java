@@ -2,14 +2,12 @@ package my_app.screens.pesagemScreen;
 
 import megalodonte.base.components.Component;
 import megalodonte.base.components.ScreenComponent;
-import megalodonte.components.Button;
 import megalodonte.components.Card;
 import megalodonte.components.SimpleTable;
 import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.FlowRow;
 import megalodonte.components.layout_components.Row;
 import megalodonte.components.layout_components.Stack;
-import megalodonte.props.ButtonProps;
 import megalodonte.props.CardProps;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.FlowRowProps;

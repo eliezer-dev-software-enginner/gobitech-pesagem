@@ -90,6 +90,45 @@ class PesagemServiceTest extends BaseServiceTest {
     }
 
     @Test
+    void deveLancarExcecaoQuandoBrutoMenorQueTara() {
+        var p = pesagemValida();
+        p.setPesoVeiculo(new java.math.BigDecimal("10000"));
+        p.setPesoTotal(new java.math.BigDecimal("8000"));
+        assertThrows(IllegalArgumentException.class, () -> pesagemService.salvar(p));
+    }
+
+    @Test
+    void aceitaBrutoIgualOuMaiorQueTara() throws Exception {
+        var p = pesagemValida();
+        p.setPesoVeiculo(new java.math.BigDecimal("8500"));
+        p.setPesoTotal(new java.math.BigDecimal("32000"));
+        assertNotNull(pesagemService.salvar(p).getId());
+
+        var igual = pesagemValida();
+        igual.setPesoVeiculo(new java.math.BigDecimal("8500"));
+        igual.setPesoTotal(new java.math.BigDecimal("8500"));
+        assertNotNull(pesagemService.salvar(igual).getId());
+    }
+
+    @Test
+    void aceitaSomenteTaraSemBruto() throws Exception {
+        // fluxo C1: Entrada registrada só com o caminhão vazio (tara) não pode ser barrada
+        var p = pesagemValida();
+        p.setPesoVeiculo(new java.math.BigDecimal("8500"));
+        assertNotNull(pesagemService.salvar(p).getId());
+    }
+
+    @Test
+    void atualizarTambemValidaBrutoMenorQueTara() throws Exception {
+        var p = pesagemValida();
+        var salvo = pesagemService.salvar(p); // sem pesos
+
+        salvo.setPesoVeiculo(new java.math.BigDecimal("10000"));
+        salvo.setPesoTotal(new java.math.BigDecimal("8000"));
+        assertThrows(IllegalArgumentException.class, () -> pesagemService.atualizar(salvo));
+    }
+
+    @Test
     void deveLancarExcecaoQuandoDocumentoMotoristaInvalido() {
         var p = pesagemValida();
         p.setMotoristaDocumento("123");

@@ -37,7 +37,6 @@ public class AppRoutes {
         CONEXAO_CAMERA,
         LICENSA,
         LOGS,
-        ACESSO_BLOQUEADO,
         ADD_OR_EDIT_PRODUTO,
         ADD_OR_EDIT_CLIENTE,
         ADD_OR_EDIT_USUARIO,

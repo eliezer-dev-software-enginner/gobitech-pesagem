@@ -15,8 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import com.fazecast.jSerialComm.SerialPort;
-
 public class ConexaoBalancaViewModel {
     private static final Logger log = LoggerFactory.getLogger(ConexaoBalancaViewModel.class);
 

@@ -23,11 +23,14 @@ import megalodonte.utils.ThrowingSupplier;
 import my_app.db.models.PesagemModel;
 import my_app.db.services.PesagemService;
 import my_app.domain.components.Components;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pack.utilities.DatePack;
 
 import java.util.function.Function;
 
 public class DetailsPesagemScreen implements ScreenComponent {
+    private static final Logger log = LoggerFactory.getLogger(DetailsPesagemScreen.class);
     private final ScreenContext ctx;
     private final PesagemService pesagemService;
     private final PesagemHistoricoViewModel vm;
@@ -49,7 +52,15 @@ public class DetailsPesagemScreen implements ScreenComponent {
 
     public DetailsPesagemScreen(ScreenContext ctx) {
         this.ctx = ctx;
-        long id = Long.parseLong(ctx.getParams().get("id"));
+        long id;
+        try {
+            id = Long.parseLong(ctx.getParams().get("id"));
+        } catch (RuntimeException e) {
+            log.error("Parâmetro 'id' inválido na rota de detalhes", e);
+            UI.runOnUi(() -> Components.ShowAlertError("ID inválido na rota de detalhes."));
+            ctx.selfStage().close();
+            throw new IllegalStateException(e);
+        }
         this.pesagemService = createOrReport(PesagemService::new);
         this.vm = new PesagemHistoricoViewModel(ctx);
 

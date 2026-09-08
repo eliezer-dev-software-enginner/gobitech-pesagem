@@ -1,0 +1,80 @@
+# CONTINUAR DAQUI — gobitech-pesagem (prompt pra próxima sessão)
+
+Se estiver numa sessão nova, leia este arquivo e os docs abaixo antes de tocar em qualquer
+coisa. Este prompt substitui a explicação longa de contexto.
+
+## Contexto em 1 linha
+Aplicativo Java 25 + JavaFX/Megalodonte (framework de UI próprio) + Persism/SQLite/Flyway,
+reescrita do software de pesagem das Balanças Gobitech (domínio de pesagem de caminhão).
+Origem: cópia do ERP `plics-sw` (varejo). O historico completo esta em `docs/CONTEXT.md`,
+`docs/DECISIONS.md` e `docs/TODO.md`.
+
+## Estado ATUAL (sessão 2026-09-07)
+A vistoria completa registrou 40 pendências em `docs/TODO.md`. Nesta sessão foram corrigidas:
+A5, A6, A7, A8, A10, A11, M2, M4, M5, M6, M8, M10, M11, M12, M13, M16, M17, M18, M19, M21,
+B1, B2, B3, B5, B6, B7, B8. **Decididos "manter"** (decisão do usuário): A1, A2, A3, A4, M1,
+M3. Testes: `./gradlew.bat test --rerun-tasks` → **BUILD SUCCESSFUL** (196 testes).
+
+### DESCOBERTA CRÍTICA (não esquecer na próxima sessão)
+O **Persism/sqlite-jdbc grava `dataCriacao` (LocalDateTime) como INTEGER epoch-ms**, NÃO como
+texto. `DATE(coluna)` em INTEGER retorna null. Filtro de data (A5) converte `LocalDate` pra
+epoch-ms no fuso do sistema e compara numericamente (`PesagemRepository.filtrar`). A migration
+`V20` (converter seeds pra texto) foi REMOVIDA — premissa errada. Colunas continuam declaradas
+`TIMESTAMP` nas migrations (regra do AI_RULES); sem mudança de schema.
+
+## O QUE FALTA (ainda aberto da vistoria — detalhes em docs/TODO.md)
+1. **A9** — ViewModels sem testes (ClienteViewModel, ProdutoScreenViewModel, UsuarioScreenViewModel,
+   PesagemFormViewModel, etc.). Regras de cálculo/validação estão em Services (testados); sugerido
+   extrair lógica pra classes puras testáveis. (Fica atrás da prioridade? Ver com o usuário.)
+2. **M7** — várias telas exibem `e.getMessage()` cru (stack de SQL/SO) ao usuário:
+   `AuthScreenViewModel:79`, `DashboardViewModel:74,113`, `ConexaoBalancaViewModel:72,88,113`,
+   `ConexaoCameraViewModel:70,101,150`, `PesagemFormViewModel:170,199,392`,
+   `PesagemHistoricoViewModel:84,115,140,171,225,249`, `Details*`, `ContratoTelaCrudV3:81`,
+   `LogsScreenViewModel:71`. Sugestão: mensagem amigável fixa; detalhe só em `log.error`.
+3. **M9** — centralizar validações de telefone/CEP/CPF que estão duplicadas com estilos
+   divergentes em `ClienteService:70`, `EmpresaService:58-67`, `UsuarioService:47-49`
+   (`isValidPhone` importado × `ValidatorPack.`).
+4. **M20** — `PesagemService.anexarRelacoes` faz N+1 SELECTs por pesagem (sugerido `WHERE id IN`
+   ou JOIN); `DashboardViewModel` lista tudo só pra `size()` (sugerido `COUNT(*)`).
+5. **M14/M15** — consolidar docs: `docs/CONTEXT.md` tem 17 seções "Estado atual" fora de ordem e
+   datas duplicadas (sugerido: seção "Estado atual" + "Histórico"); contagem de testes nos docs
+   desatualizada. Revisar com esta vistoria.
+6. **B4** — `python3` vs `python` no workflow MSI (`package.yml` do repo PU — **fora deste
+   clone**, fica pro repositório `megalodonte-world`).
+
+## Ambiente e convenções (OBRIGATÓRIO)
+- SO: Windows → PowerShell 5.1. `rg` NÃO existe — usar ferramenta Grep p/ busca de conteúdo.
+- Build/teste: `.\gradlew.bat test --console=plain` (nunca `./gradlew`). Rodar com `--rerun-tasks`
+  quando mudar migrations/DB. Se `JAVAFX_MODULES_HOME` não estiver definida, tasks como `run`
+  falham — mas `test`/`compileJava` funcionam.
+- Padrão de tela: `Screen` + `ViewModel` em `my_app/screens/<entidade>/`;
+  CRUD de listagem usa `ContratoTelaCrudV3`/`ViewModelScreenContract`.
+- Camada de dados: `Model` (Persism) + `Repository` (`BaseRepository`) + `Service` (`BaseService`),
+  em `my_app/db/`. Validações de domínio ficam no Service (padrão já estabelecido).
+- Regras de UI: mensagens de erro amigáveis pro usuário; detalhe técnico só em `log.error`.
+- **NUNCA editar via PowerShell `Set-Content`** (codificação ANSI corrompe UTF-8 — já aconteceu;
+  usar as ferramentas Write/Edit). Testes de repo usam banco em memória POR CLASSE
+  (`testUrl()` → `testdb-<Classe>?mode=memory&cache=shared`).
+- Front de teste padrão do fake server: `com.sun.net.httpserver` (câmera) e `ServerSocket` em
+  loopback com porta efêmera (balança) — sem lib nova.
+- Docs de manutenção a atualizar a cada mudança: `docs/TODO.md` (marcar item com `[x]` + nota
+  "**Corrigido: ...**"), `docs/CONTEXT.md` ("Estado atual"), `docs/DECISIONS.md` (decisão com
+  Contexto/Decisão/Testado).
+- Não commitar sem pedido explícito. No commit: mensagem curta no estilo do repo (ex.:
+  `fix:`, `feat:`, `refactor:`, `clean:`), stage só do que for intencional.
+
+## Sugestão de onde recomeçar
+Perguntar ao usuário a ordem:
+1. **M20** (N+1 + COUNT) — ganho real de performance, mudança localizada em Service/ViewModel.
+2. **M7** (mensagens amigáveis) — largo (muitas telas), mas mecânico; fazer por entidade.
+3. **M9** (centralizar validações).
+4. **A9** (testes de ViewModel) e docs M14/M15.
+Confirme antes com o usuário; atualize os docs conforme for.
+
+## Verificação final de qualquer rodada
+`.\gradlew.bat test --rerun-tasks --console=plain` → BUILD SUCCESSFUL. Depois `git status --short`.
+
+## Informar ao usuário ao abrir a sessão
+- Os 196 testes passam e nada está comitado pendente além do que esta rodada fez?
+  (Rodada atual foi committada junto com a geração deste arquivo — ver `git log` recente.)
+- Perguntar: "sigamos com M20 → M7 → M9 → A9/M14/M15?"

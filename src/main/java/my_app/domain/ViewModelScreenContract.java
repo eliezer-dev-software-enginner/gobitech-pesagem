@@ -7,12 +7,14 @@ import megalodonte.router.v4.ScreenContext;
 import megalodonte.utils.ThrowingSupplier;
 import megalodonte.v2.ListState;
 import my_app.core.Identifier;
-import net.sf.persism.annotations.Column;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public abstract class ViewModelScreenContract<Model extends Identifier> {
     protected final ScreenContext ctx;
     protected final State<Boolean> modoEdicao = State.of(false);
+    private final AtomicBoolean salvando = new AtomicBoolean(false);
 
     public String screenNameSpawn = "";
 
@@ -55,6 +57,17 @@ public abstract class ViewModelScreenContract<Model extends Identifier> {
     public abstract void clearForm();
     public abstract void handleAddOrUpdate();
     public abstract void handleClickMenuDelete();
+
+    // Anti duplo-clique no botão Salvar/Adicionar: a gravação roda em Async.Run e o botão
+    // continua clicável até o callback chegar; dois cliques rápidos gravariam 2 registros.
+    // A trava é liberada só quando o Async.Run termina (success/erro).
+    protected boolean tryBeginSalvar() {
+        return salvando.compareAndSet(false, true);
+    }
+
+    protected void endSalvar() {
+        salvando.set(false);
+    }
 
     //deve popular allDataList e filteredList
     //filteredList é o que vai preencher a tabela

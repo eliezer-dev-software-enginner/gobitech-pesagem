@@ -128,9 +128,4 @@ public class TelegramNotifier {
             // Sem log de propósito — ver comentário do método.
         }
     }
-
-static void main() {
-        TelegramNotifier notifier = TelegramNotifierFactory.create();
-        notifier.enviarMensagem("Testando");
-    }
 }

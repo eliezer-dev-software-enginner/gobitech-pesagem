@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Builda o Plics SW como app-image (jpackage, mesmo runtime jlink que o .deb usa) e
-monta uma instalação Flatpak local via flatpak-builder --user --install, só pra
-testar. Não publica nada no Flathub — isso ainda exige abrir um Pull Request manual
+Builda o Gobitech (sistema de pesagem) como app-image (jpackage, mesmo runtime jlink que
+o .deb usa) e monta uma instalação Flatpak local via flatpak-builder --user --install, só
+pra testar. Não publica nada no Flathub — isso ainda exige abrir um Pull Request manual
 em github.com/flathub/flathub, revisão deles, etc.
 
 Requer: flatpak e flatpak-builder instalados, e os runtimes
@@ -16,7 +16,7 @@ import stat
 import subprocess
 from config import *
 
-APP_ID = "io.github.eliezerdevsoftwareenginner.PlicsSW"
+APP_ID = "io.github.eliezerdevsoftwareenginner.gobitech"
 FLATPAK_DIR = ROOT / "flatpak"
 
 gradlew = ROOT / "gradlew"

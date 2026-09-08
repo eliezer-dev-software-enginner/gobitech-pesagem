@@ -129,6 +129,7 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
     @Override
     public void handleAddOrUpdate() {
         if (modoEdicao.get() && selected.get() == null) return;
+        if (!tryBeginSalvar()) return;
 
         // capturado síncrono, antes do Async.Run — ver nota da mesma correção em
         // outras telas (ContratoTelaCrudV3.handleAddOrUpdate reseta modoEdicao logo
@@ -160,6 +161,8 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
             } catch (Exception e) {
                 log.error("Erro inesperado ao salvar cliente", e);
                 UI.runOnUi(() -> Components.ShowAlertError("Erro inesperado: " + e.getMessage()));
+            } finally {
+                endSalvar();
             }
         });
     }

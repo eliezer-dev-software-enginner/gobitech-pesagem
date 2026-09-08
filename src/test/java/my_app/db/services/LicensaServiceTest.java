@@ -57,9 +57,14 @@ class LicensaServiceTest extends BaseServiceTest {
 
     @Test
     void deveBuscarMaisRecente() throws Exception {
-        licensaService.gerarNova(null);
-        Thread.sleep(2);
-        var maisNova = licensaService.gerarNova(null);
+        var maisAntiga = licensaService.gerarNova(null);
+        // dataCriacao é epoch-ms (inteiro): duas licenças no mesmo milissegundo empatariam
+        // na ordenação. Em vez de Thread.sleep (frágil), refaz até ter timestamp maior.
+        LicensaModel maisNova = maisAntiga;
+        for (int tentativas = 0; tentativas < 1000 && maisNova.getDataCriacao().equals(maisAntiga.getDataCriacao()); tentativas++) {
+            maisNova = licensaService.gerarNova(null);
+        }
+        assertFalse(maisNova.getDataCriacao().equals(maisAntiga.getDataCriacao()), "não conseguiu gerar timestamp distinto");
 
         var encontrada = licensaService.buscarMaisRecente();
         assertEquals(maisNova.getValor(), encontrada.getValor());

@@ -14,7 +14,6 @@ import my_app.domain.components.Components;
 import my_app.infra.balanca.LeitorBalanca;
 import my_app.infra.balanca.LeitorBalancaFactory;
 import my_app.infra.balanca.PesagemCalculo;
-import pack.utilities.DatePack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,12 +55,12 @@ public class DashboardViewModel {
                 int clientes = clienteService.listar().size();
                 int pesagens = pesagemService.listar().size();
 
-                long inicioMes = DatePack.localDateParaMillis(LocalDate.now().withDayOfMonth(1));
-                long agora = System.currentTimeMillis();
+                LocalDate inicioMes = LocalDate.now().withDayOfMonth(1);
+                LocalDate hoje = LocalDate.now();
                 // filtrar() já anexa Cliente/Produto/Desconto a cada pesagem (feito pra tela de
                 // listagem) — redundante aqui, só queremos o tamanho, mas o volume mensal de
                 // pesagens é baixo o bastante pra não valer a pena criar um COUNT(*) dedicado.
-                int pesagensMes = pesagemService.filtrar(null, null, null, null, inicioMes, agora, null).size();
+                int pesagensMes = pesagemService.filtrar(null, null, null, null, inicioMes, hoje, null).size();
 
                 UI.runOnUi(() -> {
                     totalProdutos.set(String.valueOf(produtos));

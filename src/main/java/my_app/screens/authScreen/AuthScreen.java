@@ -1,6 +1,5 @@
 package my_app.screens.authScreen;
 
-import megalodonte.base.Redirect;
 import megalodonte.base.components.Component;
 import megalodonte.base.components.ScreenComponent;
 import megalodonte.base.theme.ThemeManager;
@@ -52,7 +51,7 @@ public class AuthScreen implements ScreenComponent {
                                         new SpacerHorizontal(50),
                                         new TextFlow(
                                                 new Text("Seu sistema completo de pesagem de balança de caminhão: leitura automática da balança, controle de tara, peso bruto e líquido, cadastro de clientes e produtos — tudo em um só lugar.",
-                                                        new TextProps().color("white").fontSize(ThemeManager.theme().typography().small()))
+                                                        new TextProps().textColor("white").fontSize(ThemeManager.theme().typography().small()))
                                         )
                                 )
                         ),

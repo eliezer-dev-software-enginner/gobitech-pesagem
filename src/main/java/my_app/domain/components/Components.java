@@ -31,9 +31,7 @@ import megalodonte.props.*;
 import megalodonte.props.v2.InputProps;
 import megalodonte.router.v4.ScreenContext;
 import megalodonte.v2.ListState;
-import megalodonte.v2.Show;
 import my_app.domain.Data;
-import my_app.domain.Parcela;
 import my_app.domain.states.EnderecoState;
 import pack.utilities.DatePack;
 import org.kordamp.ikonli.Ikon;
@@ -62,7 +60,7 @@ public class Components {
     // (ver SimpleTableProps.maxHeight, megalodonte-components) em vez de mexer no node do
     // JavaFX depois de pronta. Acima do teto a tabela rola por dentro sozinha (comportamento
     // nativo do TableView), então itens extras nunca ficam escondidos.
-    public static final double TABLE_MAX_HEIGHT = 350;
+    public static final double TABLE_MAX_HEIGHT = 300;
 
     public static IconInterface ikon(Ikon ikon, double size, String color) {
         return IconInterface.of(FontIcon.of(ikon, (int) size, Color.web(color)));
@@ -706,7 +704,6 @@ public class Components {
 
         TextProps labelProps = new TextProps().fontSize(ThemeManager.theme().typography().small());
         if (labelColor != null) {
-            labelProps.color(labelColor);
             labelProps.textColor(labelColor);
         }
 

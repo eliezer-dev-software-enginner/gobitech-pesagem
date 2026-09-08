@@ -83,7 +83,7 @@ public class ClienteScreen implements ScreenComponent, ContratoTelaCrudV3<Client
     @Override
     public void exportPdf(File destino, EmpresaModel empresa, List<ClienteModel> snapshotFiltrado) throws Exception {
         var headers = java.util.List.of("ID", "Loja", "Razao social", "CPF/CNPJ", "Telefone", "Data de criacao");
-        var rows = vm.filteredList.get().stream().map(c -> java.util.List.of(
+        var rows = snapshotFiltrado.stream().map(c -> java.util.List.of(
                 String.valueOf(c.getId()),
                 c.getLoja() != null ? c.getLoja() : "",
                 c.getRazaoSocial() != null ? c.getRazaoSocial() : "",

@@ -69,7 +69,8 @@ public class EmpresaViewModel {
                     });
                 }
             } catch (Exception e) {
-                throw new RuntimeException("Erro ao carregar dados da empresa", e);
+                log.error("Erro ao carregar dados da empresa", e);
+                UI.runOnUi(() -> Components.ShowAlertError("Erro ao carregar dados da empresa"));
             }
         });
     }

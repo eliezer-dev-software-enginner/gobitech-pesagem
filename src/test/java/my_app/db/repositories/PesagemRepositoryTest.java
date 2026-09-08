@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -167,6 +168,47 @@ class PesagemRepositoryTest extends BaseRepositoryTest {
         var resultado = repository.filtrar(null, null, null, null, null, null, null);
 
         assertEquals(2, resultado.size());
+    }
+
+    @Test
+    void filtrarPorPeriodoFiltraPelaDataEmInclusivos() throws SQLException {
+        // regressão: o filtro antigo bindava epoch-millis contra o texto que o Persism grava
+        // (INTEGER < TEXT no SQLite) — "até" nunca casava e "a partir de" nunca filtrava.
+        var hoje = novaPesagem("AAA1000");
+        hoje.setDataCriacao(LocalDateTime.now());
+        repository.salvar(hoje);
+
+        var ontem = novaPesagem("BBB2000");
+        ontem.setDataCriacao(LocalDateTime.now().minusDays(1));
+        repository.salvar(ontem);
+
+        var semana = novaPesagem("CCC3000");
+        semana.setDataCriacao(LocalDateTime.now().minusDays(7));
+        repository.salvar(semana);
+
+        LocalDate hojeDate = LocalDate.now();
+        LocalDate ontemDate = hojeDate.minusDays(1);
+
+        // só o dia de hoje
+        var soHoje = repository.filtrar(null, null, null, null, hojeDate, hojeDate, null);
+        assertEquals(1, soHoje.size());
+        assertEquals("AAA1000", soHoje.get(0).getPlaca());
+
+        // só o dia de ontem
+        var soOntem = repository.filtrar(null, null, null, null, ontemDate, ontemDate, null);
+        assertEquals(1, soOntem.size());
+        assertEquals("BBB2000", soOntem.get(0).getPlaca());
+
+        // uma extremidade só: a partir de hoje → só hoje; até 7 dias atrás → só a semana
+        var aPartirDeHoje = repository.filtrar(null, null, null, null, hojeDate, null, null);
+        assertEquals(1, aPartirDeHoje.size());
+        var ateSetima = repository.filtrar(null, null, null, null, null, hojeDate.minusDays(7), null);
+        assertEquals(1, ateSetima.size());
+        assertEquals("CCC3000", ateSetima.get(0).getPlaca());
+
+        // período amplo cobre as três
+        var semanaToda = repository.filtrar(null, null, null, null, hojeDate.minusDays(7), hojeDate, null);
+        assertEquals(3, semanaToda.size());
     }
 
     @Test

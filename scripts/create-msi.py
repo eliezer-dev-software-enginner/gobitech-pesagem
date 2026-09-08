@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
-# Build sem updater embutido — indicado para distribuição via Microsoft Store,
-# cujo próprio mecanismo de atualização não combina com um updater que baixa e
-# reinstala o .msi sozinho. O runtime recebe -Dplics.microsoftStore=true
-# (Main.isMicrosoftStore), que faz o app esconder o item "Buscar atualização".
-# Pra gerar COM updater (fora da Store), use create-msi-with-updater.py.
+# Gera o MSI de produção. A versão vem de gradle.properties (config.py) e é embutida
+# no runtime como -Dgobitech.appVersion (Main.APP_VERSION lê em runtime).
 from config import *
 
 temp_dir = prepare_temp()
@@ -20,13 +17,12 @@ print("[3/5] Gerando runtime com jlink...")
 run_jlink(temp_dir)
 copy_natives(temp_dir)
 
-print("[4/5] Gerando pacote MSI (Microsoft Store, sem updater)...")
+print("[4/5] Gerando pacote MSI...")
 run_jpackage(temp_dir, "msi", [
     "--win-menu",
     "--win-shortcut",
     "--win-per-user-install",
     "--win-upgrade-uuid", UPGRADE_UUID,
-    "--java-options", "-Dplics.microsoftStore=true",
 ])
 
 print("[5/5] Renomeando pacote...")

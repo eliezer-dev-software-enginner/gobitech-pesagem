@@ -19,7 +19,6 @@ import megalodonte.props.ButtonProps;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.ImageProps;
 import megalodonte.v2.Show;
-import my_app.domain.SessaoUsuario;
 import my_app.domain.components.Components;
 import my_app.screens.homeScreen.HomeScreenViewModel.Secao;
 import org.kordamp.ikonli.Ikon;

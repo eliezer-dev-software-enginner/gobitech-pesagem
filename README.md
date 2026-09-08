@@ -1,149 +1,100 @@
-# Plics SW
+# Gobitech — Sistema de pesagem
 
-Sistema desktop completo para gestão de pequenas e médias empresas, desenvolvido com JavaFX.
+Sistema desktop de pesagem de caminhões para a Balanças Gobitech, usado em uma estação
+única (PC da balança), desenvolvido com JavaFX + Megalodonte, banco SQLite local.
 
-## Propósito
+Reescrita completa do software legado (Swing + MySQL) sobre a infraestrutura do
+`plics-sw` — ver `docs/CONTEXT.md` e `docs/DECISIONS.md` para o histórico e as decisões.
 
-Sistema ERP completo para controle de:
-- Cadastros (Produtos, Categorias, Clientes, Fornecedores)
-- Compras com controle inteligente de estoque
-- Gestão financeira básica
-- Relatórios e visualizações
+## Funcionalidades
 
-## Características Principais
+- **Pesagens por tipo**: Entrada, Saída, Avulsa e Manual (`pesagens.tipo_pesagem`), cada
+  uma com comportamento próprio de captura/digitação dos pesos (tara, bruto e líquido).
+  Só a **Placa** é obrigatória.
+- **Balança**: leitura ao vivo do peso via **Serial** (jSerialComm) ou **TCP**, com
+  botão "Capturar" para tara/bruto. Há simuladores em `scripts/` para testar a TCP sem
+  hardware.
+- **Saída por placa**: ao digitar a placa, puxa a última Entrada do caminhão (motorista,
+  cliente, produto, tara e bruto) para só confirmar o peso de saída.
+- **Descontos** (8 tipos, soma ≤ 100%) e validação **bruto ≥ tara** na camada de serviço.
+- **Fotos** (frente/costas) por pesagem.
+- **Ticket de pesagem**: impressão em **PDF** (2 vias na mesma folha) e em **térmica
+  ESC/POS** (impressora padrão do sistema).
+- **Relatório do histórico** em PDF (pares Entrada+Saída por placa, com totais) e
+  **resumo de entradas/saídas** com o layout do cliente.
+- **Cadastros**: clientes, produtos, usuários, empresa (logo no ticket), conexão da
+  balança, preferências.
+- **Licença com validade**: gerada pelo próprio admin na tela "Gerar licença" (menu
+  exclusivo de admin). Admin sempre loga; usuário comum é bloqueado com licença vencida.
+- **Logs por usuário**, com o menu "Ver logs da aplicação" restrito a admin; notificações
+  de erro/log enviadas ao **Telegram** (suporte remoto).
+- **Migrações** do banco via Flyway (`src/main/resources/flyway_migrations`).
 
-### Gestão de Cadastros
-- Produtos com controle de estoque
-- Categorias personalizáveis
-- Clientes com informações completas
-- Fornecedores com dados detalhados
+## Stack
 
-### Controle de Estoque Inteligente
-- Controle por operação: Opção de refletir no estoque individualmente
-- Visualização em tempo real: Campos mostram estoque anterior e posterior
-- Validação automática: Impede estoque negativo
-- Migração automática: Atualiza bancos existentes
+- Java 25 (toolchain Gradle), JavaFX 25.0.1
+- Megalodonte: `base`, `components`, `reactivity`, `router`, `theme`
+- Persism (ORM) + SQLite (banco embutido, sem servidor)
+- Flyway (schema e dados padrão)
+- SLF4J/Logback, jSerialComm/jSSC (serial), escpos-coffee (térmica), PDFBox (relatórios)
 
-### Fluxo de Compras
-- Cadastro completo de compras
-- Cálculo automático de totais
-- Controle financeiro integrado
-- Relatórios de compras por período
+Padrão de tela: `Screen` + `ViewModel` (uma pasta por entidade em `my_app/screens/`);
+camada de dados: `Model` (Persism) + `Repository` (`BaseRepository`) + `Service`
+(`BaseService`) em `my_app/db/`.
 
-## Tecnologia
+## Pré-requisitos
 
-- Java 25 com performance otimizada
-- JavaFX 25 para interface moderna e responsiva
-- SQLite para banco local e offline
-- Megalodonte Router para navegação limpa e centralizada
+- JDK 25 (o Gradle toolchain resolve a versão; `JAVA_HOME` é usada pelos scripts de
+  empacotamento)
+- Variável de ambiente **`JAVAFX_MODULES_HOME`** apontando para a pasta que contém
+  `windows-25.0.1/` e `linux-25.0.1/` — obrigatória para o `./gradlew run`.
+- Variáveis opcionais: `DEV_MODE=true` (liga `-Dprism.verbose` no run), `GITHUB_TOKEN`
+  (workflow de release).
 
-## Estrutura Modular
+## Execução
 
-- megalodonte-base: Interfaces e utilitários
-- megalodonte-components: Componentes UI reutilizáveis
-- megalodonte-reactivity: Gerenciamento de estado
-- megalodonte-router: Sistema de navegação
-
-## Interface
-
-Moderna, intuitiva e responsiva com navegação estruturada e componentes otimizados.
-
-### Build
-```bash
-./gradlew clean build
-```
-
-### Execução
 ```bash
 ./gradlew run
 ```
 
-### Atualização automática
+O banco fica em `%APPDATA%\gobitech\erp.db` (Windows) ou `~/.gobitech/erp.db` (Linux).
+Na primeira execução o Flyway cria o schema e o usuário admin padrão (`V10`).
 
-O Plics SW possui um sistema de atualização embutido. No menu "Suporte" > "Buscar atualização", o aplicativo:
+## Testes
 
-1. Descobre o executável do updater (`Plics SW Updater.exe`) no mesmo diretório
-2. Baixa o MSI da última release do GitHub
-3. Lança o updater que mata os processos Java, executa o MSI e notifica o usuário
-
-4. **Subir versão
 ```bash
-python scripts/bump_version.py release 1.1.2
+./gradlew test
 ```
 
-**Empacotamento sem updater** (não altera os scripts originais):
+## Empacotamento
+
+A versão vive em `gradle.properties` (`appVersion` + `appPatch`). Incremente com:
+
 ```bash
-python scripts/create-msi.py   # Windows
-python scripts/create-deb.py   # Linux
+python scripts/bump_version.py patch            # 1.0.1 -> 1.0.1.1 (patch)
+python scripts/bump_version.py release 1.1.0    # base nova, zera o patch
 ```
 
-**Empacotamento com updater** (não altera os scripts originais):
+Geração de pacotes (leem `gradle.properties` e embutem a versão no runtime como
+`-Dgobitech.appVersion`):
+
 ```bash
-python scripts/create-msi-with-updater.py   # Windows
-python scripts/create-deb-with-updater.py   # Linux
+python scripts/create-msi.py   # Windows (.msi)
+python scripts/create-deb.py   # Linux (.deb)
 ```
 
-**Rodar em modo watch dog:
-```bash
-pip install watchdog
-python dev.py
-```
+Flatpak: existe a opção experimental `scripts/create-flatpak.py` (build local de teste
+via flatpak-builder) — o app não usa mais auto-update nem `Main.isFlatpak`.
 
-### Flatpak (teste local)
+## Desenvolvimento
 
-Empacotamento experimental pra rodar/testar como Flatpak antes de considerar publicar
-no Flathub (a loja "Software" do GNOME/Zorin instala a partir de lá, entre outras
-fontes). Isso aqui só builda e instala **localmente** — publicar de verdade exige um
-Pull Request manual em `github.com/flathub/flathub` e passar pela revisão deles.
+- Separador/help de testes manuais: `docs/testes-pesagem.md`
+- Simulador de balança TCP: `scripts/simular_balanca_tcp.py` (e a versão manual
+  `simular_balanca_tcp_manual.py`); seed de produtos: `scripts/seed_produtos.py`
+- Watch/reload simples: `python dev.py` (reinicia via `gradlew run`)
 
-Requer `flatpak` e `flatpak-builder` instalados, e os runtimes:
-```bash
-sudo apt install flatpak-builder
-flatpak install flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
-```
+## Documentação
 
-Buildar e instalar:
-```bash
-python3 scripts/create-flatpak.py
-```
-
-Rodar:
-```bash
-flatpak run io.github.eliezerdevsoftwareenginner.PlicsSW
-```
-
-Desinstalar:
-```bash
-flatpak uninstall io.github.eliezerdevsoftwareenginner.PlicsSW
-```
-
-Dentro do Flatpak, o updater automático (menu Suporte > Buscar atualização) fica
-desativado — quem atualiza é o próprio `flatpak update` (ver `Main.isFlatpak`).
-
-Manifest e metadados ficam em `flatpak/`. Pra **publicar de verdade** no Flathub
-(não só testar local), veja o passo a passo em [`flatpak/README.md`](flatpak/README.md)
-— tem um bloqueio importante ali (a fonte do manifest hoje não é reproduzível, só
-funciona pra build local) e as ressalvas sobre licença/permissões.
-
-## Versão
-
-**Versão:** 1.1.2  
-**Status:** Estável para Produção
-
-## Benefícios
-
-- Offline-first: Funciona sem conexão com internet
-- Desktop nativo: Performance otimizada e integração com sistema operacional
-- Modular: Fácil manutenção e evolução
-- Custo-benefício: Reduz necessidade de sistemas ERP caros
-
-## Suporte
-
-Para suporte e dúvidas:
-- Verifique a documentação interna
-- Consulte os relatórios de sistema
-- Analise logs de aplicação
-
----
-
-Desenvolvido com tecnologias nacionais e foco em simplicidade e performance.
+- `docs/CONTEXT.md` — contexto, stack, estado atual e histórico do projeto
+- `docs/DECISIONS.md` — decisões técnicas/negócio registradas
+- `docs/TODO.md` — pendências e vistorias (READ-ME primeiro: vale como guia de trabalho)

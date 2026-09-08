@@ -1,5 +1,120 @@
 # Decisões Arquiteturais
 
+## 2026-09-07: Manter a encriptação atual — sem endurecimento de segurança
+
+**Contexto:** a vistoria completa (2026-09-07) apontou como pendências: chave AES-256 fixa
+hardcoded no `CryptoManager` (modo ECB), token/chatId do Telegram cifrados com a mesma chave,
+senhas das câmeras em texto puro no banco (`V13`) e seed de admin decriptável (`V10`); também a
+exibição da senha decriptada em texto puro no campo de edição de usuário.
+
+**Decisão:** manter como está — **não fazer**. O aplicativo roda numa estação única (balança),
+pra poucos usuários seletos do cliente; não tem escala que justifique o esforço de gestão de
+chaves por máquina (DPAPI/Keychain), rotação de token ou criptografia das senhas das câmeras.
+Ficam **fora do escopo**: pendências A1 (chave AES), A2 (token Telegram), A3 (seed admin),
+A4 (senhas de câmera em texto puro) e M1 (senha em texto puro no campo de edição — o login só é
+exibido na edição de usuário, que já é restrita a admin). A senha/login continuam criptografados
+em repouso como sempre estiveram.
+
+**Registrado:** `docs/TODO.md` marca esses 5 itens como "decidido: manter".
+
+---
+
+## 2026-09-07: Correções da vistoria — `dataCriacao` é INTEGER (epoch-ms) no SQLite, não TEXT
+
+**Contexto:** a vistoria (A5/M13) afirmava que o Persism grava `dataCriacao` como **texto**
+`yyyy-MM-dd HH:mm:ss` e que o filtro de data quebrava por comparar Long contra texto. Ao
+implementar a correção, o teste novo falhou e o diagnóstico foi verificado **empiricamente**
+com o próprio driver (`sqlite-jdbc 3.45.1.0`) e com uma cópia do banco real:
+
+- o Persism mapeia `LocalDateTime` via `Timestamp.valueOf(...)` → `PreparedStatement.setTimestamp`
+  (`net.sf.persism.Converter`), e o driver xerial grava `Timestamp` como **INTEGER epoch-millis**
+  (probe: `typeof(dataCriacao) = integer`);
+- no banco real (`%APPDATA%\gobitech\erp.db`) todas as linhas (`pesagens`, `preferencias`,
+  `usuarios`, `empresas`) têm `dataCriacao` INTEGER epoch-ms — inclusive os seeds do `V10`
+- `DATE(dataCriacao)` sobre INTEGER retorna `null` (o INTEGER é interpretado como dia juliano).
+
+**Decisão (revisa A5 e M13):**
+- **A5**: filtro por data passa a converter `LocalDate` (início/fim, inclusivos) pra epoch-ms no
+  fuso do sistema e compara **numericamente**: `dataCriacao >= millisInicio`
+  e `dataCriacao <= millisFimDoDia`. A API pública continua recebendo `LocalDate`
+  (`PesagemRepository.filtrar`, `PesagemService.filtrar`, ViewModels). A premissa da vistoria
+  ("Persism grava texto", "INTEGER < TEXT") estava errada — o bind de Long contra o INTEGER
+  físico é o correto.
+- **M13**: a migration `V20__normalizar_dataCriacao_seeds.sql` (converter seeds INTEGER→TEXT)
+  foi **removida** — ela tinha o mesmo erro de premissa e criaria colunas com tipos MISTOS
+  (seeds TEXT × runtime INTEGER), quebrando exatamente a comparação numérica do A5. Seeds do
+  `V10` já são INTEGER consistentes com o runtime.
+- As colunas continuam declaradas `TIMESTAMP` nas migrations (regra do `AI_RULES.md`) — o
+  INTEGER é armazenamento físico do driver, lido de volta pelo Persism como `Long`→`LocalDateTime`
+  sem problema. Sem mudança de schema.
+
+**Testado:** `PesagemRepositoryTest.filtrarPorPeriodoFiltraPelaDataEmInclusivos` (dias
+inclusivos, extremidade única, período amplo) e suíte completa (`./gradlew test` →
+**BUILD SUCCESSFUL**, 196 testes).
+
+---
+
+## 2026-09-07: Correções da vistoria — lote (scripts updater, branding, deps, UI)
+
+**Lote de correções da vistoria executado nesta rodada:**
+- **A10**: scripts `updater_config.py`, `create-msi-with-updater.py` e
+  `create-deb-with-updater.py` **removidos** — apontavam pra `my_app.updater.Main` que não
+  existe (UpdaterService removido) e o jpackage geraria um launcher "Updater" morto. Referências
+  em comentários (config.py, create-msi.py, bump_version.py) limpas.
+- **M10**: branding "Plics" restante removido — `Main.java` lê `gobitech.appVersion`;
+  `build.gradle.kts` e `scripts/config.py` passam `-Dgobitech.appVersion`;
+  `ProcessKiller` usa `gobitech-killer.log`/`GobitechKill_`; `create-flatpak.py` usa
+  `APP_ID io.github.eliezerdevsoftwareenginner.gobitech`.
+- **M11**: JUnit unificado no BOM **5.13.1** (removida a declaração duplicada antiga, de 5.10.0);
+  dependências órfãs **jna** e **jackson** removidas; declarações repetidas
+  `implementation`+`testImplementation` (flyway/sqlite/persism/logback) unificadas.
+- **M21**: `-Dprism.verbose=true` só entra no `run` quando `DEV_MODE` está setado no ambiente
+  de quem chamou o gradle.
+- **B8**: `PesagemSaidaScreen` volta ao comportamento documentado — `permitirCapturarTara()=false`
+  e `taraEditavel()=false` (a tara da Saída vem da Entrada, é somente-leitura; o botão
+  "Capturar" não devia aparecer).
+- **A11**: `README.md` reescrito pro produto real (Gobitech pesagem), sem Plics SW, sem updater,
+  sem claims falsos de flatpak; inclui pré-requisitos (`JAVAFX_MODULES_HOME`, `DEV_MODE`,
+  `GITHUB_TOKEN` — M12).
+
+---
+
+## 2026-09-07: Correções da vistoria — segundo lote (médias/baixas: UI, testes, limpeza)
+
+**Segunda rodada da vistoria, focada em pendências médias e baixas:**
+- **M6**: trava **anti duplo-clique** na classe base `ViewModelScreenContract` —
+  `tryBeginSalvar()`/`endSalvar()` com `AtomicBoolean`, liberado no `finally` do `Async.Run`.
+  Dois cliques rápidos no botão Salvar/Adicionar antes não só re-agendavam gravação duplicada
+  (2 registros) como, no ramo de edição, o 2º clique caía no ramo de *criação*. A trava vale pra
+  Cliente/Produto/Usuário (as 3 VMs usam o mesmo padrão; a tela de usuário era a divergente).
+- **M4**: `exportPdf` das telas Cliente/Produto/Usuário passa a usar o `snapshotFiltrado` do
+  contrato em vez de reler `vm.filteredList` (o histórico de pesagens já fazia certo).
+- **M16/M17/M18**: banco de testes **por classe** (`testdb-<Classe>?mode=memory&cache=shared`
+  via `testUrl()`) pra isolar repositórios de services; `LeitorBalancaTcpTest` novo (ServerSocket
+  em loopback simulando o indicador; cobre também conexão recusada com porta efêmera liberada);
+  `LicensaServiceTest` trocou `Thread.sleep(2)` por loop até timestamp distinto; câmera não
+  conecta mais em `127.0.0.1:1` (porta efêmera recém-fechada); `DevicesTest` (main não-JUnit,
+  nem `public`) removido.
+- **B1**: `Parcela.java` (varejo, divisão em `double` sem `RoundingMode`, import morto em
+  `Components`) deletado; `main()` órfãos de teste removidos (`Data`, `TelegramNotifier`);
+  `ACESSO_BLOQUEADO` removido do `AppRoutes` (sem rota/tela).
+- **B2**: imports não usados removidos de 12 arquivos (lista completa em `TODO.md`).
+- **B3**: `build.gradle.kts` — comentários órfãos apagados; **`maven-publish`/`publishing`
+  removidos** (órfãos — nada publica; os instaladores usam `shadowJar`, confirmado nos scripts);
+  bloco morto do `tasks.jar` enxugado (só `enabled = false` com comentário).
+- **B5**: `ProdutoService` normaliza `nome` com `trim()` em `salvar`/`atualizar`. Catches
+  silenciosos agora registram: `DB.closeAllSessions` (warn), logo no `ListaPdfExporter` (warn),
+  `ProcessKiller` (System.err — slf4j falharia no mesmo arquivo de log). `LicensaService`:
+  `expiraEm` null = licença eterna **já era** o comportamento (modelo/teste) — mantido.
+- **M19**: `HOTRELOAD.md` reescrito pro comportamento real do `dev.py` (hashes + kill/restart),
+  removendo a descrição de `javac`/`Reloader` que não existe.
+- **B4** fica **fora deste clone** (workflow do repositório `megalodonte-world`/PU).
+
+**Testado:** `./gradlew test` → **BUILD SUCCESSFUL** (196 testes; suíte completa verde após
+cada lote de mudanças).
+
+---
+
 ## 2026-09-03: Pesos da pesagem — captura x digitação por tipo de tela
 
 **Contexto:** o usuário definiu o papel de cada campo de peso nas 4 telas de pesagem:

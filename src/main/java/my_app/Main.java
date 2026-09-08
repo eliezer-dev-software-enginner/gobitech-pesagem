@@ -33,7 +33,7 @@ public class Main {
 
     public static final String APP_NAME = "Gobitech";
 
-    public static final String APP_VERSION = System.getProperty("plics.appVersion", "dev");
+    public static final String APP_VERSION = System.getProperty("gobitech.appVersion", "dev");
 
     public static final String BASE_TITLE = String.format("%s - %s - Sistema de pesagem",
             APP_NAME,APP_VERSION);

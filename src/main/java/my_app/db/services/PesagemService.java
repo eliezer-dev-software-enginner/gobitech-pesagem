@@ -2,7 +2,6 @@ package my_app.db.services;
 
 import my_app.db.DB;
 import my_app.db.models.PesagemModel;
-import my_app.db.models.UsuarioModel;
 import my_app.db.repositories.ClienteRepository;
 import my_app.db.repositories.DescontoRepository;
 import my_app.db.repositories.PesagemRepository;
@@ -15,6 +14,7 @@ import pack.utilities.ValidatorPack;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -44,9 +44,6 @@ public class PesagemService extends BaseService<PesagemModel> {
     @Override
     public PesagemModel salvar(PesagemModel model) throws SQLException {
         validarCampos(model);
-        if (model.getTipoPesagem() == null || model.getTipoPesagem().isBlank()) {
-            throw new IllegalArgumentException("Tipo de pesagem é obrigatório");
-        }
         model.setDataCriacao(LocalDateTime.now());
         var salvo = repository.salvar(model);
         log.info("Pesagem salva: id={} placa={} tipo={} pesoLiquido={}",
@@ -96,9 +93,9 @@ public class PesagemService extends BaseService<PesagemModel> {
     }
 
     public List<PesagemModel> filtrar(String placa, String motoristaNome, Integer clienteId,
-                                       Integer produtoId, Long dataInicioMillis, Long dataFimMillis,
+                                       Integer produtoId, LocalDate dataInicio, LocalDate dataFim,
                                        String tipoPesagem) throws SQLException {
-        var lista = pesagemRepository.filtrar(placa, motoristaNome, clienteId, produtoId, dataInicioMillis, dataFimMillis, tipoPesagem);
+        var lista = pesagemRepository.filtrar(placa, motoristaNome, clienteId, produtoId, dataInicio, dataFim, tipoPesagem);
         for (var pesagem : lista) anexarRelacoes(pesagem);
         return lista;
     }
@@ -132,6 +129,8 @@ public class PesagemService extends BaseService<PesagemModel> {
     private void validarCampos(PesagemModel model) {
         if (model.getPlaca() == null || model.getPlaca().isBlank())
             throw new IllegalArgumentException("Placa é obrigatória");
+        if (model.getTipoPesagem() == null || model.getTipoPesagem().isBlank())
+            throw new IllegalArgumentException("Tipo de pesagem é obrigatório");
         if (model.getMotoristaDocumento() != null && !model.getMotoristaDocumento().isBlank()
                 && !ValidatorPack.isValidDocumento(model.getMotoristaDocumento()))
             throw new IllegalArgumentException("Documento do motorista inválido (informe um RG ou CPF válido).");
@@ -140,5 +139,11 @@ public class PesagemService extends BaseService<PesagemModel> {
         if (model.getPesoVeiculo() == null) model.setPesoVeiculo(BigDecimal.ZERO);
         if (model.getPesoTotal() == null) model.setPesoTotal(BigDecimal.ZERO);
         if (model.getPesoFinal() == null) model.setPesoFinal(BigDecimal.ZERO);
+        // "Bruto < Tara" quebra o próprio fluxo "Só Tara" (C1): tara preenchida sem bruto vira
+        // bruto=0 e o usuário pode registrar Entrada só com o caminhão vazio. A regra só
+        // dispara quando os DOIS pesos preenchidos (mesma condição da ViewModel).
+        if (model.getPesoTotal().signum() > 0 && model.getPesoVeiculo().signum() > 0
+                && model.getPesoTotal().compareTo(model.getPesoVeiculo()) < 0)
+            throw new IllegalArgumentException("Peso bruto não pode ser menor que a Tara (peso líquido estaria negativo).");
     }
 }

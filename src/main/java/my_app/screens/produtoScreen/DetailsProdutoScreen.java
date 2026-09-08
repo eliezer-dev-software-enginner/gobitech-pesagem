@@ -19,11 +19,14 @@ import megalodonte.utils.ThrowingSupplier;
 import my_app.db.models.ProdutoModel;
 import my_app.db.services.ProdutoService;
 import my_app.domain.components.Components;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pack.utilities.DatePack;
 
 import java.util.function.Function;
 
 public class DetailsProdutoScreen implements ScreenComponent {
+    private static final Logger log = LoggerFactory.getLogger(DetailsProdutoScreen.class);
     private final ProdutoService produtoService;
     private final State<ProdutoModel> model = State.of(null);
 
@@ -35,7 +38,15 @@ public class DetailsProdutoScreen implements ScreenComponent {
     private final ComputedState<String> observacoes = campo(ProdutoModel::getObservacoes);
 
     public DetailsProdutoScreen(ScreenContext ctx) {
-        long id = Long.parseLong(ctx.getParams().get("id"));
+        long id;
+        try {
+            id = Long.parseLong(ctx.getParams().get("id"));
+        } catch (RuntimeException e) {
+            log.error("Parâmetro 'id' inválido na rota de detalhes", e);
+            UI.runOnUi(() -> Components.ShowAlertError("ID inválido na rota de detalhes."));
+            ctx.selfStage().close();
+            throw new IllegalStateException(e);
+        }
         this.produtoService = createOrReport(ProdutoService::new);
 
         Async.Run(() -> {

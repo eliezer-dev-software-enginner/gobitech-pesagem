@@ -45,8 +45,49 @@ ver `DECISIONS.md` pras decisões específicas de cada troca.
 | Licença | `licensas` | `LicensaScreen` (só visível/acessível pra usuário admin) |
 | Conexão da balança | `conexao_balanca` | `ConexaoBalancaScreen` (Serial ou TCP) |
 
-**Fora da Fase 1, adiado pra Fase 2**: câmera Intelbras (`camera_settings` — tabela nem foi
-criada ainda). Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTREGAS.md`.
+**Fora da Fase 1, adiado pra Fase 2**: câmera Intelbras — **já implementada** (tabela
+`conexao_camera` criada via V13 + `ConexaoCameraScreen`/`ConexaoCameraViewModel`), mas o item de
+menu "Conexão das câmeras" está **comentado** em `HomeScreen.java:74`, deixando a tela inalcançável
+pela UI (pendência M3 da vistoria). Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTREGAS.md`.
+
+## Estado atual (2026-09-07)
+- **Vistoria completa** concluída (auditoria *read-only*): **40 pendências registradas em
+  `docs/TODO.md`** (11 alta, 21 média, 8 baixa). Decisões e correções desta rodada em
+  `docs/DECISIONS.md`.
+- **Corrigido nesta rodada (ver TODO.md e DECISIONS.md)**:
+  - A5 — filtro por data: descoberta empírica de que o Persism/sqlite-jdbc grava `dataCriacao`
+    como **INTEGER epoch-ms** (não texto, como a vistoria supunha — confirmado no driver e numa
+    cópia do banco real). Filtro agora converte `LocalDate` (inclusivos) pra epoch-ms e compara
+    numericamente; "pesagens do mês" do dashboard e o filtro do histórico voltam a funcionar.
+    Migration `V20` (converter seeds em texto) criada nesta rodada foi **removida** — a premissa
+    estava errada.
+  - A6 — `onDestroy()` implementado nas 3 telas Add/Edit (Cliente/Produto/Usuário).
+  - A7 — `parseLong` com try/catch nas 6 telas (3 Add/Edit + 3 Details).
+  - A8 — `PesagemService.salvar/atualizar` validam `tipoPesagem` e bruto<tara (só com os dois
+    pesos preenchidos); `DescontoService` valida soma>100. Regras também na camada de serviço.
+  - A10 — scripts "with-updater" + `updater_config.py` removidos (`my_app.updater.Main` não existe).
+  - A11/M12 — README reescrito pro produto real (Gobitech pesagem) com pré-requisitos de ambiente.
+  - M2 — menu "Logs" restrito a admin. M5 — `EmpresaViewModel.fetchData` com alerta/log. M8 —
+    `atualizar()` valida igual a `salvar()`. M10 — branding `plics.*` → `gobitech.*`. M11 —
+    JUnit unificado (BOM 5.13.1) e libs órfãs (`jna`, `jackson`) removidas. M21 — `-Dprism.verbose`
+    só em DEV_MODE. B6/B7 — PDFs gerados ignorados e removidos do índice; resíduo do gitignore
+    removido. B8 — Saída sem botão "Capturar" na tara (tara somente-leitura da Entrada).
+  - **Segunda rodada (mesma data) — foco em pendências médias/baixas** (ver TODO.md):
+    M4 — exportPdf usa o `snapshotFiltrado`. M6 — trava anti-duplo-clique na classe base das
+    ViewModels (`tryBeginSalvar`/`endSalvar`). M16 — `DevicesTest` removido. M17 — `LeitorBalancaTcpTest`
+    novo (ServerSocket em loopback). M18 — testes desfragilizados (sem `Thread.sleep`, porta
+    efêmera, banco em memória por classe). M19 — `HOTRELOAD.md` reescrito. B1 — `Parcela.java`
+    deletado + mains órfãos + `ACESSO_BLOQUEADO` removido. B2 — imports não usados removidos.
+    B3 — `build.gradle.kts` limpo (`publishing`/`maven-publish` órfãos removidos; comentários
+    órfãos apagados). B5 — trim no `ProdutoService` + catches silenciosos agora logam.
+- **Decidido: manter** (decisão do usuário) — A1 (chave AES), A2 (token Telegram), A3 (seed
+  admin), A4 (senhas câmera em texto puro), M1 (senha sem máscara na edição) e M3 (menu de
+  câmera continua desativado — só na Fase 2).
+- **Pendente desta vistoria ainda aberto**: A9 (testes de ViewModel), M7 (mensagens amigáveis),
+  M9 (centralizar validações), M14/M15 (consolidar docs), M20 (N+1 + COUNT no dashboard),
+  B4 (workflow do PU — outro repo). Detalhes em `docs/TODO.md`.
+- Testes: `./gradlew test` → **BUILD SUCCESSFUL** (196 testes; +2 novos nesta rodada:
+  `LeitorBalancaTcpTest`).
 
 ## Estado atual (2026-09-03)
 - **Inputs desativados com borda vermelha**: os pesos somente-captura (Entrada/Saída) e a tara

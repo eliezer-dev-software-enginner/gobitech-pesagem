@@ -19,9 +19,15 @@ abstract class BaseRepositoryTest {
 
     protected abstract void initRepository();
 
+    // Banco em memória por classe de teste — cada classe com nome próprio, sem
+    // compartilhar o mesmo "testdb" (evita vazamento de dados/estado entre classes).
+    protected String testUrl() {
+        return "jdbc:sqlite:file:testdb-" + getClass().getSimpleName() + "?mode=memory&cache=shared";
+    }
+
     @BeforeEach
     void setUp() throws Exception {
-        String testUrl = "jdbc:sqlite:file:testdb?mode=memory&cache=shared";
+        String testUrl = testUrl();
         Connection connection = DriverManager.getConnection(testUrl);
 
         Flyway.configure()

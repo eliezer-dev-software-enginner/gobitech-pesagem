@@ -64,4 +64,20 @@ class DescontoServiceTest extends BaseServiceTest {
         assertEquals(0, BigDecimal.TEN.compareTo(buscado.getOutros()));
         assertEquals(0, BigDecimal.ZERO.compareTo(buscado.getAvariados()));
     }
+
+    @Test
+    void deveLancarExcecaoQuandoSomaUltrapassa100Porcento() {
+        var model = new DescontoModel();
+        model.setUmidade(BigDecimal.valueOf(60));
+        model.setOutros(BigDecimal.valueOf(50));
+        assertThrows(IllegalArgumentException.class, () -> descontoService.salvar(model));
+    }
+
+    @Test
+    void aceitaSomaIgualA100Porcento() throws Exception {
+        var model = new DescontoModel();
+        model.setUmidade(BigDecimal.valueOf(60));
+        model.setOutros(BigDecimal.valueOf(40));
+        assertNotNull(descontoService.salvar(model).getId());
+    }
 }
