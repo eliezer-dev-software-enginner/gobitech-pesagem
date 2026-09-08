@@ -47,273 +47,196 @@ ver `DECISIONS.md` pras decisões específicas de cada troca.
 
 **Fora da Fase 1, adiado pra Fase 2**: câmera Intelbras — **já implementada** (tabela
 `conexao_camera` criada via V13 + `ConexaoCameraScreen`/`ConexaoCameraViewModel`), mas o item de
-menu "Conexão das câmeras" está **comentado** em `HomeScreen.java:74`, deixando a tela inalcançável
-pela UI (pendência M3 da vistoria). Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTREGAS.md`.
+menu "Conexão das câmeras" está **comentado** em `HomeScreen.java:74` **por decisão do usuário**
+(pendência M3 da vistoria, "decidido: manter" — a câmera entra no fluxo só na Fase 2/uso real),
+deixando a tela inalcançável pela UI. Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTREGAS.md`.
 
 ## Estado atual (2026-09-08)
-- **A9 corrigido** (Vistoria pendente): regras críticas da pesagem deixaram de morar só na
-  ViewModel — extraídas pro **`my_app/domain/pesagem/PesagemRegras.java`** (classe pura, padrão
-  `PesagemCalculo`, testável sem a thread do JavaFX): `somarDescontos`/`descontosUltrapassam100`
-  (H4), `liquidoNegativo` (G4), `nenhumPesoInformado` (F2/G6), `preencherDaEntrada` (D2 → record
-  `PreenchimentoEntrada`) e `usarSlot2`/`nomeArquivoFoto` (capturarFotos). `PesagemFormViewModel.
-  salvar`/`calcLiquido` e `PesagemSaidaViewModel.preencherDaEntrada` delegam a ela. Ver
-  `DECISIONS.md` 2026-09-08. Testes: `./gradlew test` → **BUILD SUCCESSFUL**
-  (`PesagemRegrasTest` novo, +20).
-
-## Estado atual (2026-09-08)
-- **M9 corrigido** (Vistoria pendente): validações de telefone/CEP/CPF/CNPJ centralizadas em
-  `my_app/utils/Validacoes.java` (`validarTelefone`/`validarCep`/`validarCpfCnpj` — nulo/branco
-  passa, formato inválido lança `IllegalArgumentException` com mensagem padronizada), usado
-  pelos 3 Services (`ClienteService`, `EmpresaService`, `UsuarioService`). Cliente segue **sem**
-  validação de formato de CPF/CNPJ (só unicidade); `UsuarioService` padronizou `isBlank()`.
-  `ValidacoesTest` novo (11 casos). Ver `DECISIONS.md` 2026-09-08. Testes: `./gradlew test` →
-  **BUILD SUCCESSFUL**.
-
-## Estado atual (2026-09-08)
-- **M7 corrigido** (Vistoria pendente): telas/ViewModels deixaram de exibir `e.getMessage()` cru
-  (SQL/SO) pro usuário. Regra: mensagem amigável fixa no alerta + detalhe técnico só em
-  `log.error`; `catch (IllegalArgumentException)` mantém o `getMessage()` (validação de domínio
-  ex.: "Placa é obrigatória"). Coberto: Auth, Dashboard, Conexão balança/câmera, Pesagem
-  (form + histórico), Logs, Licença, Empresa, CRUDs (Cliente/Produto/Usuário + Add/Edit +
-  Details*), exportação de lista (`ContratoTelaCrudV3`) e os `onErro` dos leitores Serial/TCP.
-  Ver `DECISIONS.md` 2026-09-08. Testes: `./gradlew test` → **BUILD SUCCESSFUL**.
-
-## Estado atual (2026-09-08)
-- **M20 corrigido** (Vistoria pendente): fim do **N+1** em `PesagemService.anexarRelacoes` —
-  `BaseRepository.buscarPorIds` (`WHERE id IN`) + `anexarRelacoes(List)` com 4 lotes no lugar de
-  N×4 SELECTs. Dashboard passou a usar **`count()`/`contarPorPeriodo`** (`SELECT COUNT(*)`) em
-  vez de listar tudo pra `size()`. Detalhe: `COUNT(*)` via Persism vem como `Integer` no scalar.
-  Ver `DECISIONS.md` 2026-09-08. Testes: `./gradlew test` → **BUILD SUCCESSFUL** (+7).
-
-## Estado atual (2026-09-07)
-- **Vistoria completa** concluída (auditoria *read-only*): **40 pendências registradas em
-  `docs/TODO.md`** (11 alta, 21 média, 8 baixa). Decisões e correções desta rodada em
-  `docs/DECISIONS.md`.
-- **Corrigido nesta rodada (ver TODO.md e DECISIONS.md)**:
-  - A5 — filtro por data: descoberta empírica de que o Persism/sqlite-jdbc grava `dataCriacao`
-    como **INTEGER epoch-ms** (não texto, como a vistoria supunha — confirmado no driver e numa
-    cópia do banco real). Filtro agora converte `LocalDate` (inclusivos) pra epoch-ms e compara
-    numericamente; "pesagens do mês" do dashboard e o filtro do histórico voltam a funcionar.
-    Migration `V20` (converter seeds em texto) criada nesta rodada foi **removida** — a premissa
-    estava errada.
-  - A6 — `onDestroy()` implementado nas 3 telas Add/Edit (Cliente/Produto/Usuário).
-  - A7 — `parseLong` com try/catch nas 6 telas (3 Add/Edit + 3 Details).
-  - A8 — `PesagemService.salvar/atualizar` validam `tipoPesagem` e bruto<tara (só com os dois
-    pesos preenchidos); `DescontoService` valida soma>100. Regras também na camada de serviço.
-  - A10 — scripts "with-updater" + `updater_config.py` removidos (`my_app.updater.Main` não existe).
-  - A11/M12 — README reescrito pro produto real (Gobitech pesagem) com pré-requisitos de ambiente.
-  - M2 — menu "Logs" restrito a admin. M5 — `EmpresaViewModel.fetchData` com alerta/log. M8 —
-    `atualizar()` valida igual a `salvar()`. M10 — branding `plics.*` → `gobitech.*`. M11 —
-    JUnit unificado (BOM 5.13.1) e libs órfãs (`jna`, `jackson`) removidas. M21 — `-Dprism.verbose`
-    só em DEV_MODE. B6/B7 — PDFs gerados ignorados e removidos do índice; resíduo do gitignore
-    removido. B8 — Saída sem botão "Capturar" na tara (tara somente-leitura da Entrada).
-  - **Segunda rodada (mesma data) — foco em pendências médias/baixas** (ver TODO.md):
-    M4 — exportPdf usa o `snapshotFiltrado`. M6 — trava anti-duplo-clique na classe base das
-    ViewModels (`tryBeginSalvar`/`endSalvar`). M16 — `DevicesTest` removido. M17 — `LeitorBalancaTcpTest`
-    novo (ServerSocket em loopback). M18 — testes desfragilizados (sem `Thread.sleep`, porta
-    efêmera, banco em memória por classe). M19 — `HOTRELOAD.md` reescrito. B1 — `Parcela.java`
-    deletado + mains órfãos + `ACESSO_BLOQUEADO` removido. B2 — imports não usados removidos.
-    B3 — `build.gradle.kts` limpo (`publishing`/`maven-publish` órfãos removidos; comentários
-    órfãos apagados). B5 — trim no `ProdutoService` + catches silenciosos agora logam.
+- **Vistoria completa do projeto concluída** (2026-09-07, auditoria *read-only*): **40 pendências**
+  registradas em `docs/TODO.md` (11 alta, 21 média, 8 baixa). Todas **resolvidas ou decididas**
+  nas rodadas de correção — ver o **Histórico** abaixo e as decisões em `docs/DECISIONS.md`.
+- **Corrigido nesta sessão (5ª rodada)**: **M20** — fim do N+1 nas relações de pesagem (lotes
+  `buscarPorIds`) + `count()`/`contarPorPeriodo` no dashboard; **M7** — mensagens de erro
+  amigáveis nas telas (detalhe técnico só em `log.error`, `IllegalArgumentException` mantém o
+  `getMessage()`); **M9** — validações telefone/CEP/CPF/CNPJ centralizadas em `Validacoes`;
+  **A9** — regras críticas da pesagem extraídas pra classe pura testável `PesagemRegras` (soma
+  descontos ≤ 100%, líquido negativo, nenhum peso informado, `preencherDaEntrada`, fotos). Ver
+  `DECISIONS.md` 2026-09-08.
+- **Corrigido na vistoria (2026-09-07, rodadas 1-3)**: A5 (filtro por data com epoch-ms — o
+  Persism grava INTEGER, não texto), A6 (onDestroy), A7 (parseLong seguro), A8 (validações na
+  camada de serviço), A10 (updater), A11/M12 (README), M2/M4/M5/M6/M8/M10/M11/M13/M16/M17/M18/
+  M19/M21 e B1/B2/B3/B5/B6/B7/B8 — detalhes em `docs/TODO.md` e `docs/DECISIONS.md`.
+- **Ajustes do usuário (2026-09-08)**: **B8 revertida** — a Pesagem de **Saída** voltou a ter o
+  botão "Capturar" na **Tara** (`PesagemSaidaScreen`): a tara da entrada continua pré-preenchida
+  e o campo continua somente-leitura, mas o operador pode recapturá-la com o caminhão vazio na
+  volta. A seção de **Fotos** do formulário de pesagem está **desativada na Fase 1** (chamada
+  comentada em `PesagemFormScreen.java` — as regras de foto já cobertas em `PesagemRegras`).
 - **Decidido: manter** (decisão do usuário) — A1 (chave AES), A2 (token Telegram), A3 (seed
   admin), A4 (senhas câmera em texto puro), M1 (senha sem máscara na edição) e M3 (menu de
-  câmera continua desativado — só na Fase 2).
-- **Pendente desta vistoria ainda aberto**: A9 (testes de ViewModel), M7 (mensagens amigáveis),
-  M9 (centralizar validações), M14/M15 (consolidar docs), M20 (N+1 + COUNT no dashboard),
-  B4 (workflow do PU — outro repo). Detalhes em `docs/TODO.md`.
-- Testes: `./gradlew test` → **BUILD SUCCESSFUL** (196 testes; +2 novos nesta rodada:
-  `LeitorBalancaTcpTest`).
+  câmera desativado — só na Fase 2).
+- **Aberto**: **B4** — passo MSI do workflow `package.yml` deve chamar `python.exe` (o Python do
+  `setup-python` é `python.exe`, não `python3` no Windows) — **fora deste clone**: o workflow
+  mora no repositório `megalodonte-world` (PU), não nesta pasta.
+- Testes: **235** `@Test` → `./gradlew test` → **BUILD SUCCESSFUL**.
 
-## Estado atual (2026-09-03)
-- **Inputs desativados com borda vermelha**: os pesos somente-captura (Entrada/Saída) e a tara
-  somente-leitura da Saída agora usam a mesma borda vermelha (`#e74c3c`) do "Peso líquido" —
-  `Components.InputColumnInteger(..., disableInput=true)` aplica borda vermelha quando desativado
-  (antes os desativados ficavam com a borda padrão). Ver `DECISIONS.md`.
-- Testes: `./gradlew test` → **BUILD SUCCESSFUL**.
+## Histórico
 
-## Estado atual (2026-09-03)
-- **Pesos da pesagem: captura x digitação por tipo** — `PesagemFormScreen` agora separa
-  `permitirCapturar*` (mostra botão "Capturar") de `*Editavel()` (aceita digitação); quando há
-  botão de captura o campo fica somente-leitura (borda vermelha), e novos overloads
-  `InputColumnInteger`/`InputWithButtonRowInteger` com `disableInput`. Resultado: **Entrada** =
-  tara+bruto captura-only; **Saída** = tara somente-leitura (vem da entrada) + bruto captura-only;
-  **Avulsa** = tara digitada (sem botão) + bruto captura-only; **Manual** = tara+bruto digitados
-  (sem botão). Reverte o Item 7 (botão "Capturar" na tara da avulsa). Ver `DECISIONS.md`.
-- Testes: `./gradlew test` → **BUILD SUCCESSFUL**.
+### 2026-09-07 — Vistoria completa: rodadas de correção (1ª altas, 2ª-3ª médias/baixas)
+- **A5/M13** — filtro por data: descoberta empírica de que Persism/sqlite-jdbc grava
+  `dataCriacao` como **INTEGER epoch-ms** (não texto, como a vistoria supunha — confirmado no
+  driver e no banco real). Filtro converte `LocalDate` (inclusivos) pra epoch-ms e compara
+  numericamente; "pesagens do mês" do dashboard e o filtro do histórico voltam a funcionar.
+  Migration `V20` (converter seeds em texto) criada nesta rodada foi **removida** — a premissa
+  estava errada; seeds do `V10` já são INTEGER consistentes com o runtime.
+- **A6/A7** — `onDestroy()` implementado nas 3 telas Add/Edit (Cliente/Produto/Usuário);
+  `parseLong` com try/catch nas 6 telas (3 Add/Edit + 3 Details).
+- **A8** — `PesagemService.salvar/atualizar` validam `tipoPesagem` e bruto<tara (só com os dois
+  pesos preenchidos); `DescontoService` valida soma>100. Regras também na camada de serviço, além
+  da ViewModel.
+- **A10** — scripts "with-updater" + `updater_config.py` removidos (`my_app.updater.Main` não
+  existe). **A11/M12** — README reescrito pro produto real (Gobitech pesagem) com pré-requisitos
+  de ambiente (`JAVAFX_MODULES_HOME`, `DEV_MODE`, `GITHUB_TOKEN`).
+- **M2** — menu "Logs" restrito a admin. **M5** — `EmpresaViewModel.fetchData` com alerta/log.
+  **M8** — `atualizar()` valida igual a `salvar()`. **M10** — branding `plics.*` → `gobitech.*`
+  (todo o resíduo). **M11** — JUnit unificado (BOM 5.13.1), `jna`/`jackson` órfãos removidos.
+  **M21** — `-Dprism.verbose` só em DEV_MODE.
+- **M4** — `exportPdf` usa o `snapshotFiltrado`. **M6** — trava anti duplo-clique na classe base
+  das ViewModels (`tryBeginSalvar`/`endSalvar`). **M16** — `DevicesTest` removido. **M17** —
+  `LeitorBalancaTcpTest` novo (ServerSocket em loopback). **M18** — testes desfragilizados:
+  banco em memória **por classe** (`testdb-<Classe>`), sem `Thread.sleep`, portas efêmeras.
+  **M19** — `HOTRELOAD.md` reescrito pro comportamento real do `dev.py`.
+- **B1** — `Parcela.java` deletado + mains órfãos + `ACESSO_BLOQUEADO` removido. **B2** — imports
+  não usados removidos (12 arquivos). **B3** — `build.gradle.kts` limpo (`publishing`/
+  `maven-publish` removidos; comentários órfãos apagados). **B5** — `ProdutoService` normaliza
+  `nome` com `trim()`; catches silenciosos agora logam. **B6/B7** — PDFs gerados ignorados e
+  removidos do índice; resíduo do `.gitignore` removido. **B8** — Saída sem botão "Capturar" na
+  tara (tara somente-leitura, vem da Entrada).
+- Decidido: manter — A1 (chave AES), A2 (token Telegram), A3 (seed admin), A4 (senhas câmera em
+  texto puro), M1 (senha sem máscara na edição) e M3 (menu de câmera desativado).
 
-## Estado atual (2026-09-03)
-- **Fix — Details/Busca de usuário exibiam o login hasheado**: `UsuarioService` ganhou
-  override de `buscarById(long)` que decripta `login`/`senha` (texto puro na fronteira com as
-  telas, igual `buscarPorLogin`/`listarAtivos`). Corrige `DetailsUsuarioScreen` (que mostrada o
-  login criptografado) e `AddOrEditUsuarioScreen` (`populateFieldsFromModel`). Login/senha
-  continuam sempre criptografados em repouso — ver `DECISIONS.md`.
-- Testes: `./gradlew test` → **BUILD SUCCESSFUL** (novo
-  `UsuarioServiceTest.deveRetornarLoginESenhaEmTextoPuroAoBuscarPorId`).
+### 2026-09-03 — Fix: Details/Busca de usuário exibiam login hasheado
+- `UsuarioService` ganhou override de `buscarById(long)` que decripta `login`/`senha` antes de
+  devolver o model (texto puro na fronteira com as telas, mesmo padrão de `buscarPorLogin`/
+  `listarAtivos`). Login/senha continuam sempre criptografados em repouso.
 
-## Estado atual (2026-09-02)
-- **Peso da balança em tempo real no dashboard** (HOME): o `DashboardViewModel` ganhou a mesma
-  leitura contínua da balança do formulário de pesagem (`pesoAoVivo` + `lendoBalanca`, via
-  `ConexaoBalancaService`/`LeitorBalancaFactory`). O `DashboardScreen` exibe "Peso da balança
-  agora (Kg):" no topo e liga/desliga a leitura no `onMount`/`onDestroy`.
-- Testes: `./gradlew test` → **BUILD SUCCESSFUL**.
+### 2026-09-03 — Inputs não-editáveis com borda vermelha
+- Os pesos somente-captura (Entrada/Saída) e a tara somente-leitura da Saída usam a borda
+  vermelha (`#e74c3c`) do "Peso líquido" — `Components.InputColumnInteger(..., disableInput=true)`
+  aplica a borda quando desativado (novo overload, junto com `InputWithButtonRowInteger`).
 
-## Estado atual (2026-09-02)
-- **Utilitários movidos pro pacote `pack-utilities`** (dependência nova
-  `com.github.eliezer-dev-software-enginner:pack-utilities:v1.0.0` → pacote `pack.utilities.*`):
-  `Utils.java` foi enxugada pra **só `timestampParaArquivo()`**. Validação e formatação agora vêm
-  de `ValidatorPack`/`FormatterPack`/`CurrencyPack` (ex.: `isValidDocumento`, `isValidCpfOrCnpj`,
-  `isValidPhone`, `isValidCep`, `formatCpfCnpj`, `formatRgCpf`, `formatPhone`, `formatCep`,
-  `formatCnpj`, `toBRLCurrency`, `deCentavosParaReal`). Cuidado: validadores de CPF/CNPJ do pacote
-  são **mais rigorosos** (dígito verificador real). `EmpresaService`, `PesagemService`,
-  `UsuarioService`, `ClienteService`, `Components`, `Data`, `TotaisState`, `ListaPdfExporter`,
-  `TicketPdfExporter`, `ClienteScreen` atualizados. `UtilsTest` reduzido ao teste de
-  `timestampParaArquivo`. Ver `DECISIONS.md`.
-- **`DateUtils` local removido**: os 9 métodos tinham equivalente 1:1 no `pack.utilities.DatePack`
-  (mesmos formatos `dd/MM/yyyy` e `dd/MM/yyyy HH:mm` e tratamento de null/0).
-  `Parcela`, `Components`, `ProdutoScreen`, `LicensaScreen`, `PesagemHistoricoViewModel`,
-  `PesagemHistoricoScreen`, `ClienteScreen`, `UsuarioScreen`, `DashboardViewModel` migrados.
-  `my_app/utils/DateUtils.java` deletado.
-- Testes: `./gradlew test --rerun-tasks` → **BUILD SUCCESSFUL**.
+### 2026-09-03 — Pesagem: captura × digitação por tipo de tela
+- `PesagemFormScreen` separa `permitirCapturar*` (botão "Capturar") de `*Editavel()` (aceita
+  digitação); com botão o campo fica somente-leitura. Resultado: **Entrada** = tara+bruto
+  captura-only; **Saída** = tara somente-leitura (vem da entrada) + bruto captura-only;
+  **Avulsa** = tara digitada (sem botão — **reverte** o Item 7) + bruto captura-only;
+  **Manual** = tara+bruto digitados (inalterado).
 
-## Estado atual (2026-08-17)
-- Migrations, Models, Repositories, Services e Screens/ViewModels das 9 entidades acima:
-  **feitos e compilando** (`./gradlew compileJava` → BUILD SUCCESS, 0 erros).
-- Roteamento (`AppRoutes`) e fluxo de login/primeiro acesso adaptados pro novo modelo
-  (login por usuário real, não mais um login único compartilhado).
-- **Leitura de peso via serial/TCP implementada** (`my_app/infra/balanca/`) — `PesagemScreen`
-  mostra o peso ao vivo e tem botões "Capturar" (Tara/Bruto) e "Calcular" (Líquido). Não
-  testado contra hardware real ainda (só a lógica de parsing tem teste automatizado).
-- **Testes automatizados**: 149 testes (Repository + Service de cada uma das 9 entidades +
-  `PesoParser`), `./gradlew test` → **BUILD SUCCESSFUL**. Rodar os testes revelou e corrigiu um
-  bug real nas migrations (`dataCriacao REAL` quebrava qualquer releitura do banco — ver
-  `DECISIONS.md`), inclusive num banco real já em uso (corrigido via `V11`, com auto-correção
-  no próximo boot do app).
+### 2026-09-02 — Peso da balança em tempo real no dashboard
+- `DashboardViewModel` ganhou a mesma leitura contínua da balança do formulário de pesagem
+  (`pesoAoVivo` + `lendoBalanca`, via `ConexaoBalancaService`/`LeitorBalancaFactory`);
+  `DashboardScreen` exibe "Peso da balança agora (Kg):" no topo, ligando a leitura no
+  `onMount`/`onDestroy`.
 
-## Estado atual (2026-09-02)
-- **Polimento de UX/pesagem** (9 itens do TODO):
-  - Botão **"Copiar placa"** no modal de detalhes do histórico.
-  - Correção **"Registrar registrar ..."** no botão de salvar (4 telas).
-  - **Busca de placa insensível a maiúsc/minúsc** no banco (`UPPER(placa)=UPPER(?)`) e campo
-    Placa agora é **uppercase** (`InputColumnUppercase`).
-  - **Borda vermelha** em inputs não-editáveis (ex.: Peso líquido).
-  - **Popup some sozinho** após ~3s.
-  - Botão **"Capturar" Tara na Pesagem avulsa** (caminhão vazio na balança).
-  - **Inscrição estadual** da empresa: novo campo (migration `V19`) + cadastro + exibida no
-    cabeçalho de relatório/tickets "Insc.est:".
-  - Download de **relatório** (`relatório - <data>.pdf`) e **ticket** (`ticket - <data>.pdf`)
-    com data/hora no nome (`Utils.timestampParaArquivo`).
-- Testes: `./gradlew test` → **BUILD SUCCESSFUL**.
+### 2026-09-02 — Utilitários movidos pro pacote `pack-utilities`
+- Dependência nova `com.github.eliezer-dev-software-enginner:pack-utilities:v1.0.0` (pacote
+  `pack.utilities.*`). `Utils.java` enxugada pra **só `timestampParaArquivo()`**; validação e
+  formatação agora vêm de `ValidatorPack`/`FormatterPack`/`CurrencyPack` (`isValidDocumento`,
+  `isValidCpfOrCnpj`, `isValidPhone`, `isValidCep`, `formatCpfCnpj`, `formatRgCpf`, `formatPhone`,
+  `formatCep`, `formatCnpj`, `toBRLCurrency`, `deCentavosParaReal`). Cuidado: validadores de
+  CPF/CNPJ do pacote são **mais rigorosos** (dígito verificador real).
+- **`DateUtils` local removido** — os 9 métodos tinham equivalente 1:1 no `pack.utilities`
+  `DatePack` (mesmos formatos `dd/MM/yyyy` e `dd/MM/yyyy HH:mm` e tratamento de null/0).
+- `UtilsTest` reduzido ao teste de `timestampParaArquivo` (os casos de validação passaram a
+  valer sobre o `pack-utilities`, testado lá).
 
-## Estado atual (2026-09-02)
-- **Fluxo J (campos textuais opcionais) — fixes**:
-  - **J2**: documento do motorista agora é **validado se preenchido** — novo
-    `Utils.isValidDocumento()` (RG 8-9 dígitos ou CPF 11) e `PesagemService.validarCampos()`
-    lança `IllegalArgumentException` quando inválido. Vazio continua permitido.
-  - **J4**: `PesagemService.validarCampos()` **lança `IllegalArgumentException`** quando
-    "Nome do motorista" excede 100 caracteres.
-  - As validações J2/J4 ficam na **Service** (segundo o padrão já existente), a ViewModel só
-    exibe o `getMessage()` da `IllegalArgumentException`.
-- Testes: `./gradlew test` → **BUILD SUCCESSFUL**.
+### 2026-09-02 — Polimento de UX/pesagem (9 itens do TODO)
+- Botão "Copiar placa" no modal de detalhes do histórico; correção "Registrar registrar ...";
+  busca de placa insensível a maiúsc/minúsc (`UPPER(placa)=UPPER(?)`); campo Placa uppercase
+  (`InputColumnUppercase`); borda vermelha em inputs não-editáveis; popup auto-dismiss (~3s);
+  botão "Capturar" Tara na Pesagem avulsa (caminhão vazio na balança); **Inscrição estadual**
+  da empresa (migration `V19`, campo novo + exibida nos cabeçalhos "Insc.est:"); downloads de
+  relatório/ticket com data/hora no nome (`relatório - <data>.pdf`, `ticket - <data>.pdf`).
 
-## Estado atual (2026-09-01)
-- **Fluxo H (descontos)**: **bloqueio** de salvamento quando a soma dos descontos ultrapassa
-  100% — alerta "A soma dos descontos não pode ultrapassar 100."; soma extraída pro método
-  reutilizável `somaDescontos()`.
-- **Fluxo G (pesagem manual) — fixes**:
-  - **G4**: **bloqueio** de salvamento quando Peso bruto < Tara (líquido negativo) — alerta
-    "Peso bruto não pode ser menor que a Tara".
-  - **F2/G6**: aviso de confirmação antes de salvar pesagem **sem nenhum peso**; Sim salva, Não
-    cancela. Vale pras 4 telas (classe base `PesagemFormViewModel`).
-  - **G3**: comportamento de colagem com ponto decimal (`8500.5` → `85.005`) **mantido por
-    decisão do usuário** — aplicação de balança, valor é digitado/capturado (vírgula), não colado.
-- Cálculo do líquido extraído pro método reutilizável `calcLiquido()` (sem duplicação entre a
-  exibição dinâmica e a validação de salvamento).
-- Testes: `./gradlew test` → **BUILD SUCCESSFUL**.
+### 2026-09-02 — Fluxo J: documento do motorista + nome limitado
+- Documento do motorista **validado se preenchido** (RG 8-9 dígitos ou CPF 11) e "Nome do
+  motorista" limitado a 100 caracteres — na época via `Utils.isValidDocumento`; hoje a validação
+  vive no `ValidatorPack.isValidDocumento` do `pack-utilities` (migração de 2026-09-02 acima).
+  `PesagemService.validarCampos()` lança `IllegalArgumentException`; vazio continua permitido.
 
-## Estado atual (2026-09-01)
-- **Fix de dois bugs** encontrados em testes manuais (`testes-pesagem.md`, cenários C1 e D2):
-  - **C1**: Peso líquido ficava negativo ao registrar Entrada só com Tara (sem Peso bruto) —
-    `recalcularPesoLiquido()` agora retorna vazio quando bruto não informado.
-  - **D2**: Saída não trazia o Peso bruto da Entrada ao buscar pela placa — `preencherDaEntrada()`
-    agora copia `pesoTotal` além de `pesoVeiculo`.
-- **Fix de bug real em `UsuarioService`**: `salvar()`/`atualizar()` faziam
-  `model.getTelefone().isEmpty()` sem checar null — NPE ao salvar usuário sem telefone (campo
-  opcional). Corrigido com null-check antes.
-- Testes: `./gradlew test` → **199 testes, BUILD SUCCESSFUL** (0 falhas — os 9 NPEs pré-existentes
-  em `UsuarioServiceTest`/`PesagemServiceTest` foram corrigidos).
+### 2026-09-01 — Fluxos G/H: líquido negativo, descontos > 100% e salvar sem peso
+- **H4** — bloqueio de salvamento quando a soma dos descontos ultrapassa 100%; soma extraída pro
+  método reutilizável `somaDescontos()`. **G4** — bloqueio quando Peso bruto < Tara (líquido
+  negativo, alerta). **F2/G6** — aviso de confirmação antes de salvar sem nenhum peso (Sim salva,
+  Não cancela), vale pras 4 telas. **G3** — colagem com ponto decimal (`8500.5` → `85.005`)
+  **mantido por decisão do usuário**. Cálculo do líquido extraído pro reutilizável `calcLiquido()`.
 
-## Estado atual (2026-08-31)
-- **Só a Placa é obrigatória** na pesagem (pedido do André). Removida a exigência de Motorista e
-  Cliente do `PesagemService.validarCampos`; formulários deixaram de marcar `*` em "Nome do
-  motorista" e "Cliente" (Placa segue com `*`). Migration `V18` torna `motorista_nome` e
-  `cliente_id` nullable (SQLite recria a tabela, preservando dados/FKs e as colunas
-  `entrada_id`/`usuario_id` — mesmo padrão do `V16`). Produto e demais já eram opcionais. Ver
-  `DECISIONS.md` e `TODO.md`.
-- Testes: `./gradlew test` → **196 testes, BUILD SUCCESSFUL**.
+### 2026-09-01 — Fix: líquido negativo na Entrada só-Tara + Saída sem Peso bruto + NPE de telefone
+- **C1** — `recalcularPesoLiquido()` devolve vazio quando não há peso bruto (antes `0 − tara` =
+  negativo). **D2** — `PesagemSaidaViewModel.preencherDaEntrada()` copia também `pesoTotal` da
+  Entrada (antes só `pesoVeiculo`).
+- **Bug real** — `UsuarioService.salvar/atualizar` faziam `getTelefone().isEmpty()` sem
+  null-check (campo opcional) → NPE ao salvar usuário sem telefone. Corrigido com null-check;
+  os 9 testes que falhavam eram esse mesmo bug.
 
-## Estado atual (2026-08-31)
-- **Relatório resumido de entradas e saídas** agora imita o visual do relatório do André:
-  texto **monoespaçado (Courier)** com cabeçalho da empresa (nome/Cpf/Insc.e/End/Bairro/
-  Cidade/Fone), linha de `_`, título centralizado, separadores de `=`, colunas, uma linha
-  **"Observação:"** embaixo de cada ticket (a observação da própria pesagem, `---` se vazia) e
-  linha de totais. Mantida a coluna **Tara (Kg)** (decisão do usuário). **Em negrito**
-  (Courier-Bold, que tem a mesma largura de glifo do regular — não desalinha o texto): título,
-  nomes das colunas, rótulos "Observação", "Quantidade total entradas" e "Total peso liquido".
-  A largura da fonte é calculada pra linha mais larga caber na página. Ver `DECISIONS.md` e
-  `TODO.md`.
-- Testes: `./gradlew test` → **196 testes, BUILD SUCCESSFUL** (inclui `RelatorioPesagemPdfExporterTest`).
+### 2026-08-31 — Só a Placa é obrigatória na pesagem (pedido do André)
+- Removida a exigência de Motorista e Cliente do `PesagemService.validarCampos`; formulários
+  sem `*` nesses campos. Migration `V18` torna `motorista_nome` e `cliente_id` nullable (SQLite
+  recria a tabela preservando dados/FKs e as colunas `entrada_id`/`usuario_id`). Testes:
+  `motoristaEhOpcional`/`clienteEhOpcional` no lugar dos antigos "obrigatório".
 
-## Estado atual (2026-08-31)
-- **Ticket de pesagem** agora reproduz o layout exato do ticket do André (texto monoespaçado,
-  uma linha por campo, com cabeçalho da empresa, Ticket Nº, Placa/Uf, Data/Hora de entrada e
-  saída, Operador/Motorista/Produto/Fornecedor/Cliente, Peso entrada/saída/líquido, Observação
-  e assinaturas), com **2 vias na MESMA folha** (linha de separação entre elas + linha de
-  assinatura acima de cada nome). Novo campo `pesagens.usuario_id` (migration `V17`)
-  guarda quem criou a pesagem (Operador no ticket). `PesagemHistoricoViewModel.imprimirTicket`
-  usa a entrada vinculada pra Data/Hora/Peso de entrada. Ver `DECISIONS.md` e `TODO.md`.
-- Testes: `./gradlew test` → **194 testes, BUILD SUCCESSFUL**.
-- Completada a remoção já iniciada da `InfoUpdateScreen` (2 refs mortas em `AppRoutes.java`).
+### 2026-08-31 — Relatório resumido no layout monoespaçado do André + negritos
+- `RelatorioPesagemPdfExporter` reescrito pra texto monoespaçado (Courier) como o do André:
+  cabeçalho da empresa, linha de `_`, título centralizado, separadores de `=`, colunas,
+  "Observação:" **por linha**, linha de totais. Negrito via Courier-Bold (mesma largura de
+  glifo — não desalinha). Coluna **Tara (Kg) mantida** (decisão do usuário) e fonte
+  auto-dimensionada pra caber na A4.
 
-## Estado atual (2026-08-31)
-- **Produto opcional nas pesagens**: removida a validação "Produto é obrigatório" de
-  `PesagemService.validarCampos()` e a coluna `pesagens.produto_id` ficou nullable (migration
-  `V16` recria a tabela preservando dados/FKs). **`*` em todos os campos obrigatórios** das
-  telas via novo helper `Components.obrigatorio(label)` (`label *`): Pesagem (Placa/Nome do
-  motorista/Cliente), Login (E-mail/Senha), Cliente (Loja/Razão social), Produto (Nome), Usuário
-  (Nome/Login/Senha), Empresa (Nome), Conexão da balança (Tipo + campos do tipo selecionado).
-  Produto no formulário fica sem `*` (opcional). Ver `DECISIONS.md` e `TODO.md`.
-- Testes: `./gradlew test` → **BUILD SUCCESSFUL** (sem regressão).
+### 2026-08-31 — Ticket de pesagem no layout do André + operador (`pesagens.usuario_id`)
+- `TicketPdfExporter` reproduz o ticket do André (texto monoespaçado, campos por linha) com
+  **2 vias na MESMA folha** e linha de assinatura acima de cada nome. Novo campo
+  `pesagens.usuario_id` (migration `V17`) guarda quem criou a pesagem (Operador no ticket),
+  preenchido via `SessaoUsuario`; `PesagemHistoricoViewModel.imprimirTicket` usa a entrada
+  vinculada pra Data/Hora/Peso de entrada. Fornecedor exibido vazio (modelo não tem o dado).
 
-## Estado atual (2026-08-31)
-- **Relatório do histórico de pesagens** reproduz o do André (1 linha por par Entrada+Saída da
-  mesma placa) com a **tara adicionada** e rodapé de totais. Colunas: Ticket | Tara (Kg) |
-  Entrada | Horário | Saída | Horário | Placa | Produto | Cliente | Peso bruto | Peso líquido.
-  Entrada/Saída = data, Horário = hora (HH:mm:ss); bruto/líquido do registro consolidado. Rodapé:
-  observação, total de entradas, total peso líquido. Para o agrupamento correto, novo campo
-  `pesagens.entrada_id` (migration `V15`). Ver `DECISIONS.md` e `TODO.md`.
-- Testes: `./gradlew test` → **192 testes, BUILD SUCCESSFUL** (inclui `RelatorioPesagemPdfExporterTest`).
+### 2026-08-31 — Produto opcional na pesagem + `*` nos campos obrigatórios
+- Produto deixou de ser obrigatório (`pesagens.produto_id` nullable, migration `V16` recria a
+  tabela) — teste vira `produtoEhOpcional`. Novo helper `Components.obrigatorio(label)` aplica
+  `*` em todos os campos obrigatórios das telas (Pesagem/Login/Cliente/Produto/Usuário/Empresa/
+  Conexão da balança).
 
-## Estado atual (2026-08-31)
-- **Ticket térmico 80mm (ESC/POS)** — além do PDF, o ticket da pesagem agora pode ser impresso
-  direto numa **impressora térmica**. Novo `TicketThermalExporter` (`my_app/infra`) reusa o motor
-  ESC/POS (`escpos-coffee`, dependência já existente) e envia pra **impressora padrão do
-  sistema** (`PrinterOutputStream.getDefaultPrintService()`), sem configurar porta. Layout dos
-  campos igual ao do André (Cnpj/Insc.est/End/Bairro/Cidade/Fone, Ticket, Placa, DT/H Entrada/
-  Saída, Operador/Motorista/Produto/Fornecedor/Cliente, Peso de Entrada/Saída/Líquido,
-  Peso Líquido Final, Observação + assinaturas ADMINISTRADOR/MOTORISTA), adaptado pra bobina.
-  Novo botão **"Imprimir térmica"** no modal de detalhes do histórico, ao lado de "Imprimir
-  ticket" (PDF). `PesagemHistoricoViewModel.imprimirTicketTermica`. Sem tela/porta: usa a
-  impressora padrão do Windows. Ver `DECISIONS.md` e `TODO.md`.
-- Testes: `./gradlew test` → **196 testes, BUILD SUCCESSFUL** (inclui `TicketThermalExporterTest`).
+### 2026-08-31 — Relatório do histórico: formato do André + coluna Tara + rodapé de totais
+- 1 linha por par Entrada+Saída da mesma placa/visita; colunas `Ticket | Tara (Kg) | Entrada |
+  Horário | Saída | Horário | Placa | Produto | Cliente | Peso bruto | Peso líquido`.
+  Rodapé: observações, "Quantidade total entradas: N", "Total peso líquido: X". Para o
+  agrupamento, novo campo `pesagens.entrada_id` (migration `V15`) — a Saída grava o id da
+  Entrada que a originou.
 
-## Estado atual (2026-08-28)
-- A **pesagem** deixou de ser uma tela única de CRUD (`PesagemScreen` removida). Viraram telas
-  separadas por tipo — `PesagemEntrada`, `PesagemSaida`, `PesagemAvulsa`, `PesagemManual`
-  (formulários independentes, **sem** `ContratoTelaCrudV3`) + `PesagemHistorico` (lista com
-  `ContratoTelaCrudV3`). O campo `operacao` virou `tipo_pesagem` (`entrada`/`saida`/`avulsa`/
-  `manual`), decidido pela tela aberta, não mais por paridade de placa. Migration `V14`. Ver
-  `DECISIONS.md`.
-- Testes: **182 testes**, `./gradlew test` → **BUILD SUCCESSFUL**.
+### 2026-08-31 — Ticket térmico 80mm (ESC/POS)
+- Novo `TicketThermalExporter` (`my_app/infra`) imprime o ticket numa térmica 80mm via
+  `escpos-coffee` (ESC/POS) na **impressora padrão do sistema** (sem configurar porta/spooler).
+  Novos botões "Imprimir térmica" no modal de detalhes do histórico ao lado de "Imprimir ticket"
+  (PDF). `PesagemHistoricoViewModel.imprimirTicketTermica` reusa `buscarComRelacoes` +
+  `buscarEntradaVinculada`.
+
+### 2026-08-28 — Pesagem: telas de formulário separadas por tipo + `tipo_pesagem`
+- A tela única de Pesagem (`PesagemScreen`) virou **4 formulários por tipo** — Entrada, Saída,
+  Avulsa, Manual (`PesagemForm{Screen,ViewModel}` base, sem `ContratoTelaCrudV3`) + **histórico**
+  (`PesagemHistorico{Screen,ViewModel}`, com `ContratoTelaCrudV3`: lista, filtro, excluir, baixar
+  lista, imprimir ticket no modal). O campo `operacao` virou `tipo_pesagem` (`entrada`/`saida`/
+  `avulsa`/`manual`), decidido pela tela aberta — migration `V14`. `PesagemService.salvar()`
+  exige `tipoPesagem`; `buscarTaraSugerida` vem da **última entrada** da placa. Navegação nova
+  (`Secao.PESAGEM_HISTORICO`); rota `PESAGENS` antiga removida.
+
+### 2026-08-17 — Fase 1: migrations, dados, telas + testes
+- Migrations `V1`–`V10` do domínio de pesagem (usuários, preferências, licenças, empresa,
+  clientes, produtos, descontos, pesagens, conexão da balança + dados padrão); modelos/
+  repositórios/services e telas adaptados/novos; varejo removido. `PesagemRepository.filtrar()`
+  com AND corretamente agrupado (o app antigo tinha bug de precedência AND/OR aqui).
+- **Bug real encontrado/testado**: migrations usavam `dataCriacao REAL`, que quebrava
+  `atualizar()`/`buscarById()`/`listar()` em produção — corrigido pra `TIMESTAMP` nas 9 tabelas
+  (e via `V11` pra bancos já criados, validado contra cópia do banco real).
+- Testes: 149 (Repository + Service de cada entidade + `PesoParser`). Tema removido;
+  `preferencias` ficou só com `primeiro_acesso`.
 
 ## Modelo de licenciamento — confirmado com o Guilherme (2026-08-17)
 O André vai poder gerar quantas licenças precisar, ele mesmo — sem API nem backend. Ele tem

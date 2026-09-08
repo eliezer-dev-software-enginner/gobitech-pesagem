@@ -52,7 +52,7 @@ public abstract class PesagemFormScreen implements ScreenComponent {
         return true;
     }
 
-    /** Se o botão "Capturar" da tara fica visível (Manual não; Saída puxa da entrada). */
+    /** Se o botão "Capturar" da tara fica visível (Avulsa e Manual não — tara digitada; Entrada e Saída sim). */
     protected boolean permitirCapturarTara() {
         return true;
     }
@@ -60,8 +60,8 @@ public abstract class PesagemFormScreen implements ScreenComponent {
     /**
      * Se o campo da tara aceita digitação. Quando {@code permitirCapturarTara()} é verdadeiro o
      * campo fica somente-leitura (o valor só entra pelo botão "Capturar") — este hook cobre os
-     * casos sem botão de captura onde a tara também não deve ser digitada (ex.: a Saída, que
-     * recebe a tara da entrada).
+     * casos sem botão de captura onde a tara também não deve ser digitada (nenhum dos 4 tipos
+     * hoje; mantido pra extensão futura).
      */
     protected boolean taraEditavel() {
         return true;
@@ -98,7 +98,7 @@ public abstract class PesagemFormScreen implements ScreenComponent {
                                 .c_child(secaoDados())
                                 .c_child(secaoPesos())
                                 .c_child(secaoDescontos())
-                                .c_child(secaoFotos())
+                                //.c_child(secaoFotos()) TODO: na fase 1 isso não é necessário, manter comentado.
                                 .c_child(Components.TextAreaColumn("Observações", vm.observacoes,
                                         "Alguma observação sobre a pesagem?", 60, 160))
                                 .c_child(secaoAcoes())

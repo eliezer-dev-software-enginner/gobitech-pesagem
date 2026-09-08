@@ -127,13 +127,18 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
   2026-09-07: a premissa estava errada — Persism grava INTEGER epoch-ms (confirmado no driver e
   no banco real). Seeds já são INTEGER consistentes; migration `V20` criada nesta rodada foi
   **removida** (criaria tipos mistos). Sem alteração de schema.**
-- **M14** `docs/CONTEXT.md` — 17 seções "Estado atual" fora de ordem cronológica, datas
+- **[x] M14** `docs/CONTEXT.md` — 17 seções "Estado atual" fora de ordem cronológica, datas
   duplicadas; cita `Utils.isValidDocumento`/"UtilsTest 7 casos" já movidos pro `pack-utilities`;
-  contagem de testes desatualizada (**199** nos docs vs **189** `@Test` reais). — Sugestão:
-  consolidar numa seção "Estado atual" + "Histórico".
-- **M15** `docs/TODO.md:412-418` — "Pendente" desatualizado: `Main.APP_NAME` já é "Gobitech"
-  (só as chaves `plics.*` sobraram — M10); parcialmente resolvido. — Sugestão: revisar com esta
-  vistoria.
+  contagem de testes desatualizada (**199** nos docs vs **189** `@Test` reais). — **Corrigido
+  2026-09-08: `CONTEXT.md` consolidado — uma seção "Estado atual (2026-09-08)" (vistoria
+  completa + o que foi corrigido na 5ª rodada + aberto B4 + **235** `@Test` medidos) + seção
+  "Histórico" cronológica com as 18 entradas datadas; citação do fluxo J anotada (validação de
+  documento agora vive no `ValidatorPack` do `pack-utilities`).**
+- **[x] M15** `docs/TODO.md:412-418` — "Pendente" desatualizado: `Main.APP_NAME` já é "Gobitech"
+  (só as chaves `plics.*` sobraram — M10); parcialmente resolvido. — **Revisado 2026-09-08: a
+  seção "Resolvido — branding/empacotamento" já está correta e marcada `[x]` (M10 cobre as
+  chaves `plics.*` restantes); `CONTEXT.md` refletia o `APP_NAME` novo. Nenhuma pendência
+  remanescente — fechado.**
 - **[x] M16** `src/test/java/my_app/DevicesTest.java` — é um `main()` manual (JSSC) **não-JUnit**
   dependente de hardware, fazendo parte do source set de teste. — **Corrigido: **removido** — não
   era `public static void main` (nem rodava) e a listagem de portas já existe na UI

@@ -7,7 +7,8 @@ import megalodonte.router.v4.ScreenContext;
 
 /**
  * Pesagem de saída — digite a placa e os dados da última entrada são puxados; a Tara vem
- * dessa entrada (não é capturada de novo), só o peso bruto é pesado na balança.
+ * dessa entrada pré-preenchida, mas o botão "Capturar" libera recapturá-la na balança (caminhão
+ * vazio na volta); o peso bruto também é pesado na balança.
  */
 public class PesagemSaidaScreen extends PesagemFormScreen {
 
@@ -18,16 +19,6 @@ public class PesagemSaidaScreen extends PesagemFormScreen {
     @Override
     protected PesagemFormViewModel criarViewModel(ScreenContext ctx) {
         return new PesagemSaidaViewModel(ctx);
-    }
-
-    @Override
-    protected boolean permitirCapturarTara() {
-        return false;
-    }
-
-    @Override
-    protected boolean taraEditavel() {
-        return false;
     }
 
     @Override
