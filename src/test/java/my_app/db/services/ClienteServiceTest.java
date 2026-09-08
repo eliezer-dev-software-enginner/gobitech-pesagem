@@ -96,12 +96,12 @@ class ClienteServiceTest extends BaseServiceTest {
     void deveLancarExcecaoQuandoCpfCnpjDuplicado() throws Exception {
         var c1 = clienteValido();
         c1.setLoja("Loja 1");
-        c1.setCpfCnpj("123.456.789-00");
+        c1.setCpfCnpj("529.982.247-25");
         clienteService.salvar(c1);
 
         var c2 = clienteValido();
         c2.setLoja("Loja 2");
-        c2.setCpfCnpj("123.456.789-00");
+        c2.setCpfCnpj("529.982.247-25");
         assertThrows(IllegalArgumentException.class, () -> clienteService.salvar(c2));
     }
 
@@ -109,19 +109,19 @@ class ClienteServiceTest extends BaseServiceTest {
     void devePermitirSalvarClienteComCpfCnpjUnico() throws Exception {
         var c1 = clienteValido();
         c1.setLoja("Loja 1");
-        c1.setCpfCnpj("123.456.789-00");
+        c1.setCpfCnpj("75789180000131");
         clienteService.salvar(c1);
 
         var c2 = clienteValido();
         c2.setLoja("Loja 2");
-        c2.setCpfCnpj("987.654.321-00");
+        c2.setCpfCnpj("55938445000109");
         assertDoesNotThrow(() -> clienteService.salvar(c2));
     }
 
     @Test
     void devePermitirAtualizarClienteMantendoCpfCnpjELoja() throws Exception {
         var c = clienteValido();
-        c.setCpfCnpj("123.456.789-00");
+        c.setCpfCnpj("58.469.407/0001-42");
         var salvo = clienteService.salvar(c);
 
         salvo.setRazaoSocial("Razão Social Editada");
