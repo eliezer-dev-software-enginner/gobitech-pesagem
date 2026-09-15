@@ -6,6 +6,7 @@ import com.github.anastaciocintra.output.PrinterOutputStream;
 import my_app.db.models.EmpresaModel;
 import my_app.db.models.PesagemModel;
 import my_app.db.models.UsuarioModel;
+import my_app.domain.pesagem.TicketPesagemDados;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,18 +86,25 @@ public class TicketThermalExporter {
         vazio(linhas);
 
         raw(linhas, "Placa do Veículo...: " + nulo(pesagem.getPlaca()), false, false);
-        raw(linhas, "DT/H Entrada......: " + dth(entrada), false, false);
-        raw(linhas, "DT/H Saída........: " + dth(pesagem), false, false);
+        raw(linhas, "DT/H Entrada......: " + dth(TicketPesagemDados.dataEntrada(pesagem, entrada)), false, false);
+        raw(linhas, "DT/H Saída........: " + dth(TicketPesagemDados.dataSaida(pesagem)), false, false);
         raw(linhas, "Operador..........: " + nomeOperador(pesagem), false, false);
         raw(linhas, "Motorista.........: " + valorOu(pesagem.getMotoristaNome(), "---"), false, false);
         raw(linhas, "Produto...........: " + (pesagem.getProduto() != null ? valorOu(pesagem.getProduto().getNome(), "---") : "---"), false, false);
-        raw(linhas, "Fornecedor........:", false, false);
         raw(linhas, "Cliente...........: " + (pesagem.getCliente() != null ? valorOu(pesagem.getCliente().getLoja(), "") : ""), false, false);
         vazio(linhas);
-        raw(linhas, "Peso de Entrada....: " + peso(entrada != null ? entrada.getPesoTotal() : null) + " Kg", false, false);
-        raw(linhas, "Peso de Saída......: " + peso(pesagem.getPesoTotal()) + " Kg", false, false);
-        raw(linhas, "Peso Líquido.......: " + peso(pesagem.getPesoFinal()) + " Kg", false, false);
-        raw(linhas, "Peso Líquido Final.: " + peso(pesagem.getPesoFinal()), false, false);
+        raw(linhas, "Peso de Entrada....: " + peso(TicketPesagemDados.pesoEntrada(pesagem, entrada)) + " Kg", false, false);
+        raw(linhas, "Peso de Saída......: " + peso(TicketPesagemDados.pesoSaida(pesagem)) + " Kg", false, false);
+        raw(linhas, "Peso Líquido Inicial: " + peso(TicketPesagemDados.liquidoAntesDescontos(pesagem)) + " Kg", false, false);
+        raw(linhas, "DESCONTOS", true, false);
+        raw(linhas, "Tipo / % / descontado (Kg)", true, false);
+        for (var desconto : TicketPesagemDados.descontos(pesagem)) {
+            raw(linhas, desconto.nome(), false, false);
+            raw(linhas, "  " + TicketPesagemDados.decimal(desconto.percentual()) + "% / "
+                    + TicketPesagemDados.decimal(desconto.quilos()) + " Kg", false, false);
+        }
+        raw(linhas, "Total descontado: " + TicketPesagemDados.decimal(TicketPesagemDados.totalDescontado(pesagem)) + " Kg", true, false);
+        raw(linhas, "Peso Líquido Final.: " + peso(pesagem.getPesoFinal()) + " Kg", true, false);
         vazio(linhas);
         raw(linhas, "Observação:", false, false);
 
@@ -121,8 +129,8 @@ public class TicketThermalExporter {
         linhas.add(new EstiloLinha("", false, false));
     }
 
-    private String dth(PesagemModel p) {
-        return p != null && p.getDataCriacao() != null ? p.getDataCriacao().format(DTH_FMT) : "";
+    private String dth(java.time.LocalDateTime data) {
+        return data == null ? "" : data.format(DTH_FMT);
     }
 
     private String nomeOperador(PesagemModel pesagem) {
@@ -132,7 +140,7 @@ public class TicketThermalExporter {
     }
 
     private String peso(BigDecimal valor) {
-        return valor == null ? "0" : valor.setScale(0, RoundingMode.HALF_UP).toBigInteger().toString();
+        return valor == null ? "" : valor.setScale(0, RoundingMode.HALF_UP).toBigInteger().toString();
     }
 
     private String montarEnd(EmpresaModel empresa) {

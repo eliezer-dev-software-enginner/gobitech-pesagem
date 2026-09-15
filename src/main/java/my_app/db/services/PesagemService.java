@@ -95,6 +95,12 @@ public class PesagemService extends BaseService<PesagemModel> {
         return pesagem;
     }
 
+    public List<PesagemModel> buscarComRelacoesPorIds(java.util.Collection<Integer> ids) throws SQLException {
+        var pesagens = pesagemRepository.buscarPorIds(ids);
+        anexarRelacoes(pesagens);
+        return pesagens;
+    }
+
     public List<PesagemModel> listarComRelacoes() throws SQLException {
         var lista = repository.listar();
         anexarRelacoes(lista);

@@ -54,6 +54,17 @@ class PesagemServiceTest extends BaseServiceTest {
     }
 
     @Test
+    void buscaEntradasEmLoteComRelacoesSemIncluirOutrasPesagens() throws Exception {
+        var primeira = pesagemService.salvar(pesagemValida());
+        var segunda = pesagemService.salvar(pesagemValida());
+        pesagemService.salvar(pesagemValida());
+        var lista = pesagemService.buscarComRelacoesPorIds(java.util.List.of(primeira.getId(), segunda.getId()));
+        assertEquals(2, lista.size());
+        assertTrue(lista.stream().allMatch(p -> p.getCliente() != null && p.getProduto() != null));
+        assertTrue(pesagemService.buscarComRelacoesPorIds(java.util.List.of()).isEmpty());
+    }
+
+    @Test
     void motoristaEhOpcional() throws Exception {
         var p = pesagemValida();
         p.setMotoristaNome(null);

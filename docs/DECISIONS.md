@@ -1,5 +1,51 @@
 # Decisões Arquiteturais
 
+## 2026-09-15: A4 reproduz a foto do ticket usado pelo André
+
+- Referência: `WhatsApp Image 2026-09-15 at 10.21.25.jpeg`, fornecida no projeto.
+  `TicketPdfExporter` passa de linhas Courier corridas para duas vias com coordenadas próprias
+  e Helvetica: cabeçalho, separador, título central sublinhado, dados à esquerda e descontos
+  à direita. Pesos, placa e datas em negrito; assinaturas com rótulos Operador/Motorista.
+- Seção **Descontos aplicados ao produto** mostra Tipo, % Classificado, % Aplicado e Total (Kg).
+  Exibe somente percentuais não zero, como na referência; total descontado é mantido.
+  **Não existe classificação independente no modelo atual**: a coluna Classificado exibe —;
+  os valores aplicados continuam vindo do cálculo existente. A distinção foi perguntada ao
+  usuário; sem definição, esta alteração é somente de apresentação.
+- Fornecedor permanece removido conforme pedido anterior. Campos longos ajustam a fonte à
+  largura; observações quebram dentro da área reservada. Oito descontos cabem acima das
+  observações. Térmica, persistência e cálculos permanecem com o comportamento anterior.
+- Prévia de comparação em `build/reports/printing/ticket-layout-andre.pdf` e `.png`.
+  Prévia conferida visualmente contra a foto. **264 testes passaram**, verificando também
+  duas vias, conteúdo, limites, tabela à direita e título em negrito.
+
+---
+
+## 2026-09-15: Impressão nos formulários e correção dos dados de tickets/relatórios
+
+- **Salvar e imprimir** reaproveita o salvamento validado dos quatro formulários e imprime
+  somente após persistir, usando `ImpressaoTicketService`. Trava compartilhada com Salvar
+  impede cliques repetidos durante a operação. Falha da impressora não desfaz o registro;
+  mensagem informa o número salvo e orienta reimprimir pelo histórico.
+- `TicketPesagemDados` concentra apresentação de pesos, datas e descontos sem depender da UI.
+  Entrada vinculada: bruto registrado, ou tara quando o bruto está zerado/ausente. Ticket da
+  própria entrada: seus dados; avulsa/manual/saída sem vínculo: tara local como peso de entrada.
+  Uma entrada não informa saída inexistente. Avulsa/manual são registros únicos completos e
+  usam seu timestamp nas duas colunas; saída sem vínculo não inventa data de entrada.
+- Fornecedor removido por pedido do usuário. Ambos os tickets mostram os oito descontos,
+  inclusive zerados: percentual e Kg sobre `(bruto - tara)`, sem aplicação sequencial, como
+  no cálculo existente. Total é a soma das deduções; líquido final é o valor persistido,
+  mantendo seu arredondamento para Kg inteiros. Não recalcula nem altera pesagens antigas.
+- `RelatorioPesagemDados` extrai a montagem do relatório da Screen para teste independente.
+  Entradas vinculadas fora do filtro são carregadas em lote com suas relações apenas para
+  complementar as saídas selecionadas; não criam linhas adicionais nem duplicam totais.
+- A4 mantém duas vias: fonte/entrelinhas passam a respeitar a largura e a altura úteis,
+  corrigindo o corte que o espaçamento fixo causava e acomodando a tabela de descontos.
+  Sem alteração de schema ou dependências. **263 testes passaram** (`gradlew.bat test --offline`,
+  JDK 25), incluindo repositórios e texto/limites da página; prévia PNG conferida visualmente.
+  Fluxo visual dos formulários e hardware ainda exigem validação manual.
+
+---
+
 ## 2026-09-15: Configuração persistente e impressão única de tickets
 
 - Nova tela `ConfiguracoesScreen` + ViewModel em Gerencial → Configurações, seguindo os

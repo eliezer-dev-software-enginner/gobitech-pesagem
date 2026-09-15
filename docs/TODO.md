@@ -2,6 +2,19 @@
 
 ## Ajustes (15/09/2026)
 
+- [x] **M34** `infra/TicketPdfExporter.java:77` e `infra/TicketThermalExporter.java` —
+  identificar **Peso líquido inicial**; descontos sobre essa mesma base, líquido final
+  igual ao líquido salvo após descontos. Cálculo existente conferido e preservado.
+  Validação: 22 testes de cálculo/tickets passaram; prévia A4 conferida.
+
+- [x] **M32** `infra/TicketPdfExporter.java:24` — A4 diferente da foto anexada — layout
+  reproduzido com fonte proporcional, duas vias, descontos à direita, destaques e assinaturas.
+  Prévia: `build/reports/printing/ticket-layout-andre.pdf`, conferida contra a foto.
+  Suíte completa: **264 testes, 0 falhas**.
+- [ ] **M33** `db/models/DescontoModel.java:14` — não há `% Classificado` independente do
+  percentual aplicado — definir a regra com o usuário antes de alterar cálculo/cadastro;
+  por enquanto, coluna exibe — no A4. Os percentuais aplicados e Kg continuam reais.
+
 - [x] **M22** `screens/configuracoesScreen/ConfiguracoesScreen.java:16` — escolher tipo de
       impressão — implementado em Gerencial → Configurações, persistido por V20 (laser/térmica).
 - [x] **M23** `screens/pesagemScreen/PesagemHistoricoViewModel.java:191` — botões específicos
@@ -13,12 +26,26 @@
 - [x] **M25** `src/test/java/my_app/infra/TicketLaserExporterTest.java:13` — cobertura do fluxo
       de impressão — suíte completa com **249 testes, 0 falhas**, incluindo repositórios de
       preferências/pesagens, migração V20 e impressora simulada.
-- [ ] Nas telas de pesagem falta um botão de imprimir o ticket.
-- [ ] Remover campo de fornecedor da impressão, porque não existe opção de fornecedor no sistema.
-- [ ] No ticket impresso precisa mostrar a tabela de desconto (Ardidos, Ardidos...), o que descontou e o novo líquido.
-- [ ] - Poder escolher tipo de impressora padrão de impressão
-- [ ] - Correção (peso de de entrada sempre sai 0 na impressão, no relatório ele sai certinho)
-- [ ] - Correção no relatório só está mostrando o horario e dia da pesagem na entrada, deve mostrar na saída também
+- [x] **M26** `screens/pesagemScreen/PesagemFormScreen.java:206` — faltava imprimir nos
+  formulários — **Salvar e imprimir** nas quatro telas, usando a preferência salva. Falha de
+  impressão informa que o registro foi salvo e orienta reimprimir pelo histórico.
+- [x] **M27** `infra/TicketPdfExporter.java` e `infra/TicketThermalExporter.java` — campo
+  Fornecedor sem cadastro correspondente — removido de ambos os tickets.
+- [x] **M28** `domain/pesagem/TicketPesagemDados.java:11` — descontos ausentes no ticket —
+  tabela dos oito tipos com percentual e Kg sobre bruto menos tara, total descontado e líquido
+  final salvo; laser conserva duas vias A4 com dimensionamento para caber na página.
+- [x] Escolher tipo de impressora padrão — item duplicado, atendido por **M22**.
+- [x] **M29** `domain/pesagem/TicketPesagemDados.java:11` — peso de entrada zerado — usa
+  bruto da entrada vinculada ou tara quando o bruto não foi informado; ticket da própria
+  entrada usa seus dados, e avulsa/manual/saída sem vínculo usam a tara local.
+- [x] **M30** `domain/pesagem/RelatorioPesagemDados.java:7` — saída sem par aparecia na
+  coluna Entrada — datas conforme o tipo; avulsa/manual usam a data do registro nas duas
+  colunas. Entrada vinculada fora do filtro é carregada em lote, sem aumentar linhas/totais.
+- [ ] **M31** `screens/pesagemScreen/PesagemFormScreen.java:206` — validar **Salvar e imprimir**
+  pela UI nos quatro tipos e reimpressão após falha de impressora; validação física junto de M24.
+- [x] Validação de M26–M30: **263 testes, 0 falhas**, incluindo Repository de Pesagem,
+  pesos/datas/descontos e limites do PDF. Duas vias conferidas na prévia gerada em
+  `build/reports/printing/ticket-descontos.pdf`.
 
 ## Vistoria completa do projeto (2026-09-07) — pendências encontradas
 

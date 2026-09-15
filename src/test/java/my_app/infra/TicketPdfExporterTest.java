@@ -28,6 +28,7 @@ class TicketPdfExporterTest {
         pesagem.setPlaca("RED1234");
         pesagem.setMotoristaNome(null);
         pesagem.setTipoPesagem("saida");
+        pesagem.setPesoVeiculo(new BigDecimal("2540.00"));
         pesagem.setPesoTotal(new BigDecimal("9980.00"));
         pesagem.setPesoFinal(new BigDecimal("7440.00"));
         pesagem.setDataCriacao(LocalDateTime.of(2025, 8, 17, 14, 15, 56));
@@ -49,7 +50,7 @@ class TicketPdfExporterTest {
 
     private String extrairTexto(File pdf) throws IOException {
         try (var doc = PDDocument.load(pdf)) {
-            return new PDFTextStripper().getText(doc);
+            return new PDFTextStripper().getText(doc).replaceAll("[ \t]+", " ");
         }
     }
 
@@ -85,24 +86,25 @@ class TicketPdfExporterTest {
         assertTrue(texto.contains("Cidade: FORMOSA - GO"));
         assertTrue(texto.contains("Ticket de Pesagem"));
         assertTrue(texto.contains("Nº: 1"));
-        assertTrue(texto.contains("Placa:                RED1234"));
-        assertTrue(texto.contains("Data Entrada:         17/08/2025"));
-        assertTrue(texto.contains("Data saida:           17/08/2025"));
-        assertTrue(texto.contains("Operador:             ADMINISTRADOR"));
-        assertTrue(texto.contains("Motorista:            ---"));
-        assertTrue(texto.contains("Produto:              ---"));
-        assertTrue(texto.contains("Peso entrada:         2540 Kg"));
-        assertTrue(texto.contains("Peso saida:           9980 Kg"));
-        assertTrue(texto.contains("Peso liquido:         7440 Kg"));
+        assertTrue(texto.contains("Placa: RED1234"));
+        assertTrue(texto.contains("Data Entrada: 17/08/2025"));
+        assertTrue(texto.contains("Data saida: 17/08/2025"));
+        assertTrue(texto.contains("Operador: ADMINISTRADOR"));
+        assertTrue(texto.contains("Motorista: ---"));
+        assertTrue(texto.contains("Produto: ---"));
+        assertTrue(texto.contains("Peso entrada: 2540 Kg"));
+        assertTrue(texto.contains("Peso saida: 9980 Kg"));
+        assertTrue(texto.contains("Peso liquido inicial: 7440 Kg"));
 
-        // As duas vias estão na mesma folha: o conteúdo aparece duas vezes, com linha de
-        // separação entre elas. Cada nome aparece no campo E na linha de assinatura → 2×via × 2 = 4.
+        // Duas vias, com rótulos fixos Operador/Motorista nas assinaturas.
         assertEquals(2, ocorrencias(texto, "Ticket de Pesagem"));
-        assertEquals(4, ocorrencias(texto, "ADMINISTRADOR"));
+        assertEquals(2, ocorrencias(texto, "ADMINISTRADOR"));
         assertEquals(4, ocorrencias(texto, "Motorista"));
 
-        // Linhas de assinatura acima dos nomes (operador e motorista)
-        assertTrue(texto.contains("______________________"));
+        // Rótulos das assinaturas como na referência.
+        assertEquals(4, ocorrencias(texto, "Operador"));
+        assertTrue(texto.contains("Descontos aplicados ao produto"));
+        assertTrue(texto.contains("Nenhum desconto aplicado."));
     }
 
     @Test
@@ -124,5 +126,122 @@ class TicketPdfExporterTest {
             idx += fragmento.length();
         }
         return count;
+    }
+
+    @Test
+    void entradaComTaraEDescontosCabemNasDuasViasSemFornecedor() throws Exception {
+        var pesagem = pesagemBasica();
+        pesagem.setPesoVeiculo(new BigDecimal("8500"));
+        pesagem.setPesoTotal(new BigDecimal("32000"));
+        pesagem.setPesoFinal(new BigDecimal("22325"));
+        var desconto = new my_app.db.models.DescontoModel();
+        desconto.setArdidos(new BigDecimal("2"));
+        desconto.setImpurezas(new BigDecimal("3"));
+        pesagem.setDesconto(desconto);
+        var entrada = entradaBasica();
+        entrada.setPesoTotal(BigDecimal.ZERO);
+        entrada.setPesoVeiculo(new BigDecimal("8500"));
+
+        var pasta = Path.of("build/reports/printing");
+        java.nio.file.Files.createDirectories(pasta);
+        var destino = pasta.resolve("ticket-descontos.pdf").toFile();
+        exporter.gerar(destino, null, pesagem, entrada);
+        var texto = extrairTexto(destino);
+        assertFalse(texto.contains("Fornecedor"));
+        assertEquals(2, ocorrencias(texto, "Peso entrada: 8500 Kg"));
+        assertEquals(2, ocorrencias(texto, "Total descontado: 1175 Kg"));
+        assertEquals(2, ocorrencias(texto, "Peso liquido final: 22325 Kg"));
+        assertFalse(texto.contains("QUEBRA IMPUREZAS"));
+        assertTrue(texto.contains("% Classificado"));
+        assertTrue(texto.contains("% Aplicado"));
+        assertTrue(texto.contains("ARDIDOS"));
+        assertTrue(texto.contains("IMPUREZAS"));
+        assertTrue(texto.contains("470"));
+        assertTrue(texto.contains("705"));
+        try (var doc = PDDocument.load(destino)) {
+            assertEquals(1, doc.getNumberOfPages());
+            var stripper = new PDFTextStripper() {
+                @Override
+                protected void processTextPosition(org.apache.pdfbox.text.TextPosition pos) {
+                    assertTrue(pos.getYDirAdj() > 0 && pos.getYDirAdj() < 822, "Texto fora da altura útil");
+                    assertTrue(pos.getXDirAdj() >= 23 && pos.getXDirAdj() + pos.getWidthDirAdj() <= 572,
+                            "Texto fora da largura útil");
+                    super.processTextPosition(pos);
+                }
+            };
+            stripper.getText(doc);
+            var imagem = new org.apache.pdfbox.rendering.PDFRenderer(doc).renderImageWithDPI(0, 120);
+            javax.imageio.ImageIO.write(imagem, "png", pasta.resolve("ticket-descontos.png").toFile());
+        }
+    }
+
+    @Test
+    void ticketDaPropriaEntradaPreencheEntradaSemInventarSaida(@TempDir Path dir) throws Exception {
+        var entrada = entradaBasica();
+        entrada.setTipoPesagem("entrada");
+        entrada.setPesoTotal(BigDecimal.ZERO);
+        entrada.setPesoVeiculo(new BigDecimal("8500"));
+        var destino = dir.resolve("entrada.pdf").toFile();
+        exporter.gerar(destino, null, entrada, null);
+        var texto = extrairTexto(destino);
+        assertTrue(texto.contains("Peso entrada: 8500 Kg"));
+        assertTrue(texto.contains("Data Entrada: 17/08/2025"));
+        assertFalse(texto.contains("Data saida: 17/08/2025"));
+    }
+
+    @Test
+    void reproduzColunasETipografiaDaReferencia() throws Exception {
+        var p = pesagemBasica();
+        p.setId(5);
+        p.setPlaca("TTT1T11");
+        p.setMotoristaNome("LUIZ");
+        p.setPesoVeiculo(new BigDecimal("1000"));
+        p.setPesoTotal(new BigDecimal("2020"));
+        p.setPesoFinal(new BigDecimal("867"));
+        p.setDataCriacao(LocalDateTime.of(2026, 9, 15, 10, 17, 16));
+        var produto = new ProdutoModel();
+        produto.setNome("MILHO");
+        p.setProduto(produto);
+        var descontos = new my_app.db.models.DescontoModel();
+        descontos.setImpurezas(new BigDecimal("10"));
+        descontos.setUmidade(new BigDecimal("5"));
+        p.setDesconto(descontos);
+        var entrada = entradaBasica();
+        entrada.setPesoTotal(new BigDecimal("1000"));
+        entrada.setDataCriacao(LocalDateTime.of(2026, 9, 15, 10, 16, 7));
+        var empresa = new EmpresaModel();
+        empresa.setNome("BALANÇAS GOBITECH");
+        empresa.setCidade("FORMOSA");
+        empresa.setEstado("GO");
+        empresa.setTelefone("61996532857");
+        var pasta = Path.of("build/reports/printing");
+        java.nio.file.Files.createDirectories(pasta);
+        var destino = pasta.resolve("ticket-layout-andre.pdf").toFile();
+        exporter.gerar(destino, empresa, p, entrada);
+        try (var doc = PDDocument.load(destino)) {
+            var titulos = new java.util.ArrayList<org.apache.pdfbox.text.TextPosition>();
+            var stripper = new PDFTextStripper() {
+                @Override
+                protected void writeString(String text, java.util.List<org.apache.pdfbox.text.TextPosition> positions) throws IOException {
+                    if (text.contains("Descontos aplicados ao produto")) titulos.add(positions.getFirst());
+                    super.writeString(text, positions);
+                }
+            };
+            var texto = stripper.getText(doc);
+            assertEquals(2, titulos.size());
+            for (var titulo : titulos) {
+                assertTrue(titulo.getXDirAdj() > 300, "Tabela deve ficar à direita dos dados");
+                assertTrue(titulo.getFont().getName().contains("Bold"));
+            }
+            assertEquals(2, ocorrencias(texto, "IMPUREZAS"));
+            assertEquals(2, ocorrencias(texto, "UMIDADE"));
+            assertEquals(2, ocorrencias(texto, "Total descontado: 153 Kg"));
+            assertEquals(2, ocorrencias(texto, "Peso liquido inicial: 1020 Kg"));
+            assertEquals(2, ocorrencias(texto, "Peso liquido final: 867 Kg"));
+            assertFalse(texto.contains("AVARIADOS"));
+            assertFalse(texto.contains("Fornecedor"));
+            var imagem = new org.apache.pdfbox.rendering.PDFRenderer(doc).renderImageWithDPI(0, 140);
+            javax.imageio.ImageIO.write(imagem, "png", pasta.resolve("ticket-layout-andre.png").toFile());
+        }
     }
 }

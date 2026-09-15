@@ -60,9 +60,26 @@ deixando a tela inalcançável pela UI. Ver `/home/eliezer/Desktop/dev/outros/ba
   salva a cada envio; janelas já abertas também recebem a mudança. Ambos os tipos usam a
   impressora padrão do sistema: laser imprime o layout PDF A4 de duas vias via `PrinterJob`;
   térmica mantém ESC/POS 80 mm. Operação assíncrona, com bloqueio de clique repetido.
-- Revisão desta tarefa limitada a configurações e impressão. Itens novos do usuário sobre
-  impressão nos formulários, fornecedor e descontos permanecem no TODO; validação visual e
-  impressão em equipamento físico ainda pendentes.
+- **Pendências de impressão implementadas (15/09)**: **Salvar e imprimir** nos quatro
+  formulários; Fornecedor removido; tickets com oito descontos (% e Kg), total descontado e
+  líquido final salvo. Peso de entrada usa o bruto registrado ou a tara quando só ela existe.
+- **Layout A4 conforme a foto do André (15/09)**: fonte Helvetica, dados à esquerda,
+  tabela **Descontos aplicados ao produto** à direita, pesos/datas/placa em negrito, título
+  sublinhado e assinaturas Operador/Motorista. A4 mostra só descontos com percentual não zero;
+  sem descontos exibe mensagem. Fornecedor continua removido por pedido anterior.
+- `% Classificado` aparece como **—**, pois não há campo/regra independente no modelo atual;
+  `% Aplicado` e Kg usam os descontos salvos. Nenhuma mudança de cálculo nesta revisão visual.
+- Regra confirmada: cada desconto incide sobre o **líquido inicial (bruto − tara)**;
+  **líquido final** é o peso líquido salvo, após a soma dos descontos. Os dois tickets
+  identificam explicitamente o líquido inicial. Validação específica: 22 testes passaram.
+- `TicketPesagemDados` compartilha pesos/datas/descontos entre laser e térmica.
+  `RelatorioPesagemDados` monta pares/eventos sem UI; saídas sem vínculo preenchem a coluna
+  Saída, avulsas/manuais ambas as datas com o horário do registro. Entradas vinculadas fora do
+  filtro são buscadas em lote apenas para complementar a linha da saída.
+- PDF A4 tem duas vias em áreas fixas, campos ajustados à largura e observações com quebra;
+  exemplo da referência em `build/reports/printing/ticket-layout-andre.pdf`.
+  Validação do fluxo pela UI e impressão física
+  pendentes (M24/M31), sem alterar banco de produção nesta tarefa.
 - **Vistoria completa do projeto concluída** (2026-09-07, auditoria *read-only*): **40 pendências**
   registradas em `docs/TODO.md` (11 alta, 21 média, 8 baixa). Todas **resolvidas ou decididas**
   nas rodadas de correção — ver o **Histórico** abaixo e as decisões em `docs/DECISIONS.md`.
@@ -95,8 +112,9 @@ deixando a tela inalcançável pela UI. Ver `/home/eliezer/Desktop/dev/outros/ba
 - **Aberto**: **B4** — passo MSI do workflow `package.yml` deve chamar `python.exe` (o Python do
   `setup-python` é `python.exe`, não `python3` no Windows) — **fora deste clone**: o workflow
   mora no repositório `megalodonte-world` (PU), não nesta pasta.
-- Testes (2026-09-15): **249 executados, 0 falhas, 0 ignorados** → `gradlew.bat test --offline`
-  com JDK 25 → **BUILD SUCCESSFUL** (inclui preferências, migração, pesagens e impressão simulada).
+- Testes (2026-09-15): **264 executados, 0 falhas, 0 ignorados** → `gradlew.bat test --offline`
+  com JDK 25 → **BUILD SUCCESSFUL** (inclui preferências, migração, pesagens, descontos,
+  pares/datas do relatório, limites do PDF e impressão simulada). Prévia A4 conferida visualmente.
 
 ## Histórico
 
