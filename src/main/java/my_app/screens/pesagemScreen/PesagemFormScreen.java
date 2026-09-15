@@ -202,6 +202,7 @@ public abstract class PesagemFormScreen implements ScreenComponent {
     private Component secaoAcoes() {
         return new Column(new ColumnProps().spacingOf(10))
                 .c_child(new SpacerVertical(10))
-                .c_child(Components.ButtonCadastro(vm.textoBotaoSalvar(), vm::salvar));
+                .c_child(Components.ButtonCadastro(vm.textoBotaoSalvar(), vm::salvar))
+                .c_child(Components.ButtonCadastro("Salvar e imprimir", vm::salvarEImprimir));
     }
 }

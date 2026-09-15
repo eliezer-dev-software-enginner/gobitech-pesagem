@@ -26,6 +26,7 @@ import org.kordamp.ikonli.entypo.Entypo;
 
 import java.io.File;
 import java.util.List;
+import static my_app.domain.pesagem.RelatorioPesagemDados.pesoStr;
 
 /**
  * Histórico de pesagens — a única tela de pesagem que é listagem CRUD
@@ -145,21 +146,13 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
 
     private Row acoesLista() {
         return new Row(new RowProps().spacingOf(10).hugWidth()).children(
-                Components.actionButton("Baixar ticket", "white", "#16a34a", Entypo.DOWNLOAD,  ()-> {
+                Components.actionButton("Imprimir", "white", "#16a34a", Entypo.PRINT,  ()-> {
                    var m = vm.selected.get();
                    if(m == null){
                        Components.ShowAlertError("Selecione o item primeiro");
                        return;
                    }
                    vm.imprimirTicket(m);
-                }),
-                Components.actionButton("Imprimir nota térmica 80mm", "white", "#16a34a", Entypo.DOWNLOAD,  ()-> {
-                    var m = vm.selected.get();
-                    if(m == null){
-                        Components.ShowAlertError("Selecione o item primeiro");
-                        return;
-                    }
-                    vm.imprimirTicketTermica(m);
                 }),
                 //botaoAcao("Exportar relatório", "black", "#CDD7D6", Entypo.DOWNLOAD, this::handleClickBaixarLista),
                 //botaoAcao("Exportar relatório", "black", "#CDD7D6", Entypo.DOWNLOAD, this::handleClickBaixarLista),
@@ -170,101 +163,21 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
 
     @Override
     public void exportPdf(File destino, EmpresaModel empresa, List<PesagemModel> snapshotFiltrado) throws Exception {
-        // Uma linha por par Entrada+Saída (mesma placa/visita), igual ao relatório do André.
-        // Tara = peso veículo da entrada; bruto/líquido do registro consolidado (a saída, quando
-        // há par). Avulsas/manuais e saídas sem a entrada no snapshot entram como linha própria
-        // na coluna Entrada (são eventos únicos) — nada some do relatório.
-        var porId = new java.util.HashMap<Integer, PesagemModel>();
-        for (var p : snapshotFiltrado) porId.put(p.getId(), p);
-
-        var consumidas = new java.util.HashSet<Integer>();
-        var rows = new java.util.ArrayList<List<String>>();
-        var observacoesLinha = new java.util.ArrayList<String>();
-
-        var saidas = snapshotFiltrado.stream()
+        var idsEntrada = snapshotFiltrado.stream()
                 .filter(p -> "saida".equals(p.getTipoPesagem()))
-                .sorted(java.util.Comparator.comparing(PesagemModel::getDataCriacao))
-                .toList();
-
-        for (var saida : saidas) {
-            var entradaId = saida.getEntradaId();
-            var entrada = entradaId != null ? porId.get(entradaId) : null;
-            if (entrada != null && "entrada".equals(entrada.getTipoPesagem()) && !consumidas.contains(entradaId)) {
-                consumidas.add(entradaId);
-                consumidas.add(saida.getId());
-                rows.add(linhaPar(entrada, saida));
-                observacoesLinha.add(saida.getObservacoes());
-            } else {
-                consumidas.add(saida.getId());
-                rows.add(linhaEventoUnico(saida));
-                observacoesLinha.add(saida.getObservacoes());
-            }
+                .map(PesagemModel::getEntradaId).filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toSet());
+        var idsNoFiltro = snapshotFiltrado.stream().map(PesagemModel::getId).toList();
+        idsEntrada.removeAll(idsNoFiltro);
+        List<PesagemModel> entradas;
+        try (var service = new my_app.db.services.PesagemService()) {
+            entradas = service.buscarComRelacoesPorIds(idsEntrada);
         }
-
-        for (var p : snapshotFiltrado) {
-            if (consumidas.contains(p.getId())) continue;
-            rows.add(linhaEventoUnico(p));
-            observacoesLinha.add(p.getObservacoes());
-        }
-
-        var totalLiquido = rows.isEmpty() ? java.math.BigDecimal.ZERO
-                : rows.stream()
-                .map(r -> r.get(10))
-                .map(s -> s.isBlank() ? java.math.BigDecimal.ZERO : new java.math.BigDecimal(s))
-                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
-
+        var dados = my_app.domain.pesagem.RelatorioPesagemDados.montar(snapshotFiltrado, entradas);
         var headers = List.of("Ticket", "Tara (Kg)", "Entrada", "Horário", "Saída", "Horário",
                 "Placa", "Produto", "Cliente", "Peso bruto", "Peso líquido");
         RelatorioPesagemPdfExporter.exportar(destino, empresa, "Relatório resumo de entradas e saídas",
-                headers, rows, observacoesLinha, rows.size(), totalLiquido.stripTrailingZeros().toPlainString());
-    }
-
-    private List<String> linhaPar(PesagemModel entrada, PesagemModel saida) {
-        return List.of(
-                String.valueOf(entrada.getId()),
-                pesoStr(entrada.getPesoVeiculo()),
-                dataHora(entrada.getDataCriacao(), false),
-                dataHora(entrada.getDataCriacao(), true),
-                dataHora(saida.getDataCriacao(), false),
-                dataHora(saida.getDataCriacao(), true),
-                entrada.getPlaca() != null ? entrada.getPlaca() : "",
-                entrada.getProduto() != null ? entrada.getProduto().getNome() : "---",
-                entrada.getCliente() != null ? entrada.getCliente().getLoja() : "",
-                pesoStr(saida.getPesoTotal()),
-                pesoStr(saida.getPesoFinal())
-        );
-    }
-
-    private List<String> linhaEventoUnico(PesagemModel p) {
-        return List.of(
-                String.valueOf(p.getId()),
-                pesoStr(p.getPesoVeiculo()),
-                dataHora(p.getDataCriacao(), false),
-                dataHora(p.getDataCriacao(), true),
-                "", "",
-                p.getPlaca() != null ? p.getPlaca() : "",
-                p.getProduto() != null ? p.getProduto().getNome() : "---",
-                p.getCliente() != null ? p.getCliente().getLoja() : "",
-                pesoStr(p.getPesoTotal()),
-                pesoStr(p.getPesoFinal())
-        );
-    }
-
-    /**
-     * Formata um valor de peso (Tara/Peso bruto/Peso líquido) como número inteiro, sem casas
-     * decimais — o relatório não deve exibir frações de Kg, e valores de ponto flutuante
-     * (ex: 31999.900390625, resultado de imprecisão de double) nunca devem ir pro PDF como
-     * estão, porque inflam a largura das colunas e derrubam o layout da tabela.
-     */
-    private String pesoStr(Number valor) {
-        if (valor == null) return "0";
-        return String.valueOf(Math.round(valor.doubleValue()));
-    }
-
-    /** data (dd/MM/yyyy) ou hora (HH:mm:ss) de um LocalDateTime. */
-    private String dataHora(java.time.LocalDateTime dataHora, boolean soHora) {
-        if (dataHora == null) return "";
-        if (soHora) return dataHora.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
-        return dataHora.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                headers, dados.linhas(), dados.observacoes(), dados.linhas().size(),
+                dados.totalLiquido().stripTrailingZeros().toPlainString());
     }
 }

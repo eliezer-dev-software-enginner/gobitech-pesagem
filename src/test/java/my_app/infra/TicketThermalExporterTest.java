@@ -22,6 +22,7 @@ class TicketThermalExporterTest {
         pesagem.setPlaca("RED1234");
         pesagem.setMotoristaNome("JOÃO");
         pesagem.setTipoPesagem("saida");
+        pesagem.setPesoVeiculo(new BigDecimal("2540.00"));
         pesagem.setPesoTotal(new BigDecimal("9980.00"));
         pesagem.setPesoFinal(new BigDecimal("7440.00"));
         pesagem.setObservacoes("Observação de teste");
@@ -80,7 +81,7 @@ class TicketThermalExporterTest {
         assertTrue(tudo.contains("Cliente...........: CHÃOS EIRELI"));
         assertTrue(tudo.contains("Peso de Entrada....: 2540 Kg"));
         assertTrue(tudo.contains("Peso de Saída......: 9980 Kg"));
-        assertTrue(tudo.contains("Peso Líquido.......: 7440 Kg"));
+        assertTrue(tudo.contains("Peso Líquido Inicial: 7440 Kg"));
         assertTrue(tudo.contains("Observação:"));
         assertTrue(tudo.contains("Observação de teste"));
         assertTrue(tudo.contains("ADMINISTRADOR"));
@@ -112,5 +113,28 @@ class TicketThermalExporterTest {
 
     private static String texto(TicketThermalExporter.EstiloLinha linha) {
         return linha.texto();
+    }
+
+    @Test
+    void imprimeTaraDaEntradaEDescontosSemFornecedor() {
+        var p = pesagemBasica();
+        p.setPesoVeiculo(new BigDecimal("8500"));
+        p.setPesoTotal(new BigDecimal("32000"));
+        p.setPesoFinal(new BigDecimal("22325"));
+        var d = new my_app.db.models.DescontoModel();
+        d.setArdidos(new BigDecimal("2"));
+        d.setImpurezas(new BigDecimal("3"));
+        p.setDesconto(d);
+        var entrada = entradaBasica();
+        entrada.setPesoTotal(BigDecimal.ZERO);
+        entrada.setPesoVeiculo(new BigDecimal("8500"));
+        var texto = String.join("\n", exporter.montarLinhas(null, p, entrada).stream()
+                .map(TicketThermalExporter.EstiloLinha::texto).toList());
+        assertFalse(texto.contains("Fornecedor"));
+        assertTrue(texto.contains("Peso de Entrada....: 8500 Kg"));
+        assertTrue(texto.contains("Ardidos\n  2% / 470 Kg"));
+        assertTrue(texto.contains("Impurezas\n  3% / 705 Kg"));
+        assertTrue(texto.contains("Total descontado: 1175 Kg"));
+        assertTrue(texto.contains("Peso Líquido Final.: 22325 Kg"));
     }
 }

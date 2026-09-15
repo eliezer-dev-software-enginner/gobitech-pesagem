@@ -19,6 +19,9 @@ public class PreferenciasModel extends Identifier {
     @Column(name = "primeiro_acesso")
     private Integer primeiroAcesso;
 
+    @Column(name = "tipo_impressao")
+    private String tipoImpressao = "laser";
+
     public boolean isFirstAccess() {
         return primeiroAcesso != null && primeiroAcesso == 1;
     }

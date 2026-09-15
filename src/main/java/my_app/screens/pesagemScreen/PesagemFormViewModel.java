@@ -23,6 +23,9 @@ import my_app.db.services.PesagemService;
 import my_app.db.services.ProdutoService;
 import my_app.domain.components.Components;
 import my_app.domain.pesagem.PesagemRegras;
+import my_app.domain.pesagem.ImpressaoTicketService;
+import my_app.db.services.PreferenciasService;
+import my_app.db.services.EmpresaService;
 import my_app.infra.balanca.LeitorBalanca;
 import my_app.infra.balanca.LeitorBalancaFactory;
 import my_app.infra.balanca.PesagemCalculo;
@@ -56,6 +59,8 @@ public abstract class PesagemFormViewModel {
     protected final ConexaoBalancaService conexaoBalancaService;
     protected final ConexaoCameraService conexaoCameraService;
     private final CameraSnapshotClient cameraSnapshotClient = new CameraSnapshotClient();
+    private final java.util.concurrent.atomic.AtomicBoolean salvando = new java.util.concurrent.atomic.AtomicBoolean();
+    private volatile boolean destruido;
 
     private LeitorBalanca leitorBalanca;
     protected final State<String> pesoAoVivo = State.of("—");
@@ -341,6 +346,15 @@ public abstract class PesagemFormViewModel {
      * histórico sincronizado.
      */
     public void salvar() {
+        salvar(false);
+    }
+
+    public void salvarEImprimir() {
+        salvar(true);
+    }
+
+    private void salvar(boolean imprimir) {
+        if (destruido || salvando.get()) return;
         var percentualDesconto = somaDescontos();
         if (PesagemRegras.descontosUltrapassam100(percentualDesconto)) {
             Components.ShowAlertError("A soma dos descontos não pode ultrapassar 100%.");
@@ -353,13 +367,14 @@ public abstract class PesagemFormViewModel {
         if (PesagemRegras.nenhumPesoInformado(pesoVeiculo.get(), pesoTotal.get())) {
             Components.ShowAlertAdvice(
                     "Nenhum peso foi informado (Tara e Peso bruto vazios). Deseja salvar mesmo assim?",
-                    this::executarSalvamento);
+                    () -> executarSalvamento(imprimir));
             return;
         }
-        executarSalvamento();
+        executarSalvamento(imprimir);
     }
 
-    private void executarSalvamento() {
+    private void executarSalvamento(boolean imprimir) {
+        if (destruido || !salvando.compareAndSet(false, true)) return;
         var model = montarModel();
         var descontoModel = montarDesconto();
 
@@ -375,17 +390,38 @@ public abstract class PesagemFormViewModel {
                 log.info("Pesagem registrada: id={} placa={} tipo={} pesoLiquido={}",
                         comRelacoes.getId(), comRelacoes.getPlaca(), comRelacoes.getTipoPesagem(), comRelacoes.getPesoFinal());
                 UI.runOnUi(() -> {
-                    Components.ShowPopup(ctx, "Pesagem registrada com sucesso");
                     EventBus.getInstance().publish(PesagemEvent.criado());
+                    if (destruido) return;
+                    Components.ShowPopup(ctx, "Pesagem registrada com sucesso");
                     limparFormulario();
                 });
+                if (imprimir) imprimirPesagemSalva(model.getId());
             } catch (IllegalArgumentException e) {
                 UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));
             } catch (Exception e) {
                 log.error("Erro inesperado ao salvar pesagem", e);
                 UI.runOnUi(() -> Components.ShowAlertError("Não foi possível salvar a pesagem. Tente novamente."));
+            } finally {
+                salvando.set(false);
             }
         });
+    }
+
+    private void imprimirPesagemSalva(int id) {
+        try (var preferencias = new PreferenciasService();
+             var pesagens = new PesagemService();
+             var empresas = new EmpresaService()) {
+            new ImpressaoTicketService(preferencias, pesagens, empresas).imprimir(id);
+            UI.runOnUi(() -> {
+                if (!destruido) Components.ShowPopup(ctx, "Ticket enviado para a impressora padrão");
+            });
+        } catch (Exception e) {
+            log.error("Pesagem salva, mas impressão falhou: id={}", id, e);
+            UI.runOnUi(() -> {
+                if (!destruido) Components.ShowAlertError("A pesagem nº " + id
+                        + " foi salva, mas não foi possível imprimir. Verifique a impressora e reimprima pelo histórico.");
+            });
+        }
     }
 
     /**
@@ -484,6 +520,7 @@ public abstract class PesagemFormViewModel {
     }
 
     public void onDestroy() throws Exception {
+        destruido = true;
         EventBus.getInstance().unsubscribe(eventListener);
         pararLeituraBalanca();
         this.pesagemService.close();
