@@ -92,4 +92,47 @@ class PreferenciasRepositoryTest extends BaseRepositoryTest {
         assertEquals(salvo.getId(), encontrado.getId());
         assertTrue(encontrado.isFirstAccess());
     }
+
+    @Test
+    void persisteTipoImpressaoAoCriarEAtualizar() throws Exception {
+        var model = novaPreferencia(0);
+        model.setTipoImpressao("termica");
+        repository.salvar(model);
+        assertEquals("termica", repository.buscarUnico().getTipoImpressao());
+        model.setTipoImpressao("laser");
+        repository.atualizar(model);
+        assertEquals("laser", repository.buscarById(model.getId()).getTipoImpressao());
+    }
+
+    @Test
+    void migracaoPreservaPreferenciasExistentesEDefineLaser() throws Exception {
+        String url = "jdbc:sqlite:file:testdb-migracao-impressao?mode=memory&cache=shared";
+        try (var conn = DriverManager.getConnection(url)) {
+            org.flywaydb.core.Flyway.configure().dataSource(url, "", "")
+                    .locations("classpath:flyway_migrations").target("19").load().migrate();
+            try (var stmt = conn.createStatement()) {
+                stmt.executeUpdate("UPDATE preferencias SET primeiro_acesso = 0");
+            }
+            int id;
+            long data;
+            try (var stmt = conn.createStatement(); var rs = stmt.executeQuery("SELECT * FROM preferencias")) {
+                assertTrue(rs.next());
+                id = rs.getInt("id");
+                data = rs.getLong("dataCriacao");
+            }
+            org.flywaydb.core.Flyway.configure().dataSource(url, "", "")
+                    .locations("classpath:flyway_migrations").load().migrate();
+            try (var sessao = new net.sf.persism.Session(conn)) {
+                var repo = new PreferenciasRepository(sessao);
+                var preferencias = repo.buscarById(id);
+                assertEquals("laser", preferencias.getTipoImpressao());
+                assertEquals(0, preferencias.getPrimeiroAcesso());
+                assertEquals(1, repo.count());
+                try (var stmt = conn.createStatement(); var rs = stmt.executeQuery("SELECT dataCriacao FROM preferencias")) {
+                    assertTrue(rs.next());
+                    assertEquals(data, rs.getLong(1));
+                }
+            }
+        }
+    }
 }

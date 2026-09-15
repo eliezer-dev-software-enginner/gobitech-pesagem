@@ -79,6 +79,7 @@ public class HomeScreen implements ScreenComponent {
                                 .menu(new Menu("Gerencial")
                                         .textColor(Sidebar.TEXT_COLOR)
                                         .item("Empresa", () -> ctx.router().spawnWindow(AppRoutes.Screens.EMPRESA.name(), e -> {}))
+                                        .item("Configurações", () -> ctx.router().spawnWindow(AppRoutes.Screens.CONFIGURACOES.name(), e -> {}))
                                         .item("Conexão da balança", () -> ctx.router().spawnWindow(AppRoutes.Screens.CONEXAO_BALANCA.name(), e -> {}))
                                         .item("Produtos", () -> ctx.router().spawnWindow(AppRoutes.Screens.PRODUTOS.name(), e -> {}))
                                         .item("Clientes", () -> ctx.router().spawnWindow(AppRoutes.Screens.CLIENTES.name(), e -> {}))

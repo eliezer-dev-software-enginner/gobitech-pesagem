@@ -41,7 +41,7 @@ ver `DECISIONS.md` pras decisões específicas de cada troca.
 | Pesagem | `pesagens` | `PesagemEntrada/Saida/Avulsa/ManualScreen` (formulários por tipo) + `PesagemHistoricoScreen` (lista) |
 | Desconto | `descontos` | (sem tela própria — editado dentro da Pesagem) |
 | Empresa | `empresas` | `CadastroEmpresaScreen` (dados/logo pro cabeçalho do ticket) |
-| Preferências | `preferencias` | `PreferenciasScreen` (config única do app) |
+| Preferências | `preferencias` | `ConfiguracoesScreen` (Gerencial → Configurações; tipo de impressão) |
 | Licença | `licensas` | `LicensaScreen` (só visível/acessível pra usuário admin) |
 | Conexão da balança | `conexao_balanca` | `ConexaoBalancaScreen` (Serial ou TCP) |
 
@@ -51,7 +51,18 @@ menu "Conexão das câmeras" está **comentado** em `HomeScreen.java:74` **por d
 (pendência M3 da vistoria, "decidido: manter" — a câmera entra no fluxo só na Fase 2/uso real),
 deixando a tela inalcançável pela UI. Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTREGAS.md`.
 
-## Estado atual (2026-09-08)
+## Estado atual (2026-09-15)
+
+- **Impressão configurável**: nova `ConfiguracoesScreen` + `ConfiguracoesViewModel`, acessível
+  em Gerencial → Configurações. `preferencias.tipo_impressao` (V20) persiste `laser` (padrão)
+  ou `termica`, preservando as preferências existentes.
+- Histórico e detalhes têm um único **Imprimir**. `ImpressaoTicketService` consulta a escolha
+  salva a cada envio; janelas já abertas também recebem a mudança. Ambos os tipos usam a
+  impressora padrão do sistema: laser imprime o layout PDF A4 de duas vias via `PrinterJob`;
+  térmica mantém ESC/POS 80 mm. Operação assíncrona, com bloqueio de clique repetido.
+- Revisão desta tarefa limitada a configurações e impressão. Itens novos do usuário sobre
+  impressão nos formulários, fornecedor e descontos permanecem no TODO; validação visual e
+  impressão em equipamento físico ainda pendentes.
 - **Vistoria completa do projeto concluída** (2026-09-07, auditoria *read-only*): **40 pendências**
   registradas em `docs/TODO.md` (11 alta, 21 média, 8 baixa). Todas **resolvidas ou decididas**
   nas rodadas de correção — ver o **Histórico** abaixo e as decisões em `docs/DECISIONS.md`.
@@ -84,7 +95,8 @@ deixando a tela inalcançável pela UI. Ver `/home/eliezer/Desktop/dev/outros/ba
 - **Aberto**: **B4** — passo MSI do workflow `package.yml` deve chamar `python.exe` (o Python do
   `setup-python` é `python.exe`, não `python3` no Windows) — **fora deste clone**: o workflow
   mora no repositório `megalodonte-world` (PU), não nesta pasta.
-- Testes: **235** `@Test` → `./gradlew test` → **BUILD SUCCESSFUL**.
+- Testes (2026-09-15): **249 executados, 0 falhas, 0 ignorados** → `gradlew.bat test --offline`
+  com JDK 25 → **BUILD SUCCESSFUL** (inclui preferências, migração, pesagens e impressão simulada).
 
 ## Histórico
 

@@ -14,14 +14,12 @@ import my_app.db.services.EmpresaService;
 import my_app.db.services.PesagemService;
 import my_app.domain.ViewModelScreenContract;
 import my_app.domain.components.Components;
-import my_app.infra.TicketPdfExporter;
-import my_app.infra.TicketThermalExporter;
-import my_app.utils.Utils;
+import my_app.db.services.PreferenciasService;
+import my_app.domain.pesagem.ImpressaoTicketService;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javafx.stage.FileChooser;
-import java.io.File;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,10 +34,9 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
     private static final Logger log = LoggerFactory.getLogger(PesagemHistoricoViewModel.class);
 
     private final PesagemService pesagemService;
-    private final EmpresaService empresaService;
     private final ClienteService clienteService;
-    private final TicketPdfExporter ticketPdfExporter = new TicketPdfExporter();
-    private final TicketThermalExporter ticketThermalExporter = new TicketThermalExporter();
+    private final AtomicBoolean imprimindo = new AtomicBoolean();
+    private volatile boolean destruido;
     @SuppressWarnings("rawtypes")
     private final java.util.function.Consumer<Object> eventListener = this::onEntityEvent;
 
@@ -58,7 +55,6 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
     public PesagemHistoricoViewModel(ScreenContext ctx) {
         super(ctx);
         this.pesagemService = createOrReport(PesagemService::new);
-        this.empresaService = createOrReport(EmpresaService::new);
         this.clienteService = createOrReport(ClienteService::new);
 
         EventBus.getInstance().subscribe(eventListener);
@@ -186,71 +182,37 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
 
     @Override
     public void onDestroy() throws Exception {
+        destruido = true;
         EventBus.getInstance().unsubscribe(eventListener);
         this.pesagemService.close();
-        this.empresaService.close();
         this.clienteService.close();
     }
 
-    /**
-     * Exporta o ticket dessa pesagem em PDF e abre no visualizador padrão do sistema.
-     */
     public void imprimirTicket(PesagemModel model) {
-        var fileChooser = new FileChooser();
-        fileChooser.setTitle("Salvar ticket em PDF");
-        fileChooser.setInitialFileName("ticket - " + Utils.timestampParaArquivo() + ".pdf");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF", "*.pdf"));
-        File destino = fileChooser.showSaveDialog(ctx.selfStage());
-        if (destino == null) return;
-
+        if (destruido || model == null || model.getId() == null
+                || !imprimindo.compareAndSet(false, true)) return;
+        int pesagemId = model.getId();
         Async.Run(() -> {
-            try {
-                var empresa = empresaService.buscarUnico();
-                var comRelacoes = pesagemService.buscarComRelacoes(model.getId());
-                var entrada = pesagemService.buscarEntradaVinculada(comRelacoes);
-                ticketPdfExporter.gerar(destino, empresa, comRelacoes, entrada);
-                log.info("Ticket de pesagem exportado: pesagemId={} arquivo={}", model.getId(), destino.getAbsolutePath());
-                abrirArquivo(destino);
-                UI.runOnUi(() -> Components.ShowPopup(ctx, "Ticket salvo em: " + destino.getAbsolutePath()));
-            } catch (Exception e) {
-                log.error("Erro ao gerar ticket da pesagem id={}", model.getId(), e);
-                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível gerar o ticket em PDF. Tente novamente."));
-            }
-        });
-    }
-
-    /**
-     * Imprime o ticket dessa pesagem na impressora térmica 80mm (padrão do sistema).
-     */
-    public void imprimirTicketTermica(PesagemModel model) {
-        Async.Run(() -> {
-            try {
-                var empresa = empresaService.buscarUnico();
-                var comRelacoes = pesagemService.buscarComRelacoes(model.getId());
-                var entrada = pesagemService.buscarEntradaVinculada(comRelacoes);
-                boolean ok = ticketThermalExporter.imprimir(empresa, comRelacoes, entrada);
+            try (var preferencias = new PreferenciasService();
+                 var pesagens = new PesagemService();
+                 var empresas = new EmpresaService()) {
+                new ImpressaoTicketService(preferencias, pesagens, empresas).imprimir(pesagemId);
+                log.info("Ticket enviado para a impressora padrão: pesagemId={}", pesagemId);
                 UI.runOnUi(() -> {
-                    if (ok) {
-                        Components.ShowPopup(ctx, "Ticket enviado para a impressora térmica");
-                    } else {
-                        Components.ShowAlertError("Não foi possível imprimir na impressora térmica. Verifique se há uma impressora padrão configurada.");
-                    }
+                    if (!destruido) Components.ShowPopup(ctx, "Ticket enviado para a impressora padrão");
+                });
+            } catch (IllegalArgumentException e) {
+                UI.runOnUi(() -> {
+                    if (!destruido) Components.ShowAlertError(e.getMessage());
                 });
             } catch (Exception e) {
-                log.error("Erro ao imprimir ticket térmico da pesagem id={}", model.getId(), e);
-                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível imprimir o ticket na impressora térmica."));
+                log.error("Erro ao imprimir ticket: pesagemId={}", pesagemId, e);
+                UI.runOnUi(() -> {
+                    if (!destruido) Components.ShowAlertError("Não foi possível imprimir o ticket. Tente novamente.");
+                });
+            } finally {
+                imprimindo.set(false);
             }
         });
-    }
-
-    private void abrirArquivo(File arquivo) {
-        try {
-            if (java.awt.Desktop.isDesktopSupported()
-                    && java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.OPEN)) {
-                java.awt.Desktop.getDesktop().open(arquivo);
-            }
-        } catch (Exception e) {
-            log.warn("Erro ao abrir arquivo no visualizador padrão: {}", arquivo.getAbsolutePath(), e);
-        }
     }
 }

@@ -1,5 +1,28 @@
 # Decisões Arquiteturais
 
+## 2026-09-15: Configuração persistente e impressão única de tickets
+
+- Nova tela `ConfiguracoesScreen` + ViewModel em Gerencial → Configurações, seguindo os
+  componentes e a navegação existentes. Reutiliza `PreferenciasModel/Repository/Service`;
+  V20 adiciona `tipo_impressao` (`laser`/`termica`, validado, padrão `laser`) sem alterar
+  migrations anteriores nem dados de primeiro acesso.
+- `ImpressaoTicketService` centraliza a seleção e relê a preferência em cada envio, evitando
+  configuração desatualizada em janelas abertas. Histórico e detalhes usam apenas **Imprimir**.
+- **Confirmado pelo usuário:** laser envia diretamente à impressora padrão do sistema.
+  `TicketLaserExporter` reutiliza o PDF A4 de duas vias com PDFBox + `PrinterJob`; o PDF é
+  temporário e removido após o envio. Térmica mantém ESC/POS na impressora padrão (80 mm).
+  Não há troca automática para outro tipo se a impressão falhar, nem biblioteca nova.
+- A operação usa sessões próprias fechadas ao terminar e não bloqueia a UI. O botão ignora
+  cliques repetidos durante o envio; fechar a janela não fecha os recursos de uma impressão
+  já iniciada. A configuração vale para a estação, não para cada usuário.
+- Esta decisão substitui a escolha por botões separados registrada em 2026-08-31 e o fluxo
+  anterior de salvar/abrir PDF para imprimir tickets. Exportação de relatórios continua em PDF.
+- Cobertura: migração V19→V20 preservando dados, Repository/Service de preferências, despacho
+  para cada tipo e envio laser com `PrinterJob` simulado. Suíte: **249 testes, 0 falhas**
+  (`gradlew.bat test --offline`, JDK 25). Impressão física pendente.
+
+---
+
 ## 2026-09-08: A9 — regras críticas da pesagem extraídas pro `PesagemRegras` (testáveis)
 
 **Contexto:** a vistoria (A9) apontou que as ViewModels de pesagem não tinham teste nenhum e que

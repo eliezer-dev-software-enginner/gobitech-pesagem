@@ -115,15 +115,10 @@ public class DetailsPesagemScreen implements ScreenComponent {
     private Row acoesRow() {
         return new Row(new RowProps().fillWidth().spacingOf(10))
                 .children(
-                        new Button("Baixar ticket", new ButtonProps().bgColor("#16a34a").textColor("white"))
+                        new Button("Imprimir", new ButtonProps().bgColor("#16a34a").textColor("white"))
                                 .onClick(() -> {
                                     var m = model.get();
                                     if (m != null) vm.imprimirTicket(m);
-                                }),
-                        new Button("Imprimir nota térmica 80mm", new ButtonProps().bgColor("#16a34a").textColor("white"))
-                                .onClick(() -> {
-                                    var m = model.get();
-                                    if (m != null) vm.imprimirTicketTermica(m);
                                 }),
                         new Button("Excluir", new ButtonProps().bgColor("#ef4444").textColor("white"))
                                 .onClick(() -> {

@@ -145,21 +145,13 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
 
     private Row acoesLista() {
         return new Row(new RowProps().spacingOf(10).hugWidth()).children(
-                Components.actionButton("Baixar ticket", "white", "#16a34a", Entypo.DOWNLOAD,  ()-> {
+                Components.actionButton("Imprimir", "white", "#16a34a", Entypo.PRINT,  ()-> {
                    var m = vm.selected.get();
                    if(m == null){
                        Components.ShowAlertError("Selecione o item primeiro");
                        return;
                    }
                    vm.imprimirTicket(m);
-                }),
-                Components.actionButton("Imprimir nota térmica 80mm", "white", "#16a34a", Entypo.DOWNLOAD,  ()-> {
-                    var m = vm.selected.get();
-                    if(m == null){
-                        Components.ShowAlertError("Selecione o item primeiro");
-                        return;
-                    }
-                    vm.imprimirTicketTermica(m);
                 }),
                 //botaoAcao("Exportar relatório", "black", "#CDD7D6", Entypo.DOWNLOAD, this::handleClickBaixarLista),
                 //botaoAcao("Exportar relatório", "black", "#CDD7D6", Entypo.DOWNLOAD, this::handleClickBaixarLista),

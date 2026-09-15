@@ -1,5 +1,25 @@
 # TODO
 
+## Ajustes (15/09/2026)
+
+- [x] **M22** `screens/configuracoesScreen/ConfiguracoesScreen.java:16` — escolher tipo de
+      impressão — implementado em Gerencial → Configurações, persistido por V20 (laser/térmica).
+- [x] **M23** `screens/pesagemScreen/PesagemHistoricoViewModel.java:191` — botões específicos
+      de impressão no histórico/detalhes — unificados em **Imprimir**, usando a preferência atual
+      e a impressora padrão do sistema, com envio laser direto conforme pedido do usuário.
+- [ ] **M24** `infra/TicketLaserExporter.java:17` e `infra/TicketThermalExporter.java:42` —
+      validação física pendente — testar em laser A4 e térmica 80 mm; verificar a tela, persistência
+      após reiniciar, troca com detalhes abertos e mensagem de erro quando não há impressora padrão.
+- [x] **M25** `src/test/java/my_app/infra/TicketLaserExporterTest.java:13` — cobertura do fluxo
+      de impressão — suíte completa com **249 testes, 0 falhas**, incluindo repositórios de
+      preferências/pesagens, migração V20 e impressora simulada.
+- [ ] Nas telas de pesagem falta um botão de imprimir o ticket.
+- [ ] Remover campo de fornecedor da impressão, porque não existe opção de fornecedor no sistema.
+- [ ] No ticket impresso precisa mostrar a tabela de desconto (Ardidos, Ardidos...), o que descontou e o novo líquido.
+- [ ] - Poder escolher tipo de impressora padrão de impressão
+- [ ] - Correção (peso de de entrada sempre sai 0 na impressão, no relatório ele sai certinho)
+- [ ] - Correção no relatório só está mostrando o horario e dia da pesagem na entrada, deve mostrar na saída também
+
 ## Vistoria completa do projeto (2026-09-07) — pendências encontradas
 
 Formato: **PR.** `arquivo:linha` — descrição — sugestão. (Vistoria exaustiva de todo
@@ -7,8 +27,10 @@ Formato: **PR.** `arquivo:linha` — descrição — sugestão. (Vistoria exaust
 `CONTEXT.md`.)
 
 ### Decidido: manter (2026-09-07)
+
 Os 5 itens abaixo **ficam como estão por decisão do usuário** — app de estação única, usuários
 seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
+
 - **A1** `security/CryptoManager.java:13-15` — chave AES-256 fixa hardcoded + modo `ECB`
   (sem IV, determinístico). Qualquer um com o código/JAR decripta senhas/logins de todos os
   usuários. — Decidido: manter.
@@ -23,6 +45,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
   restrita a admin; parte da decisão de encriptação).
 
 ### Alta
+
 - **[x] A5** `db/repositories/PesagemRepository.java:71-78` + `DashboardViewModel.java:59-64` +
   `V10:2,12` — filtro de data bind Long epoch-millis contra `dataCriacao` gravado pelo Persism
   como texto `yyyy-MM-dd HH:mm:ss(.f)`; INTEGER < TEXT sempre no SQLite → "até" nunca casa (0
@@ -54,14 +77,14 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
 - **[x] A9** Testes — **nenhum teste de ViewModel**; regras críticas só em teste manual
   (`testes-pesagem.md` H4/G4): soma>100, bruto<tara, salvar sem peso, `preencherDaEntrada`,
   `capturarFotos`. — **Corrigido 2026-09-08: regras extraídas pro `my_app/domain/pesagem/
-  PesagemRegras.java` (classe pura, padrão `PesagemCalculo` — importável em teste JUnit sem
+PesagemRegras.java` (classe pura, padrão `PesagemCalculo` — importável em teste JUnit sem
   thread do JavaFX): `somarDescontos`/`descontosUltrapassam100`, `liquidoNegativo`,
   `nenhumPesoInformado`, `preencherDaEntrada` (record `PreenchimentoEntrada`), `usarSlot2`/
   `nomeArquivoFoto`. `PesagemFormViewModel.salvar/calcLiquido` e `PesagemSaidaViewModel.
-  preencherDaEntrada` delegam a ela. `PesagemRegrasTest` novo (20 casos) — `./gradlew test` →
+preencherDaEntrada` delegam a ela. `PesagemRegrasTest` novo (20 casos) — `./gradlew test` →
   BUILD SUCCESSFUL.**
 - **[x] A10** `scripts/updater_config.py:9`, `scripts/create-msi-with-updater.py` — `UPDATER_MAIN_CLASS
-  = "my_app.updater.Main"` aponta pra pacote/classe **inexistentes** (UpdaterService removido) →
+= "my_app.updater.Main"` aponta pra pacote/classe **inexistentes** (UpdaterService removido) →
   jpackage gera launcher "Updater" morto. — **Corrigido: 3 scripts "with-updater" +
   `updater_config.py` removidos; referências em comentários limpas.**
 - **[x] A11** `README.md:1-149` + `scripts/create-flatpak.py` — README descreve o **Plics SW** (ERP:
@@ -71,6 +94,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
   (M12); branding do `create-flatpak.py` ajustado (M10).**
 
 ### Média
+
 - **[x] M2** `screens/homeScreen/HomeScreen.java:87-89` — menu "Logs" visível **para todos** os
   usuários, sem `.itemIf(isAdmin, ...)`; logs podem conter logins/SQL. — **Corrigido: item
   "Ver logs da aplicação" agora é `itemIf(isAdmin, ...)`.**
@@ -163,7 +187,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
 - **[x] M20** `db/services/PesagemService.java:106-119` — `anexarRelacoes` faz **N+1** SELECTs por
   pesagem (listas); `DashboardViewModel` ainda lista tudo só pra `size()`. — **Corrigido:
   `BaseRepository.buscarPorIds(Collection)` novo (`WHERE id IN (...)`) e `PesagemService.
-  anexarRelacoes(List)` anexa Cliente/Produto/Desconto/Usuario de uma lista inteira com **4
+anexarRelacoes(List)` anexa Cliente/Produto/Desconto/Usuario de uma lista inteira com **4
   SELECTs em lote** (N×4 → 4). Dashboard usa `count()`/`contarPorPeriodo` (`SELECT COUNT(*)`)
   no lugar de trafegar listas; `PesagemRepository.contarPorPeriodo` reaproveita o critério de
   datas de `filtrar`. Testes novos: `count`/`buscarPorIds`/`buscarPorIdsVazio` em
@@ -174,6 +198,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
   gradle.**
 
 ### Baixa
+
 - **[x] B1** `domain/Parcela.java` — classe morta (só import não usado em `Components:36`), divisão em
   `double` sem `RoundingMode` (centavos imprecisos); `domain/Data.java:35-37` — `main()` de teste
   órfão; `TelegramNotifier.java:132-135` — `main()` manual sobrando; `AppRoutes:40` —
@@ -228,14 +253,16 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
 - [x] `./gradlew test`: **BUILD SUCCESSFUL**
 
 ## Concluído (fix — Details usuário exibindo login hasheado — 2026-09-03)
+
 - [x] `UsuarioService.buscarById(long)` agora decripta `login`/`senha` antes de devolver o
       model (override sobre o `BaseService`), mesmo padrão de `buscarPorLogin`/`listarAtivos` —
       corrige `DetailsUsuarioScreen` (mostrava o login criptografado) e `AddOrEditUsuarioScreen`
       (`populateFieldsFromModel`)
 - [x] `UsuarioServiceTest.deveRetornarLoginESenhaEmTextoPuroAoBuscarPorId` novo — `./gradlew
-      test`: **BUILD SUCCESSFUL**
+test`: **BUILD SUCCESSFUL**
 
 ## Concluído (lote de melhorias de UX/polimento — 2026-09-02)
+
 - [x] **Item 1 — botão copiar placa**: novo botão "Copiar placa" no modal de detalhes do
       histórico (`PesagemHistoricoScreen.itemDetails`) que copia a placa pra área de
       transferência (útil pra colar na busca da pesagem de saída)
@@ -269,6 +296,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
       ticket PDF/térmico e relatório) — `./gradlew test`: **BUILD SUCCESSFUL**
 
 ## Concluído (fluxo J — validar documento e limitar nome do motorista — 2026-09-02)
+
 - [x] `Utils.isValidDocumento(String)`: aceita vazio/nulo, RG (8-9 dígitos) ou CPF (11) — J2
 - [x] `PesagemService.validarCampos()` **lança `IllegalArgumentException`** quando o documento
       preenchido não é RG/CPF válido e quando o Nome do motorista excede 100 caracteres — J2/J4
@@ -278,6 +306,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
 - [x] `./gradlew test`: **BUILD SUCCESSFUL** — `testes-pesagem.md` atualizado (J2 e J4 = ok)
 
 ## Concluído (fluxo H — bloquear soma de descontos > 100% — 2026-09-01)
+
 - [x] Bloqueio de salvamento quando a soma dos 8 descontos ultrapassa 100%, com alerta —
       decisão do usuário (H4)
 - [x] Soma dos descontos extraída pro método reutilizável `somaDescontos()` (usado em
@@ -285,6 +314,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
 - [x] `testes-pesagem.md` atualizado (H4) — `./gradlew test`: **BUILD SUCCESSFUL**
 
 ## Concluído (fluxo G — bruto<tara, salvar sem peso — 2026-09-01)
+
 - [x] Bloqueio de salvamento quando Peso bruto < Tara (líquido negativo), com alerta —
       decisão do usuário (G4/B5)
 - [x] Aviso de confirmação antes de salvar pesagem sem nenhum peso (F2/G6) — vale pras 4 telas
@@ -294,6 +324,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
 - [x] `testes-pesagem.md` atualizado (G3/G4/G5) — `./gradlew test`: **BUILD SUCCESSFUL**
 
 ## Concluído (fix — líquido negativo + Saída sem Peso bruto — 2026-09-01)
+
 - [x] `PesagemFormViewModel.recalcularPesoLiquido()`: retorna vazio quando `pesoTotal` está
       vazio (antes dava `0 − tara` = negativo) — cenário C1
 - [x] `PesagemSaidaViewModel.preencherDaEntrada()`: agora copia `pesoTotal` da Entrada além de
@@ -301,6 +332,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
 - [x] `testes-pesagem.md` atualizado com os resultados (C1 e D2 marcados como ok)
 
 ## Concluído (fix — NPE em UsuarioService ao salvar sem telefone — 2026-09-01)
+
 - [x] `UsuarioService.salvar()`/`atualizar()`: null-check em `getTelefone()` antes de chamar
       `isEmpty()` — causava NPE ao salvar/editar usuário sem telefone (campo opcional)
 - [x] Corrigiu 9 testes que falhavam com NPE (`UsuarioServiceTest` + `PesagemServiceTest`) —
@@ -308,6 +340,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
 - [x] `./gradlew test` → **199 testes, BUILD SUCCESSFUL** (0 falhas)
 
 ## Concluído (só a Placa é obrigatória na pesagem — 2026-08-31)
+
 - [x] `PesagemService.validarCampos` passou a exigir somente `placa` (Motorista e Cliente
       deixaram de ser obrigatórios)
 - [x] Formulário (`PesagemFormScreen`): removido o `*` de "Nome do motorista" e "Cliente";
@@ -319,6 +352,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
       BUILD SUCCESSFUL**
 
 ## Concluído (relatório resumido no layout monoespaçado do André + negritos — 2026-08-31)
+
 - [x] `RelatorioPesagemPdfExporter` reescrito: relatório vira texto **monoespaçado (Courier)**
       igual ao do André — cabeçalho da empresa (nome/Cpf/Insc.e/End/Bairro/Cidade/Fone), linha de
       `_`, título centralizado, separadores de `=`, colunas, "Observação:" **por linha** (a
@@ -334,6 +368,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
       — `./gradlew test`: **196 testes, BUILD SUCCESSFUL**
 
 ## Concluído (ticket de pesagem em impressora térmica 80mm — 2026-08-31)
+
 - [x] Novo `TicketThermalExporter` (`my_app/infra`) imprime o ticket numa térmica 80mm via
       ESC/POS (`escpos-coffee`, já no build), no mesmo layout de campo do ticket do André:
       cabeçalho da empresa (Cnpj/Insc.est/End/Bairro/Cidade/Fone), "TICKET DE PESAGEM",
@@ -350,6 +385,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
       `./gradlew test`: **196 testes, BUILD SUCCESSFUL**
 
 ## Concluído (ticket de pesagem no layout do André + operador — 2026-08-31)
+
 - [x] `TicketPdfExporter` reescrito reproduzindo o ticket do André (texto monoespaçado):
       cabeçalho da empresa (Cnpj/Insc.est/End/Bairro/Cidade/Fone), "Ticket de Pesagem Nº",
       Placa/Uf, Data/Hora de entrada e saída, Operador/Motorista/Produto/Fornecedor/Cliente,
@@ -368,23 +404,18 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
       em `AppRoutes.java` (import + enum `INFO_UPDATE`) que quebravam a compilação
 
 ## Concluído (produto opcional nas pesagens + `*` nos campos obrigatórios — 2026-08-31)
+
 - [x] Produto deixou de ser obrigatório nas pesagens: removida a validação "Produto é
       obrigatório" de `PesagemService.validarCampos()`; coluna `produto_id` ficou nullable
       (migration `V16`, recria a tabela preservando dados e FKs) — teste ajustado
       (`produtoEhOpcional` em vez de `deveLancarExcecaoQuandoProdutoNaoInformado`)
 - [x] `*` aplicado aos campos obrigatórios em todas as telas — novo helper
-      `Components.obrigatorio(label)` (`label *`):
-      - Pesagem: Placa*, Nome do motorista*, Cliente* (Produto segue sem `*` — agora opcional)
-      - Login: E-mail*, Senha*
-      - Cliente: Loja*, Razão social*
-      - Produto: Nome do produto*
-      - Usuário: Nome*, Login*, Senha*
-      - Empresa: Nome*
-      - Conexão da balança: Tipo de conexão* + (Porta COM*, Baud rate* / Endereço IP*, Porta*
-        conforme o tipo selecionado)
+      `Components.obrigatorio(label)` (`label *`): - Pesagem: Placa*, Nome do motorista*, Cliente* (Produto segue sem `*` — agora opcional) - Login: E-mail*, Senha* - Cliente: Loja*, Razão social* - Produto: Nome do produto* - Usuário: Nome*, Login*, Senha* - Empresa: Nome* - Conexão da balança: Tipo de conexão* + (Porta COM*, Baud rate* / Endereço IP*, Porta*
+      conforme o tipo selecionado)
 - [x] `./gradlew test --rerun-tasks`: **BUILD SUCCESSFUL** (sem regressão)
 
 ## Concluído (relatório do histórico — formato do André + Tara + rodapé — 2026-08-31)
+
 - [x] Relatório reproduz o do André (1 linha por par Entrada+Saída da mesma placa) em colunas:
       Ticket | Tara (Kg) | Entrada | Horário | Saída | Horário | Placa | Produto | Cliente |
       Peso bruto | Peso líquido (Fornecedor removida conforme pedido)
@@ -397,16 +428,18 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
       BUILD SUCCESSFUL**
 
 ## Concluído (relatório do histórico agrupa Entrada+Saída — 2026-08-31)
+
 - [x] Colunas do relatório = exatamente "Ticket, Entrada, Horário, Saída, Horário, Placa,
       Produto, Cliente, Peso bruto, Peso líquido" (Fornecedor descartado conforme pedido)
 - [x] Agrupamento Entrada+Saída da mesma placa/visita numa linha só — `PesagemHistoricoScreen.
-      exportPdf`; avulsas/manuais e saídas sem a entrada no snapshot entram como linha própria
+exportPdf`; avulsas/manuais e saídas sem a entrada no snapshot entram como linha própria
 - [x] Novo campo `pesagens.entrada_id` (migration `V15`) preenchido na pesagem de saída com o id
       da entrada que a originou — hook `PesagemFormViewModel.aoMontarModel` + `PesagemSaidaViewModel`
 - [x] `PesagemServiceTest.entradaIdDaSaidaEhPersistidoERelido` novo — `./gradlew test`:
       **189 testes, BUILD SUCCESSFUL**
 
 ## Concluído (eventos por entidade — 2026-08-28)
+
 - [x] `EntityEvent<T>` virou classe abstrata genérica; criados os eventos concretos
       `ClienteEvent`, `ProdutoEvent`, `PesagemEvent`, `UsuarioEvent` (fábricas criado/editado/
       excluido, sem `EventType`) — listeners casam no tipo concreto em vez de
@@ -418,6 +451,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
 - [x] `./gradlew test`: **188 testes, BUILD SUCCESSFUL**
 
 ## Concluído (bug — NPE session nula ao salvar pesagem de saída — 2026-08-28)
+
 - [x] `EventBus.unsubscribe` novo + as 4 ViewModels que se inscreviam (histórico, formulário de
       pesagem, Cliente, Produto) agora se desinscrevem no `onDestroy`, antes de fechar o Service
       — antes, uma ViewModel já destruída continuava reagindo ao evento com a `Session` nula e
@@ -425,6 +459,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
 - [x] `EventBusTest` novo — `./gradlew test`: **188 testes, BUILD SUCCESSFUL**
 
 ## Concluído (pesagem — formatação de campos do formulário — 2026-08-28)
+
 - [x] `Components.InputRgCpf` novo (RG/CPF combinado com máscara dinâmica) — usado no
       "Documento do motorista"; formatação em `Utils.formatRgCpf`
 - [x] Pesos (tara/bruto) formatados em decimal via `InputColumnDecimal` /
@@ -434,12 +469,14 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
       BUILD SUCCESSFUL**
 
 ## Concluído (pesagem — peso líquido dinâmico — 2026-08-28)
+
 - [x] "Peso líquido" recalculado dinamicamente a cada mudança de bruto/tara/desconto —
       `PesagemFormViewModel` se inscreve nos states e reaproveita `PesagemCalculo`; botão
       "Calcular" removido e campo virou só-leitura (vale pras 4 telas de formulário)
 - [x] `./gradlew test`: **182 testes, BUILD SUCCESSFUL**
 
 ## Concluído (pesagem — formulários separados por tipo + `tipo_pesagem` — 2026-08-28)
+
 - [x] `tipo_pesagem` (valores `entrada`/`saida`/`avulsa`/`manual`) no lugar de `operacao` —
       migration `V14`; o tipo passou a ser decidido pela tela aberta, não mais por paridade de
       placa
@@ -448,7 +485,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
       novo `PesagemRepository.buscarPorPlacaETipo`
 - [x] Telas de formulário por tipo, sem `ContratoTelaCrudV3` (fluxo próprio):
       `PesagemEntrada/Saida/Avulsa/Manual{Screen,ViewModel}` sobre a base `PesagemForm{Screen,
-      ViewModel}` — semântica por tipo (ver `DECISIONS.md`)
+ViewModel}` — semântica por tipo (ver `DECISIONS.md`)
 - [x] `PesagemHistorico{Screen,ViewModel}` — tela única de histórico usando `ContratoTelaCrudV3`
       (lista, filtro, excluir, baixar lista, imprimir ticket no modal de detalhes)
 - [x] Navegação: `Secao.PESAGEM_HISTORICO` + botão "Histórico de pesagens" na sidebar; rota/enum
@@ -458,6 +495,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
       `./gradlew test`: **182 testes, BUILD SUCCESSFUL**
 
 ## Concluído (integração com câmera Intelbras — 2026-08-19)
+
 - [x] Item de "Fase 2 (adiado)" resolvido — captura de foto automática na pesagem, integrando
       de verdade com as duas câmeras Intelbras (frente/costas) via HTTP CGI
       (`/cgi-bin/snapshot.cgi`, autenticação Digest — mesmo endpoint da Dahua, fabricante
@@ -467,7 +505,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
 - [x] `ConexaoCameraModel`/`Repository`/`Service` (migration `V13`, singleton) + tela "Conexão
       das câmeras" (menu Gerencial) com botão "Testar câmera" e prévia da foto capturada
 - [x] Timing corrigido: foto capturada na hora da pesagem (`PesagemViewModel.
-      capturarFotosAutomaticamente`, só ao criar, não ao editar), não na hora de imprimir o
+capturarFotosAutomaticamente`, só ao criar, não ao editar), não na hora de imprimir o
       ticket — esse era o bug de timing do app original
 - [x] Falha numa câmera (rede/autenticação/não configurada) não derruba o salvamento da pesagem
 - [x] `CameraSnapshotClientTest` — servidor HTTP fake (`com.sun.net.httpserver`, já no JDK)
@@ -476,6 +514,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
 - [x] `./gradlew test`: **181 testes, BUILD SUCCESSFUL**
 
 ## Concluído (ticket em PDF, tela de Logs, logging em toda a aplicação — 2026-08-19)
+
 - [x] `TicketPdfExporter` (PDFBox) — requisito do projeto original que faltava nesta reescrita;
       botão "Imprimir ticket" no modal de detalhes da pesagem + "Salvar e baixar ticket" no
       formulário; PDF abre sozinho no visualizador padrão do sistema depois de salvo
@@ -498,6 +537,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
 - [x] `./gradlew test`: **167 testes, BUILD SUCCESSFUL**
 
 ## Concluído (desconto do produto + fix de edição não refletindo — 2026-08-18)
+
 - [x] `ProdutoModel.desconto` (novo campo, previsto no DER original) — migration `V12`,
       formulário de Produto, tabela, modal de detalhes
 - [x] `PesagemViewModel`: seleção de produto carrega o desconto padrão dele no campo "Outros"
@@ -508,6 +548,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
 - [x] `./gradlew test`: **155/155, BUILD SUCCESSFUL**
 
 ## Concluído (login/senha sempre criptografados — 2026-08-18)
+
 - [x] Bug real corrigido: `UsuarioService.autenticar()` tentava decriptar texto puro (nunca
       funcionava — 4/12 testes de `UsuarioServiceTest` já falhavam antes desse fix)
 - [x] `salvar()`/`atualizar()`/`autenticar()`/`listarAtivos()`/`buscarPorLogin()`: login/senha
@@ -521,12 +562,14 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
       Ver `DECISIONS.md`.
 
 ## Concluído (fix do restart falso no dev.py — 2026-08-18)
+
 - [x] `dev.py`: `known_hashes` nunca era pré-populado — primeiro touch de metadado em qualquer
       arquivo (sem mudança de conteúdo) disparava restart falso. Nova `seed_known_hashes()`
       chamada antes do `observer.start()`. Testado rodando o script de verdade: touch puro não
       restarta mais, mudança de conteúdo real continua restartando normalmente. Ver `DECISIONS.md`.
 
 ## Concluído (migração pra `Scope` do framework — 2026-08-18)
+
 - [x] `megalodonte-base`/`megalodonte-router` republicados em `mavenLocal` com
       `megalodonte.base.async.Scope` (cancelamento vinculado ao ciclo de vida) +
       `Router` (v4) cancelando automaticamente o `Scope` de cada tela em `onDestroy()`
@@ -535,6 +578,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
 - [x] `./gradlew test`: **155 testes, BUILD SUCCESSFUL** (sem regressão)
 
 ## Concluído (vazamento de conexão da balança — 2026-08-18)
+
 - [x] Investigado relato de travamento do computador com `dev.py` rodando por muito tempo —
       descartada a hipótese de processo Java órfão no restart do `dev.py` (testado empiricamente,
       o Gradle Daemon mata o processo antigo corretamente)
@@ -546,6 +590,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
 - [x] `./gradlew test`: **155 testes, BUILD SUCCESSFUL** (sem regressão)
 
 ## Concluído (leitura de peso via serial/TCP — 2026-08-17)
+
 - [x] `my_app/infra/balanca/`: `LeitorBalanca` (interface) + `LeitorBalancaSerial` (JSSC) +
       `LeitorBalancaTcp` (socket cru, sem Telnet) + `LeitorBalancaFactory` (decide qual usar a
       partir da `ConexaoBalancaModel` salva)
@@ -560,13 +605,15 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
       `README.md` do projeto antigo)
 
 ## Concluído (correção em produção — 2026-08-17)
+
 - [x] `V11__fix_dataCriacao_timestamp.sql` — bancos já criados antes da correção `REAL`→
       `TIMESTAMP` (evidência no `DECISIONS.md`) davam `Illegal Argument occurred setting
-      property: dataCriacao` ao abrir o app de verdade. Nova migration corrige qualquer banco
+property: dataCriacao` ao abrir o app de verdade. Nova migration corrige qualquer banco
       existente, dado preservado. Validado contra uma cópia do banco real antes de confiar que
       funciona.
 
 ## Concluído (Fase 1 — migrations, dados, telas — 2026-08-17)
+
 - [x] Migrations do domínio de pesagem criadas (`V1` a `V10`): usuários, preferências, licenças,
       empresa, clientes, produtos, descontos, pesagens, conexão da balança + dados padrão
 - [x] Migrations antigas do `plics-sw` (varejo) removidas
@@ -591,6 +638,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
 - [x] Migrations validadas rodando de ponta a ponta num SQLite limpo
 
 ## Concluído (licenciamento — 2026-08-17)
+
 - [x] Modelo de licença confirmado com o Guilherme: self-service local pelo André (login de
       admin, sem API/backend) — ver `DECISIONS.md`
 - [x] `LicensaScreen`/`LicensaViewModel` — gerar licença com validade opcional, listar licenças
@@ -604,6 +652,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
       (órfãos desde que login virou por usuário real) — ver `DECISIONS.md`
 
 ## Concluído (testes automatizados + limpeza de preferências — 2026-08-17)
+
 - [x] Removido controle de tema — nunca esteve ligado a nada real (`ThemeManager.setTheme` é
       fixo em `Main.java`). `preferencias` ficou só com `primeiro_acesso`. `PreferenciasScreen`
       virou só "Encerrar sessão".
@@ -623,6 +672,7 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
       mesmo tinha documentado antes de rodar os testes de verdade).
 
 ## Resolvido — branding/empacotamento (herdado do plics-sw)
+
 - [x] `Main.APP_NAME`/`BASE_TITLE` já dizem "Gobitech" (feito em rodada anterior); o que sobrava
       eram as chaves `plics.*` — corrigido em 2026-09-07 (M10): `Main.java` lê
       `gobitech.appVersion`, `build.gradle.kts`/`scripts/config.py` passam `-Dgobitech.appVersion`,
@@ -632,4 +682,3 @@ seletos, sem escala (ver `DECISIONS.md` 2026-09-07). Não executar.
       `my_app.updater.Main` inexistente) removidos em 2026-09-07 (A10).
 - [x] "Buscar atualização" removido da Home porque `my_app.infra.UpdaterService` não existe —
       se for reintroduzir, é trabalho de infraestrutura de release, não de tela.
-

@@ -18,12 +18,13 @@ Reescrita completa do software legado (Swing + MySQL) sobre a infraestrutura do
   cliente, produto, tara e bruto) para só confirmar o peso de saída.
 - **Descontos** (8 tipos, soma ≤ 100%) e validação **bruto ≥ tara** na camada de serviço.
 - **Fotos** (frente/costas) por pesagem.
-- **Ticket de pesagem**: impressão em **PDF** (2 vias na mesma folha) e em **térmica
-  ESC/POS** (impressora padrão do sistema).
+- **Ticket de pesagem**: botão único **Imprimir**, com envio direto à impressora padrão do
+  sistema. Em **Gerencial → Configurações**, escolha **laser** (2 vias na mesma folha A4)
+  ou **térmica 80 mm** (ESC/POS). A escolha fica salva; o padrão inicial é laser.
 - **Relatório do histórico** em PDF (pares Entrada+Saída por placa, com totais) e
   **resumo de entradas/saídas** com o layout do cliente.
 - **Cadastros**: clientes, produtos, usuários, empresa (logo no ticket), conexão da
-  balança, preferências.
+  balança, configurações.
 - **Licença com validade**: gerada pelo próprio admin na tela "Gerar licença" (menu
   exclusivo de admin). Admin sempre loga; usuário comum é bloqueado com licença vencida.
 - **Logs por usuário**, com o menu "Ver logs da aplicação" restrito a admin; notificações
