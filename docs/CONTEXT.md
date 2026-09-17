@@ -51,6 +51,17 @@ menu "Conexão das câmeras" está **comentado** em `HomeScreen.java:74` **por d
 (pendência M3 da vistoria, "decidido: manter" — a câmera entra no fluxo só na Fase 2/uso real),
 deixando a tela inalcançável pela UI. Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTREGAS.md`.
 
+## Estado atual (2026-09-17)
+
+- **Conexão única com a balança (`BalancaService` singleton, 17/09)**: a Pesagem estava com
+  "Balança não conectada" depois que a Dashboard ganhou peso ao vivo — cada ViewModel abria uma
+  conexão própria com a balança e a Dashboard (nunca destruída, navegação em janela própria via
+  `spawnWindow`) vencia a corrida; no Serial a porta COM é exclusiva e no TCP o conversor aceita
+  um cliente só → a Pesagem ficava sem conexão. Novo `my_app/infra/balanca/BalancaService.java`
+  mantém a **única** conexão e expõe `pesoAoVivo()`/`lendoBalanca()` compartilhados;
+  `DashboardViewModel` e `PesagemFormViewModel` delegam a ele. Fecha no encerramento
+  (`Main.handleClose`) e troca de config (`reconectar()`). Ver `DECISIONS.md` 2026-09-17.
+
 ## Estado atual (2026-09-15)
 
 - **Impressão configurável**: nova `ConfiguracoesScreen` + `ConfiguracoesViewModel`, acessível
@@ -117,6 +128,21 @@ deixando a tela inalcançável pela UI. Ver `/home/eliezer/Desktop/dev/outros/ba
   pares/datas do relatório, limites do PDF e impressão simulada). Prévia A4 conferida visualmente.
 
 ## Histórico
+
+### 2026-09-17 — Fix: "Balança não conectada" na Pesagem — conexão única com a balança
+- Sintoma pós-refatoração da Dashboard (peso ao vivo): abrir a tela de Pesagem e clicar em
+  Capturar Tara/Bruto dava "Balança não conectada". Causa: a Dashboard (janela principal, nunca
+  destruída) e a Pesagem (aberta em janela própria via `spawnWindow`) cada uma abria sua própria
+  conexão com a balança; a Dashboard ganhava a corrida e a Pesagem ficava sem conexão.
+- **Corrigido**: `BalancaService` singleton (`my_app/infra/balanca`) mantém a conexão única e os
+  `State` `pesoAoVivo`/`lendoBalanca` compartilhados. `DashboardViewModel` e
+  `PesagemFormViewModel` removidos os campos/leitores próprios e agora delegam ao singleton.
+  `ConexaoBalancaViewModel` chama `reconectar()` após salvar; `Main.handleClose()` chama
+  `parar()` antes de fechar as sessões do DB. Em erro de leitura o leitor é descartado pra
+  reconexão na próxima montagem de tela.
+- Testes: `./gradlew test --offline` → **264 testes, 0 falhas** (JDK 25).
+- Validação manual pendente com o simulador `scripts/simular_balanca_tcp.py`: Dashboard exibindo
+  peso ao vivo + Pesagem capturando tara/bruto sem erro.
 
 ### 2026-09-08 — Fix: `EmpresaViewModel.handleSave` descartava a mensagem de validação
 - Bug real reportado: salvar a empresa com telefone inválido mostrava a mensagem genérica "Não

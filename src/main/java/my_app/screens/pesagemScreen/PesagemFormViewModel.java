@@ -16,7 +16,6 @@ import my_app.db.models.PesagemModel;
 import my_app.db.models.ClienteModel;
 import my_app.db.models.ProdutoModel;
 import my_app.db.services.ClienteService;
-import my_app.db.services.ConexaoBalancaService;
 import my_app.db.services.ConexaoCameraService;
 import my_app.db.services.DescontoService;
 import my_app.db.services.PesagemService;
@@ -26,8 +25,7 @@ import my_app.domain.pesagem.PesagemRegras;
 import my_app.domain.pesagem.ImpressaoTicketService;
 import my_app.db.services.PreferenciasService;
 import my_app.db.services.EmpresaService;
-import my_app.infra.balanca.LeitorBalanca;
-import my_app.infra.balanca.LeitorBalancaFactory;
+import my_app.infra.balanca.BalancaService;
 import my_app.infra.balanca.PesagemCalculo;
 import my_app.infra.camera.CameraSnapshotClient;
 import my_app.infra.camera.FotoPesagemStorage;
@@ -56,15 +54,14 @@ public abstract class PesagemFormViewModel {
     protected final ClienteService clienteService;
     protected final ProdutoService produtoService;
     protected final DescontoService descontoService;
-    protected final ConexaoBalancaService conexaoBalancaService;
     protected final ConexaoCameraService conexaoCameraService;
     private final CameraSnapshotClient cameraSnapshotClient = new CameraSnapshotClient();
     private final java.util.concurrent.atomic.AtomicBoolean salvando = new java.util.concurrent.atomic.AtomicBoolean();
     private volatile boolean destruido;
 
-    private LeitorBalanca leitorBalanca;
-    protected final State<String> pesoAoVivo = State.of("—");
-    protected final State<Boolean> lendoBalanca = State.of(false);
+    /** Peso ao vivo e estado da leitura — delegam pro singleton {@link BalancaService}. */
+    protected final State<String> pesoAoVivo = BalancaService.getInstance().pesoAoVivo();
+    protected final State<Boolean> lendoBalanca = BalancaService.getInstance().lendoBalanca();
     @SuppressWarnings("rawtypes")
     private final java.util.function.Consumer<Object> eventListener = this::onEntityEvent;
 
@@ -103,7 +100,6 @@ public abstract class PesagemFormViewModel {
         this.clienteService = createOrReport(ClienteService::new);
         this.produtoService = createOrReport(ProdutoService::new);
         this.descontoService = createOrReport(DescontoService::new);
-        this.conexaoBalancaService = createOrReport(ConexaoBalancaService::new);
         this.conexaoCameraService = createOrReport(ConexaoCameraService::new);
         carregarClientesEProdutos();
 
@@ -178,38 +174,10 @@ public abstract class PesagemFormViewModel {
         });
     }
 
-    // ---- balança ----
+    // ---- balança (singleton compartilhado) ----
 
     public void iniciarLeituraBalanca() {
-        ctx.scope().run(() -> {
-            try {
-                var config = conexaoBalancaService.buscarUnico();
-                var leitor = LeitorBalancaFactory.criar(config);
-                leitorBalanca = leitor;
-
-                ctx.scope().onCancel(leitor::parar);
-                if (ctx.scope().isCancelled()) return;
-
-                leitor.iniciar(
-                        peso -> UI.runOnUi(() -> {
-                            pesoAoVivo.set(arrInt(peso));
-                            lendoBalanca.set(true);
-                        }),
-                        erro -> UI.runOnUi(() -> {
-                            lendoBalanca.set(false);
-                            Components.ShowAlertError(erro);
-                        })
-                );
-            } catch (Exception e) {
-                log.error("Erro ao conectar com a balança", e);
-                UI.runOnUi(() -> Components.ShowAlertError("Não foi possível conectar com a balança."));
-            }
-        });
-    }
-
-    public void pararLeituraBalanca() {
-        if (leitorBalanca != null) leitorBalanca.parar();
-        lendoBalanca.set(false);
+        BalancaService.getInstance().iniciar();
     }
 
     public void capturarTara() {
@@ -522,12 +490,10 @@ public abstract class PesagemFormViewModel {
     public void onDestroy() throws Exception {
         destruido = true;
         EventBus.getInstance().unsubscribe(eventListener);
-        pararLeituraBalanca();
         this.pesagemService.close();
         this.clienteService.close();
         this.produtoService.close();
         this.descontoService.close();
-        this.conexaoBalancaService.close();
         this.conexaoCameraService.close();
     }
 }

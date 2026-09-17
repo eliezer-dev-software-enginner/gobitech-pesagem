@@ -21,6 +21,7 @@ import my_app.db.services.PreferenciasService;
 import my_app.domain.components.Components;
 import my_app.core.AppRoutes;
 import my_app.domain.telegram.TelegramNotifierFactory;
+import my_app.infra.balanca.BalancaService;
 import my_app.infra.ProcessKiller;
 import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
@@ -95,6 +96,7 @@ public class Main {
 
     public static void handleClose(){
             log.info("Encerrando {}", APP_NAME);
+            BalancaService.getInstance().parar();
             ListenerManager.disposeAll();
             DB.closeAllSessions();
 

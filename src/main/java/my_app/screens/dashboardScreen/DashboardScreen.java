@@ -2,13 +2,16 @@ package my_app.screens.dashboardScreen;
 
 import megalodonte.base.components.Component;
 import megalodonte.base.components.ScreenComponent;
+import megalodonte.base.state.ReadableState;
 import megalodonte.base.theme.ThemeManager;
 import megalodonte.components.SpacerVertical;
 import megalodonte.components.Text;
 import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.FlowRow;
+import megalodonte.components.layout_components.Row;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.FlowRowProps;
+import megalodonte.props.RowProps;
 import megalodonte.props.TextProps;
 import megalodonte.router.v4.ScreenContext;
 import my_app.domain.components.Components;
@@ -33,11 +36,25 @@ public class DashboardScreen implements ScreenComponent {
 
     @Override
     public Component render() {
-        return new Column(new ColumnProps().paddingAll(20).spacingOf(20).fillHeight())
-                .c_child(new Text("Balanças Gobitech", new TextProps().fontSize(ThemeManager.theme().typography().title()).bold()))
-                .c_child(new Text("Sistema de pesagem", new TextProps().fontSize(ThemeManager.theme().typography().body())))
-                .c_child(new SpacerVertical(10))
-                .c_child(Components.SubtitleWithState("Peso da balança agora (Kg): ", vm.pesoAoVivo))
-                .c_child(new SpacerVertical(10));
+        return new Column(new ColumnProps().paddingAll(20).fillHeight())
+                .c_child(renderTop())
+                .c_child(new SpacerVertical().fill())
+                .c_child(renderBalancaLive());
+    }
+
+    Column renderTop(){
+        return new Column(new ColumnProps().paddingAll(20).spacingOf(10)).children(
+                new Text("Balanças Gobitech", new TextProps().fontSize(ThemeManager.theme().typography().title()).bold()),
+                new Text("Sistema de pesagem", new TextProps().fontSize(ThemeManager.theme().typography().body()))
+        );
+    }
+
+     Component renderBalancaLive() {
+        return new Row(new RowProps().fillWidth().rightHorizontally()).children(
+                new Column(new ColumnProps().paddingAll(20).spacingOf(5)).children(
+                        new Text("Balança", new TextProps().fontSize(ThemeManager.theme().typography().title()).bold()),
+                        new Text(vm.pesoAoVivo, new TextProps().fontSize(ThemeManager.theme().typography().title()).bold())
+                )
+        );
     }
 }

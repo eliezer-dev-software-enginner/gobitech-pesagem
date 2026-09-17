@@ -22,19 +22,15 @@ public class HomeScreen implements ScreenComponent {
 
     private final HomeScreenViewModel viewModel;
     private final ScreenContext ctx;
-    private final Container contentArea = new Container(new ContainerProps().fillHeight().bgColor("#f3f4f6"));
 
     public HomeScreen(ScreenContext ctx) {
         this.ctx = ctx;
         this.viewModel = new HomeScreenViewModel(ctx);
-        this.contentArea.children(new DashboardScreen(ctx).render());
-        // Sidebar tem largura fixa — a área de conteúdo precisa esticar pra ocupar o resto
-        // da Row; Row só faz isso automaticamente pra SpacerHorizontal, não pra qualquer filho.
-        HBox.setHgrow(contentArea.getJavaFxNode(), Priority.ALWAYS);
     }
 
     @Override
     public void onMount() {
+        viewModel.onMount();
     }
 
     @Override
@@ -45,7 +41,7 @@ public class HomeScreen implements ScreenComponent {
     public Component render() {
         var linha = new Row(new RowProps().fillHeight().fillWidth())
                 .children(Sidebar.render(viewModel),
-                        contentArea);
+                        viewModel.contentArea.current());
 
         // O botão de toggle precisa ser o último filho de um Stack que envolve Sidebar E
         // contentArea juntos (não só a Sidebar) — ver o porquê no javadoc de

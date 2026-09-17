@@ -1,5 +1,44 @@
 # Decisões Arquiteturais
 
+## 2026-09-17: Conexão única com a balança — `BalancaService` (singleton)
+
+**Contexto:** após a refatoração que adicionou o peso ao vivo à Dashboard, as telas de Pesagem
+pararam de capturar pesos — "Balança não conectada" ao clicar em Capturar Tara/Bruto. Causa
+raiz: a navegação abre a Pesagem em janela própria via `Router.spawnWindow()`, mas a **Dashboard
+da janela principal nunca é destruída** (seu `scope` nunca é cancelado), então sua conexão com a
+balança permanece aberta. Enquanto isso, `DashboardViewModel` e `PesagemFormViewModel` tinham
+`iniciarLeituraBalanca()` **duplicados**, cada um abrindo a própria conexão:
+- **Serial**: porta COM é exclusiva → segundo `openPort()` falha;
+- **TCP**: muitos conversores serial-Ethernet aceitam um cliente só → segunda conexão recusada.
+
+Resultado: a Dashboard ganhava a corrida e mantinha a conexão; a Pesagem ficava com
+`lendoBalanca=false` → erro na captura. Antes da refatoração da Dashboard as telas funcionavam
+porque só existia UMA ViewModel abrindo a conexão.
+
+**Decisão:** nova infra `my_app/infra/balanca/BalancaService.java` — **singleton** que mantém a
+única conexão com a balança e expõe `pesoAoVivo()` e `lendoBalanca()` como `State` compartilhados:
+- `iniciar()` é idempotente (`synchronized`, no-op se já lê); a primeira montagem de tela abre a
+  conexão, as demais só leem o mesmo estado;
+- `parar()` fecha a conexão — chamado apenas no encerramento (`Main.handleClose`) e na troca de
+  config;
+- `reconectar()` para e religa com a config atual do banco — chamado pela `ConexaoBalancaViewModel`
+  após salvar a nova conexão;
+- em erro de leitura, o leitor com defeito é descartado (`limparLeitor()` no UI thread, fora do
+  thread do listener — evita deadlock no jSSC) para que a próxima tela reconecte.
+
+`DashboardViewModel` e `PesagemFormViewModel` passaram a **delegar** ao singleton (removidos os
+campos/conexões próprias de cada ViewModel). `onDestroy()` não para mais a balança (a Dashboard
+permanece viva na janela principal; a leitura é global e só termina no encerramento do app).
+
+**Não testável em JUnit puro**: o construtor da classe usa `ConexaoBalancaService` (operar na
+DB real) e `UI.runOnUi` (`Platform.runLater`, exige toolkit JavaFX) — mesmo motivo documentado do
+`PesagemCalculo`. A camada de leitura subjacente segue testada (`LeitorBalancaTcpTest`, M17).
+**Testado por build:** `./gradlew test --offline` → **264 testes, 0 falhas** (JDK 25). Validação
+manual pendente: abrir Dashboard (peso ao vivo na tela) e depois a Pesagem (capturar tara/bruto)
+contra o simulador `scripts/simular_balanca_tcp.py`.
+
+---
+
 ## 2026-09-15: A4 reproduz a foto do ticket usado pelo André
 
 - Referência: `WhatsApp Image 2026-09-15 at 10.21.25.jpeg`, fornecida no projeto.

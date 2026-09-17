@@ -24,7 +24,8 @@ Não inicie nenhuma tarefa sem ter lido esses arquivos primeiro.
 
 ## 4. Tarefa
 
-Em gobitech-pesagem crie uma tela de configurações, e nela o usuário pode escolher qual o tipo de impressão ele vai usar. Se será impressora térmica ou impressora a laser. E isso vai impactar no restante das uis que contém impressão, pois não precisará mais de ter botões especificos de impressão(teremos só um único botão imprimir) e com base na configuração definida.
+Fiz uma refatoração no aplicativo e dentre essas refatorações está a visualização ao vivo do peso na dashboard no canto inferior direito.
+E está ok essa parte. O problema agora é que as telas de pesagem não estão conseguindo se conectar à mesma balança, então quando tento capturar tara por exemplo dá erro de "Balança não conectada", mapeie o erro e me mostre o porque isso está acontecendo.
 
 ## 5. Ao final da tarefa
 

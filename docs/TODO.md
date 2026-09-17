@@ -1,5 +1,20 @@
 # TODO
 
+## Ajustes (17/09/2026)
+
+- [x] **Fix — "Balança não conectada" na Pesagem**: causa raiz = duas ViewModels
+  (`DashboardViewModel` e `PesagemFormViewModel`) abriam conexões próprias com a balança e a
+  Dashboard (janela principal, nunca destruída) vencia a corrida; no Serial a porta COM é
+  exclusiva e no TCP o conversor aceita um cliente só. Novo `BalancaService` (singleton em
+  `infra/balanca`) mantém a conexão única e compartilha `pesoAoVivo`/`lendoBalanca`;
+  DashboardViewModel/PesagemFormViewModel delegam a ele; `ConexaoBalancaViewModel.reconectar()`
+  após salvar config; `Main.handleClose()` chama `parar()`. Suíte: **264 testes, 0 falhas**.
+- [x] **Fix — validação manual da balança**: com o simulador `scripts/simular_balanca_tcp.py`
+  rodando, abrir a Dashboard (peso ao vivo atualizando), abrir uma tela de Pesagem e capturar
+  Tara/Bruto sem o erro "Balança não conectada"; trocar a config em Conexão da balança e conferir
+  que a reconexão (`reconectar()`) entra em vigor na hora; derrubar o simulador e verificar a
+  reconexão ao abrir outra tela. — **Validado pelo usuário em 17/09: funcionando normalmente.**
+
 ## Ajustes (15/09/2026)
 
 - [x] **M34** `infra/TicketPdfExporter.java:77` e `infra/TicketThermalExporter.java` —

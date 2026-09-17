@@ -127,12 +127,6 @@ public abstract class PesagemFormScreen implements ScreenComponent {
         var pesos = new Column(new ColumnProps().spacingOf(10))
                 .c_child(Components.FormTitle("Pesos"));
 
-        if (usarBalanca()) {
-            pesos.c_child(new SpacerVertical(5))
-                    .c_child(Components.TextWithValue("Peso da balança agora (Kg): ", vm.pesoAoVivo))
-                    .c_child(new SpacerVertical(10));
-        }
-
         var linha = new FlowRow(new FlowRowProps().spacingOf(10));
         linha.children(
                 componenteTara(),

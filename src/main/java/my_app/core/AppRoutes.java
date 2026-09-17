@@ -15,9 +15,7 @@ import my_app.screens.empresaScreen.CadastroEmpresaScreen;
 import my_app.screens.homeScreen.HomeScreen;
 import my_app.screens.licensaScreen.LicensaScreen;
 import my_app.screens.logsScreen.LogsScreen;
-import my_app.screens.pesagemScreen.DetailsPesagemScreen;
-import my_app.screens.pesagemScreen.PesagemEntradaScreen;
-import my_app.screens.pesagemScreen.PesagemSaidaScreen;
+import my_app.screens.pesagemScreen.*;
 import my_app.screens.produtoScreen.AddOrEditProdutoScreen;
 import my_app.screens.produtoScreen.DetailsProdutoScreen;
 import my_app.screens.produtoScreen.ProdutoScreen;
@@ -49,7 +47,10 @@ public class AppRoutes {
         DETAILS_USUARIO,
         DETAILS_PESAGEM,
         PESAGEM_ENTRADA,
-        PESAGEM_SAIDA
+        PESAGEM_SAIDA,
+        PESAGEM_AVULSA,
+        PESAGEM_MANUAL,
+        PESAGEM_HISTORICO
     }
 
     final int MIN_WIDTH = 600;
@@ -84,7 +85,10 @@ public class AppRoutes {
                 new Router.Route(Screens.LICENSA.name(), LicensaScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Gerar licença", false)),
                 new Router.Route(Screens.LOGS.name(), LogsScreen::new, new RouteProps(MAX_WIDTH, MAX_HEIGHT, "Logs da aplicação", true)),
                 new Router.Route(Screens.PESAGEM_ENTRADA.name(), PesagemEntradaScreen::new, new RouteProps(MIN_WIDTH, MAX_HEIGHT, "Pesagem de entrada", true)),
-                new Router.Route(Screens.PESAGEM_SAIDA.name(), PesagemSaidaScreen::new, new RouteProps(MIN_WIDTH, MAX_HEIGHT, "Pesagem de saída", true))
+                new Router.Route(Screens.PESAGEM_SAIDA.name(), PesagemSaidaScreen::new, new RouteProps(MIN_WIDTH, MAX_HEIGHT, "Pesagem de saída", true)),
+                new Router.Route(Screens.PESAGEM_AVULSA.name(), PesagemAvulsaScreen::new, new RouteProps(MIN_WIDTH, MAX_HEIGHT, "Pesagem avulsa", true)),
+                new Router.Route(Screens.PESAGEM_MANUAL.name(), PesagemManualScreen::new, new RouteProps(MIN_WIDTH, MAX_HEIGHT, "Pesagem manual", true)),
+                new Router.Route(Screens.PESAGEM_HISTORICO.name(), PesagemHistoricoScreen::new, new RouteProps(MIN_WIDTH, MAX_HEIGHT, "Histórico de pesagens", true))
         );
     }
 }

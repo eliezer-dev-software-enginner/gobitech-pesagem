@@ -51,9 +51,9 @@ public class Sidebar {
         filhos.add(botaoNav("Início", Entypo.HOME, AppRoutes.Screens.HOME, viewModel));
         filhos.add(botaoNav("Pesagem entrada", AntDesignIconsOutlined.CAR, AppRoutes.Screens.PESAGEM_ENTRADA, viewModel));
         filhos.add(botaoNav("Pesagem de saida", AntDesignIconsOutlined.CAR, AppRoutes.Screens.PESAGEM_SAIDA, viewModel));
-        //filhos.add(botaoNav("Pesagem avulsa", AntDesignIconsOutlined.CAR, Secao.PESAGENS_AVULSA, viewModel));
-        //filhos.add(botaoNav("Pesagem manual", AntDesignIconsOutlined.CAR, Secao.PESAGEM_MANUAL, viewModel));
-        //filhos.add(botaoNav("Histórico de pesagens", Entypo.LIST, Secao.PESAGEM_HISTORICO, viewModel));
+        filhos.add(botaoNav("Pesagem avulsa", AntDesignIconsOutlined.CAR, AppRoutes.Screens.PESAGEM_AVULSA, viewModel));
+        filhos.add(botaoNav("Pesagem manual", AntDesignIconsOutlined.CAR, AppRoutes.Screens.PESAGEM_MANUAL, viewModel));
+        filhos.add(botaoNav("Histórico de pesagens", Entypo.LIST, AppRoutes.Screens.PESAGEM_HISTORICO, viewModel));
 
         filhos.add(new SpacerVertical().fill());
         filhos.add(botaoLogout(minimizada, viewModel::logout));
@@ -166,8 +166,7 @@ public class Sidebar {
                 .paddingDown(ThemeManager.theme().padding().sm())
                 )
                 .icon(iconeComputado)
-                //.onClick(() -> viewModel.navegarPara(secao));
-                .onClick(() -> viewModel.getScreenContext().router().spawnWindow(screen.name()));
+                .onClick(() -> viewModel.spawnWindow(screen));
         alinharEsquerda(botao);
         return botao;
     }

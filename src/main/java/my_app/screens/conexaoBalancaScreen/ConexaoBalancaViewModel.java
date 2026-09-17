@@ -10,6 +10,7 @@ import megalodonte.v2.ListState;
 import my_app.db.models.ConexaoBalancaModel;
 import my_app.db.services.ConexaoBalancaService;
 import my_app.domain.components.Components;
+import my_app.infra.balanca.BalancaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,6 +104,7 @@ public class ConexaoBalancaViewModel {
         Async.Run(() -> {
             try {
                 conexaoBalancaService.salvarOuAtualizar(model);
+                BalancaService.getInstance().reconectar();
                 UI.runOnUi(() -> Components.ShowPopup(ctx, "Conexão da balança salva com sucesso"));
             } catch (IllegalArgumentException e) {
                 UI.runOnUi(() -> Components.ShowAlertError(e.getMessage()));

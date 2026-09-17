@@ -154,14 +154,6 @@ public class Components {
         return TextWithDetailsState(label, valueState, false);
     }
 
-    public static Component actionButtons(State<String> btnText, RunnableThrowing onClick) {
-        return new Button(btnText,
-                new ButtonProps()
-                        .fillWidth()
-                        .fontSize(16)
-                        .textColor("black").bgColor(ThemeManager.theme().colors().primary())
-        ).onClick(onClick);
-    }
 
     public static Component actionButtons(ComputedState<String> btnText, RunnableThrowing onClick) {
         return new Button(btnText,
@@ -362,24 +354,6 @@ public class Components {
         return new Column()
                 .c_child(new Text(label, new TextProps().fontSize(ThemeManager.theme().typography().small())))
                 .c_child(select);
-    }
-
-    public static Column TextColumn(String label, String value) {
-        return new Column(new ColumnProps())
-                .c_child(new Text(label, new TextProps().fontSize(ThemeManager.theme().typography().body()).bold()))
-                .c_child(new Text(value, new TextProps().fontSize(ThemeManager.theme().typography().body())));
-    }
-
-    /**
-     * Card de KPI do dashboard: rótulo pequeno em cima, número grande embaixo.
-     */
-    public static Component StatCard(String label, ReadableState<String> valueState) {
-        return new Card(
-                new Column(new ColumnProps().spacingOf(8))
-                        .c_child(new Text(label, new TextProps().fontSize(ThemeManager.theme().typography().body()).textColor(ThemeManager.theme().colors().textSecondary())))
-                        .c_child(new Text(valueState, new TextProps().fontSize(ThemeManager.theme().typography().title()).bold())),
-                new CardProps().paddingAll(20).width(220).bgColor("#ffffff")
-        );
     }
 
     public static Component SubtitleWithState(String label, ReadableState<String> valueState) {
