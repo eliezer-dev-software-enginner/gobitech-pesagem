@@ -1,5 +1,39 @@
 # Decisões Arquiteturais
 
+## 2026-09-17: Salvar/carregar logomarca horizontal — correções na implementação do usuário
+
+**Contexto:** o usuário implementou em Gerencial → Configurações o salvamento/exibição de uma
+logomarca horizontal (`preferencias.imagem_horizontal`, migration `V21`, campo novo no
+`PreferenciasModel` e um `ImageSelector`). Ao conferir, três erros impediam o app de funcionar:
+
+1. **Migration V21 quebrava o boot**: `ADD COLUMN imagem_horizontal TEXT NOT NULL` — a tabela
+   `preferencias` já tem UMA linha (seed do V10) e o SQLite **não permite** `ADD COLUMN` `NOT
+   NULL` sem `DEFAULT` numa tabela com linhas (`Cannot add a NOT NULL column with default value
+   NULL`) → o app nem iniciaria.
+2. **Salvar com INSERT em linha existente**: `ConfiguracoesViewModel.salvar()` chamava
+   `service.salvar(model)` → `session().insert()`. A linha de `preferencias` sempre existe
+   (id=1, seed V10) → duplicação/violação de PK. O código antigo (`salvarTipoImpressao`) já
+   distinguia criar de atualizar e foi perdido nessa implementação.
+3. **NPE possíveis**: `getImagemHorizontalLogo()` e o `salvar()` do VM acessavam
+   `getPreferencias()`/`preferenciasModelState.get()` sem null-check.
+
+**Decisão:**
+- Migration V21: `imagem_horizontal TEXT NOT NULL DEFAULT ''` (comentário explicando o porquê);
+- `PreferenciasService.salvarConfiguracoes(TipoImpressao, String)` **cria ou atualiza** a linha
+  única (busca → `salvar`/`atualizar` por ter uma única linha singleton), normalizando
+  `null` → `` — e restaurado `salvarTipoImpressao` como convenience (preserva a imagem salva,
+  usado nos testes);
+- `ConfiguracoesViewModel` não guarda mais o model mutável (`preferenciasModelState` removido —
+  era a fonte do NPE); `load()` preenche os states e `salvar()` delega ao service;
+- `PreferenciasModel.imagemHorizontalLogoTipo = ""` (default) — nunca insere NULL na coluna
+  NOT NULL; `getImagemHorizontalLogo()` retorna `null` sem linha.
+
+**Testado por build:** `./gradlew test --offline` → **264 testes, 0 falhas** (JDK 25) — inclui
+`PreferenciasServiceTest` (criar/atualizar sem duplicar, tipo invertido, rejeição de tipo nulo)
+e `ImpressaoTicketServiceTest` (consulta da preferência a cada impressão).
+
+---
+
 ## 2026-09-17: Conexão única com a balança — `BalancaService` (singleton)
 
 **Contexto:** após a refatoração que adicionou o peso ao vivo à Dashboard, as telas de Pesagem

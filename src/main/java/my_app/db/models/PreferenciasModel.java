@@ -22,6 +22,9 @@ public class PreferenciasModel extends Identifier {
     @Column(name = "tipo_impressao")
     private String tipoImpressao = "laser";
 
+    @Column(name = "imagem_horizontal")
+    private String imagemHorizontalLogoTipo = "";
+
     public boolean isFirstAccess() {
         return primeiroAcesso != null && primeiroAcesso == 1;
     }

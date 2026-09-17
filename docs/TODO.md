@@ -2,6 +2,19 @@
 
 ## Ajustes (17/09/2026)
 
+- [x] **Fix — logomarca horizontal nas Configurações**: implementação do usuário conferida e
+  corrigida — (1) migration `V21` com `ADD COLUMN imagem_horizontal NOT NULL` sem `DEFAULT`
+  quebrava o boot (SQLite recusa em tabela com dados — seed V10); (2) `salvar()` fazia INSERT
+  na linha singleton existente; (3) NPEs sem null-check. Corrigido: V21 `NOT NULL DEFAULT ''`;
+  `PreferenciasService.salvarConfiguracoes(tipo, imagem)` cria/atualiza a linha única;
+  `salvarTipoImpressao` restaurado (preserva imagem); campo com default `""`; VM sem model
+  mutável. Suíte: **264 testes, 0 falhas**.
+- [x] **Botão "Remover logomarca" + placeholder**: pedido do usuário — o cliente pode querer
+  remover a logomarca horizontal. Novo `ConfiguracoesViewModel.limparLogo()` (limpa o state;
+  persiste `""` no Salvar); prévia da tela exibe o ícone `Entypo.FOLDER_IMAGES` quando a imagem
+  está vazia (via `Show.when` + `ComputedState.logoVazia`) em vez de um vazio; botões "Mudar
+  logomarca"/"Remover logomarca" sempre visíveis. Ao carregar, imagem salva vazia é refletida
+  como "sem imagem" (antes mantinha o default). Suíte: **264 testes, 0 falhas**.
 - [x] **Fix — "Balança não conectada" na Pesagem**: causa raiz = duas ViewModels
   (`DashboardViewModel` e `PesagemFormViewModel`) abriam conexões próprias com a balança e a
   Dashboard (janela principal, nunca destruída) vencia a corrida; no Serial a porta COM é

@@ -4,16 +4,15 @@ import megalodonte.base.components.Component;
 import megalodonte.base.components.ScreenComponent;
 import megalodonte.base.state.ReadableState;
 import megalodonte.base.theme.ThemeManager;
+import megalodonte.components.Image;
 import megalodonte.components.SpacerVertical;
 import megalodonte.components.Text;
 import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.FlowRow;
 import megalodonte.components.layout_components.Row;
-import megalodonte.props.ColumnProps;
-import megalodonte.props.FlowRowProps;
-import megalodonte.props.RowProps;
-import megalodonte.props.TextProps;
+import megalodonte.props.*;
 import megalodonte.router.v4.ScreenContext;
+import megalodonte.v2.Show;
 import my_app.domain.components.Components;
 
 public class DashboardScreen implements ScreenComponent {
@@ -45,7 +44,8 @@ public class DashboardScreen implements ScreenComponent {
     Column renderTop(){
         return new Column(new ColumnProps().paddingAll(20).spacingOf(10)).children(
                 new Text("Balanças Gobitech", new TextProps().fontSize(ThemeManager.theme().typography().title()).bold()),
-                new Text("Sistema de pesagem", new TextProps().fontSize(ThemeManager.theme().typography().body()))
+                new Text("Sistema de pesagem", new TextProps().fontSize(ThemeManager.theme().typography().body())),
+                Show.when(vm.logoVazia, ()->  new Image(vm.logoHorizontal, new ImageProps().width(700).height(200)))
         );
     }
 

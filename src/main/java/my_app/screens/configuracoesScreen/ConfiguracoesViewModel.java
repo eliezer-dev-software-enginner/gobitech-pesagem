@@ -1,5 +1,7 @@
 package my_app.screens.configuracoesScreen;
 
+import javafx.stage.FileChooser;
+import megalodonte.ComputedState;
 import megalodonte.base.UI;
 import megalodonte.base.state.State;
 import megalodonte.router.v4.ScreenContext;
@@ -9,6 +11,7 @@ import my_app.domain.pesagem.TipoImpressao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -16,9 +19,14 @@ public class ConfiguracoesViewModel {
     private static final Logger log = LoggerFactory.getLogger(ConfiguracoesViewModel.class);
     static final List<TipoImpressao> tiposImpressao = List.of(TipoImpressao.values());
 
+    final State<String> logoHorizontal = State.of("");
+    final ComputedState<Boolean> logoVazia =
+            ComputedState.of(() -> logoHorizontal.get() == null || logoHorizontal.get().isBlank(), logoHorizontal);
+
     final State<TipoImpressao> tipoImpressao = State.of(TipoImpressao.LASER);
     final State<Boolean> carregado = State.of(false);
     final State<String> status = State.of("Carregando configurações...");
+
     private final AtomicBoolean ocupado = new AtomicBoolean();
     private final ScreenContext ctx;
     private volatile boolean destruido;
@@ -33,10 +41,12 @@ public class ConfiguracoesViewModel {
         ctx.scope().run(() -> {
             try (var service = new PreferenciasService()) {
                 var tipo = service.buscarTipoImpressao();
+                var imagemPath = service.getImagemHorizontalLogo();
                 UI.runOnUi(() -> {
                     if (destruido) return;
                     tipoImpressao.set(tipo);
                     carregado.set(true);
+                    logoHorizontal.set(imagemPath == null || imagemPath.isBlank() ? "" : imagemPath);
                 });
             } catch (Exception e) {
                 log.error("Erro ao carregar configurações", e);
@@ -54,7 +64,7 @@ public class ConfiguracoesViewModel {
         var tipo = tipoImpressao.get();
         ctx.scope().run(() -> {
             try (var service = new PreferenciasService()) {
-                service.salvarTipoImpressao(tipo);
+                service.salvarConfiguracoes(tipo, logoHorizontal.get());
                 UI.runOnUi(() -> {
                     if (!destruido) Components.ShowPopup(ctx, "Configurações salvas com sucesso");
                 });
@@ -71,6 +81,22 @@ public class ConfiguracoesViewModel {
                 ocupado.set(false);
             }
         });
+    }
+
+    public void handleUpdateLogoMarca() {
+        var fileChooser = new FileChooser();
+        fileChooser.setTitle("Selecionar imagem");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Imagens", "*.png", "*.jpg", "*.jpeg"));
+
+        File arquivo = fileChooser.showOpenDialog(this.ctx.selfStage());
+        if (arquivo != null) {
+            logoHorizontal.set(arquivo.toURI().toString());
+        }
+    }
+
+    public void limparLogo() {
+        logoHorizontal.set("");
     }
 
     public void onDestroy() {

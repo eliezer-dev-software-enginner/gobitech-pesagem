@@ -47,6 +47,19 @@
 ## Testes
 - Sempre testar a repository cuja tela tiver sido refatorada.
 
+## Build (Gradle) — problema conhecido no Windows
+- Sintoma: `.\gradlew.bat test --offline` (ou `compileJava`) falha de forma **intermitente** com
+  `Task :processResources FAILED — Failed to clean up stale outputs`, sem nenhum erro de código.
+- Causa provável: lock/arquivo preso no `build/` (Gradle Daemon + Windows/antivírus) — não é bug
+  do código; **não repetir o mesmo comando várias vezes esperando resolver** (trava o
+  desenvolvimento).
+- Recuperação (nesta ordem, parar na primeira que funcionar):
+  1. Conferir se existe instância do app rodando (`dev.py`/`gradlew run`) que possa segurar lock
+     de arquivo — fechar e tentar de novo;
+  2. `.\gradlew.bat --stop` e rodar o comando uma vez mais;
+  3. Apagar o diretório `build/` (ou só o output apontado no erro) e rodar com `--rerun-tasks`.
+- Sucesso esperado depois disso: `BUILD SUCCESSFUL`.
+
 ## Após realizar alterações
 - Atualizar `docs/CONTEXT.md` (estado atual), `docs/DECISIONS.md` (se houve decisão
   arquitetural) e `docs/TODO.md` (pendências) — manter os três concisos.

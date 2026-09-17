@@ -1,5 +1,6 @@
 package my_app.screens.dashboardScreen;
 
+import megalodonte.ComputedState;
 import megalodonte.application.ErrorReporter;
 import megalodonte.base.UI;
 import megalodonte.base.async.Async;
@@ -8,6 +9,7 @@ import megalodonte.router.v4.ScreenContext;
 import megalodonte.utils.ThrowingSupplier;
 import my_app.db.services.ClienteService;
 import my_app.db.services.PesagemService;
+import my_app.db.services.PreferenciasService;
 import my_app.db.services.ProdutoService;
 import my_app.domain.components.Components;
 import my_app.infra.balanca.BalancaService;
@@ -22,6 +24,7 @@ public class DashboardViewModel {
     private final ProdutoService produtoService;
     private final ClienteService clienteService;
     private final PesagemService pesagemService;
+    private final PreferenciasService preferenciasService;
 
     /** Peso lido da balança em tempo real — delega pro singleton {@link BalancaService}. */
     public final State<String> pesoAoVivo = BalancaService.getInstance().pesoAoVivo();
@@ -32,10 +35,16 @@ public class DashboardViewModel {
     public final State<String> totalPesagens = new State<>("—");
     public final State<String> totalPesagensMes = new State<>("—");
 
+
+    final State<String> logoHorizontal = State.of("");
+    final ComputedState<Boolean> logoVazia =
+            ComputedState.of(() -> logoHorizontal.get() == null || logoHorizontal.get().isBlank(), logoHorizontal);
+
     public DashboardViewModel(ScreenContext ctx) {
         this.produtoService = createOrReport(ProdutoService::new);
         this.clienteService = createOrReport(ClienteService::new);
         this.pesagemService = createOrReport(PesagemService::new);
+        this.preferenciasService = createOrReport(PreferenciasService::new);
     }
 
     public void carregar() {
@@ -49,11 +58,14 @@ public class DashboardViewModel {
                 LocalDate hoje = LocalDate.now();
                 long pesagensMes = pesagemService.contarPorPeriodo(inicioMes, hoje);
 
+                var imagemPath = preferenciasService.getImagemHorizontalLogo();
+
                 UI.runOnUi(() -> {
                     totalProdutos.set(String.valueOf(produtos));
                     totalClientes.set(String.valueOf(clientes));
                     totalPesagens.set(String.valueOf(pesagens));
                     totalPesagensMes.set(String.valueOf(pesagensMes));
+                    if (imagemPath != null && !imagemPath.isBlank()) logoHorizontal.set(imagemPath);
                 });
             } catch (Exception e) {
                 log.error("Erro ao carregar o dashboard", e);

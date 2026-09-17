@@ -53,6 +53,16 @@ deixando a tela inalcançável pela UI. Ver `/home/eliezer/Desktop/dev/outros/ba
 
 ## Estado atual (2026-09-17)
 
+- **Logomarca horizontal nas Configurações (17/09)**: `preferencias.imagem_horizontal` (V21)
+  + campo no `PreferenciasModel` + `ImageSelector` em Gerencial → Configurações salva e exibe a
+  logomarca escolhida. Erros da implementação inicial corrigidos: migration `NOT NULL` sem
+  `DEFAULT` (SQLite recusa `ADD COLUMN` assim em tabela com dados — quebrava o boot),
+  `salvar()` fazia INSERT na linha singleton já existente (agora `salvarConfiguracoes` cria ou
+  atualiza) e NPEs sem null-check. Ver `DECISIONS.md` 2026-09-17.
+- **Botão "Remover logomarca"**: pedido do usuário — o cliente pode querer remover a logomarca
+  horizontal. `limparLogo()` limpa o state (persiste `""` ao salvar); quando a imagem está vazia
+  a prévia mostra o ícone `Entypo.FOLDER_IMAGES` (placeholder) em vez de um espaço vazio — o
+  componente `Image` do Megalodonte renderiza nada pra fonte vazia.
 - **Conexão única com a balança (`BalancaService` singleton, 17/09)**: a Pesagem estava com
   "Balança não conectada" depois que a Dashboard ganhou peso ao vivo — cada ViewModel abria uma
   conexão própria com a balança e a Dashboard (nunca destruída, navegação em janela própria via
@@ -128,6 +138,19 @@ deixando a tela inalcançável pela UI. Ver `/home/eliezer/Desktop/dev/outros/ba
   pares/datas do relatório, limites do PDF e impressão simulada). Prévia A4 conferida visualmente.
 
 ## Histórico
+
+### 2026-09-17 — Fix: logomarca horizontal nas Configurações (erros da implementação do usuário)
+- O usuário adicionou save/carregar de logomarca horizontal (V21 + `imagem_horizontal` +
+  `ImageSelector`). Na conferência: (1) migration `ADD COLUMN ... NOT NULL` sem `DEFAULT`
+  violava o SQLite em tabela com dados (seed V10) → app não subia; (2) `ConfiguracoesViewModel.
+  salvar()` fazia `session().insert()` na linha singleton já existente → duplicação/PK; (3)
+  acessos sem null-check (`getPreferencias()`, `preferenciasModelState.get()`).
+- **Corrigido**: V21 com `NOT NULL DEFAULT ''`; novo `PreferenciasService.salvarConfiguracoes
+  (tipo, imagem)` cria/atualiza a linha única (normaliza null→``) e `salvarTipoImpressao`
+  restaurado (preserva a imagem, usado nos testes); `PreferenciasModel` com campo default `""`;
+  `ConfiguracoesViewModel` sem model mutável, salva via serviço; null-check em
+  `getImagemHorizontalLogo()`.
+- Testes: `./gradlew test --offline` → **264 testes, 0 falhas** (JDK 25).
 
 ### 2026-09-17 — Fix: "Balança não conectada" na Pesagem — conexão única com a balança
 - Sintoma pós-refatoração da Dashboard (peso ao vivo): abrir a tela de Pesagem e clicar em

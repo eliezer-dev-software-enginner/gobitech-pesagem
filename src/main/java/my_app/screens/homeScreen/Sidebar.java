@@ -172,7 +172,7 @@ public class Sidebar {
     }
 
     private static Component botaoLogout(State<Boolean> minimizada, RunnableThrowing onClick) {
-        var textoComputado = ComputedState.of(() -> minimizada.get() ? "" : "Logout", minimizada);
+        var textoComputado = ComputedState.of(() -> minimizada.get() ? "" : "Sair", minimizada);
 
         var botao = new Button(textoComputado, new ButtonProps().fillWidth().bgColor("transparent").textColor(TEXT_COLOR))
                 .icon(Components.ikon(Entypo.LOG_OUT, 18, ICON_COLOR))
