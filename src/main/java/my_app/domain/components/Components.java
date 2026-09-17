@@ -266,11 +266,11 @@ public class Components {
 
     public static Component DatePickerColumn(State<LocalDate> localDateState, String label, IconInterface icon) {
         var datePicker = new DatePicker(localDateState,
-                new DatePickerProps().fontSize(ThemeManager.theme().typography().small()).height(31)
+                new DatePickerProps().fontSize(ThemeManager.theme().typography().small())
                         .placeHolder("dd/mm/yyyy")
                         .locale(new Locale("pt", "BR"))
                         .pattern("dd/MM/yyyy")
-                        .width(140)
+                        .width(150)
                         .editable(false)
         );
 
@@ -326,8 +326,7 @@ public class Components {
     }
 
     private final static SelectProps selectProps = new SelectProps()
-            .minWidth(100)
-            .height(31);
+            .minWidth(100);
 
 
     public static <T> Component SelectColumn(String label, List<T> list, State<T> stateSelected, Function<T, String> display) {
@@ -491,11 +490,6 @@ public class Components {
         return new Column()
                 .c_child(new Text(label, new TextProps().fontSize(ThemeManager.theme().typography().small())))
                 .c_child(input);
-    }
-
-    /** Igual a {@link #InputWithButtonRow}, mas com o input numérico inteiro (sem decimais). */
-    public static Component InputWithButtonRowInteger(String label, String placeholder, String btnTitle, State<String> inputState, RunnableThrowing onClick) {
-        return InputWithButtonRowInteger(label, placeholder, btnTitle, inputState, onClick, false);
     }
 
     /**
@@ -762,28 +756,7 @@ public class Components {
                 .c_child(textAreaInput);
     }
 
-    public static Component InputWithButtonRow(String label, String placeholder, String btnTitle, State<String> inputState, RunnableThrowing onClick) {
-        return new Row(new RowProps().bottomVertically())
-                .r_child(Components.InputColumn(label, inputState, placeholder))
-                .r_child(new Button(btnTitle, new ButtonProps().height(32).textColor("black")
-                                .bgColor(ThemeManager.theme().colors().primary())
-                                .borderRadius(ThemeManager.theme().border().radiusSm()).borderWidth(ThemeManager.theme().border().width()).borderColor(ThemeManager.theme().colors().primary())
-                        )
-                                .onClick(onClick)
-                );
-    }
 
-    /** Igual a {@link #InputWithButtonRow}, mas com o input formatado em decimal (vírgula). */
-    public static Component InputWithButtonRowDecimal(String label, String placeholder, String btnTitle, State<String> inputState, RunnableThrowing onClick) {
-        return new Row(new RowProps().bottomVertically())
-                .r_child(Components.InputColumnDecimal(label, inputState, placeholder))
-                .r_child(new Button(btnTitle, new ButtonProps().height(32).textColor("black")
-                                .bgColor(ThemeManager.theme().colors().primary())
-                                .borderRadius(ThemeManager.theme().border().radiusSm()).borderWidth(ThemeManager.theme().border().width()).borderColor(ThemeManager.theme().colors().primary())
-                        )
-                                .onClick(onClick)
-                );
-    }
 
     @Deprecated
     public static Row commonCustomMenus(Runnable onClickNew, Runnable onEdit, Runnable onDelete, Runnable onClone) {
