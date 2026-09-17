@@ -16,6 +16,7 @@ import megalodonte.props.RowProps;
 import megalodonte.router.v4.ScreenContext;
 import my_app.core.AppRoutes;
 import my_app.domain.SessaoUsuario;
+import my_app.screens.dashboardScreen.DashboardScreen;
 
 public class HomeScreen implements ScreenComponent {
 
@@ -26,7 +27,7 @@ public class HomeScreen implements ScreenComponent {
     public HomeScreen(ScreenContext ctx) {
         this.ctx = ctx;
         this.viewModel = new HomeScreenViewModel(ctx);
-        viewModel.telaAtiva.subscribe(tela -> renderConteudo());
+        this.contentArea.children(new DashboardScreen(ctx).render());
         // Sidebar tem largura fixa — a área de conteúdo precisa esticar pra ocupar o resto
         // da Row; Row só faz isso automaticamente pra SpacerHorizontal, não pra qualquer filho.
         HBox.setHgrow(contentArea.getJavaFxNode(), Priority.ALWAYS);
@@ -42,10 +43,9 @@ public class HomeScreen implements ScreenComponent {
     }
 
     public Component render() {
-        renderConteudo();
-
         var linha = new Row(new RowProps().fillHeight().fillWidth())
-                .children(Sidebar.render(viewModel), contentArea);
+                .children(Sidebar.render(viewModel),
+                        contentArea);
 
         // O botão de toggle precisa ser o último filho de um Stack que envolve Sidebar E
         // contentArea juntos (não só a Sidebar) — ver o porquê no javadoc de
@@ -62,11 +62,6 @@ public class HomeScreen implements ScreenComponent {
                 menuBar(),
                 corpo
         );
-    }
-
-    private void renderConteudo() {
-        Component conteudo = viewModel.telaAtiva.get().render();
-        ((VBox) contentArea.getJavaFxNode()).getChildren().setAll(conteudo.getJavaFxNode());
     }
 
     private Component menuBar() {

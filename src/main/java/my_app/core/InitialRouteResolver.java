@@ -6,6 +6,7 @@ public class InitialRouteResolver {
     public static String resolve() {
         //if(Main.devMode)return AppRoutes.Screens.PRODUTOS.name();
         //if(Main.devMode)return AppRoutes.Screens.HOME.name();
+        if(Main.devMode)return Main.devModeEntrypointRoute;
         return AppRoutes.Screens.AUTH.name();
     }
 }

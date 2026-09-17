@@ -1,5 +1,6 @@
 package my_app.screens.homeScreen;
 
+import lombok.Getter;
 import megalodonte.base.components.ScreenComponent;
 import megalodonte.base.state.State;
 import megalodonte.router.v4.ScreenContext;
@@ -14,66 +15,30 @@ import my_app.screens.pesagemScreen.PesagemSaidaScreen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * A sidebar é fixa e o conteúdo à direita troca dentro da mesma janela — igual o app original
- * (cada tela lá recriava a Sidebar + o conteúdo daquela seção, num JFrame novo; aqui é a mesma
- * ideia sem recriar janela: uma tela embutida por vez, montada/destruída manualmente).
- */
+
 public class HomeScreenViewModel {
 
     private static final Logger log = LoggerFactory.getLogger(HomeScreenViewModel.class);
 
-    public enum Secao { HOME, PESAGENS_ENTRADA, PESAGENS_SAIDA, PESAGENS_AVULSA, PESAGEM_MANUAL, PESAGEM_HISTORICO }
-    //public enum Secao { PESAGENS_ENTRADA, PESAGENS_SAIDA, PESAGENS_AVULSA, PESAGEM_MANUAL, PESAGEM_HISTORICO }
-
+    @Getter
     private final ScreenContext screenContext;
 
-    public final State<Secao> secaoAtiva = State.of(Secao.HOME);
-    //public final State<Secao> secaoAtiva = State.of(Secao.PESAGEM_HISTORICO);
-    public final State<ScreenComponent> telaAtiva = State.of(null);
+    public final State<AppRoutes.Screens> screenAtiva = State.of(AppRoutes.Screens.HOME);
     public final State<Boolean> sidebarMinimizada = State.of(false);
 
     private ScreenContext ctxTelaAtiva;
 
     public HomeScreenViewModel(ScreenContext screenContext) {
         this.screenContext = screenContext;
-
-        // HOME é só mais uma tela embutida (o dashboard) — monta ela de cara, igual
-        // navegarPara() faria pras demais seções, pra já abrir com os totais carregando.
-        var ctx = new ScreenContext(screenContext.selfStage(), screenContext.router());
-        this.ctxTelaAtiva = ctx;
-        ScreenComponent telaInicial = new DashboardScreen(ctx);
-        telaAtiva.set(telaInicial);
-        telaInicial.onMount();
     }
 
-    public void navegarPara(Secao secao) {
-        if (secaoAtiva.get() == secao) return;
-
+    public void navegarPara(AppRoutes.Screens screen) {
         destruirTelaAtual();
-
-        var ctx = new ScreenContext(screenContext.selfStage(), screenContext.router());
-        ScreenComponent tela = switch (secao) {
-            case HOME -> new DashboardScreen(ctx);
-            case PESAGENS_ENTRADA -> new PesagemEntradaScreen(ctx);
-            case PESAGENS_SAIDA -> new PesagemSaidaScreen(ctx);
-            case PESAGENS_AVULSA -> new PesagemAvulsaScreen(ctx);
-            case PESAGEM_MANUAL -> new PesagemManualScreen(ctx);
-            case PESAGEM_HISTORICO -> new PesagemHistoricoScreen(ctx);
-        };
-
-        this.ctxTelaAtiva = ctx;
-        secaoAtiva.set(secao);
-        telaAtiva.set(tela);
-        tela.onMount();
     }
 
     private void destruirTelaAtual() {
-        var telaAnterior = telaAtiva.get();
-        if (telaAnterior == null) return;
 
         if (ctxTelaAtiva != null) ctxTelaAtiva.scope().cancel();
-        telaAnterior.onDestroy();
         ctxTelaAtiva = null;
     }
 

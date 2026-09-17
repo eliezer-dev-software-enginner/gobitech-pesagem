@@ -38,13 +38,6 @@ public class DashboardScreen implements ScreenComponent {
                 .c_child(new Text("Sistema de pesagem", new TextProps().fontSize(ThemeManager.theme().typography().body())))
                 .c_child(new SpacerVertical(10))
                 .c_child(Components.SubtitleWithState("Peso da balança agora (Kg): ", vm.pesoAoVivo))
-                .c_child(new SpacerVertical(10))
-                .c_child(new FlowRow(new FlowRowProps().fillWidth().spacingOf(16))
-                        .children(
-                                Components.StatCard("Produtos cadastrados", vm.totalProdutos),
-                                Components.StatCard("Clientes cadastrados", vm.totalClientes),
-                                Components.StatCard("Pesagens no total", vm.totalPesagens),
-                                Components.StatCard("Pesagens neste mês", vm.totalPesagensMes)
-                        ));
+                .c_child(new SpacerVertical(10));
     }
 }

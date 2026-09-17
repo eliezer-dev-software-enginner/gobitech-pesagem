@@ -19,8 +19,8 @@ import megalodonte.props.ButtonProps;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.ImageProps;
 import megalodonte.v2.Show;
+import my_app.core.AppRoutes;
 import my_app.domain.components.Components;
-import my_app.screens.homeScreen.HomeScreenViewModel.Secao;
 import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.antdesignicons.AntDesignIconsOutlined;
 import org.kordamp.ikonli.entypo.Entypo;
@@ -48,12 +48,12 @@ public class Sidebar {
         var filhos = new ArrayList<Component>();
         filhos.add(logo(minimizada));
         filhos.add(new SpacerVertical(10));
-        filhos.add(botaoNav("Início", Entypo.HOME, Secao.HOME, viewModel));
-        filhos.add(botaoNav("Pesagem entrada", AntDesignIconsOutlined.CAR, Secao.PESAGENS_ENTRADA, viewModel));
-        filhos.add(botaoNav("Pesagem de saida", AntDesignIconsOutlined.CAR, Secao.PESAGENS_SAIDA, viewModel));
-        filhos.add(botaoNav("Pesagem avulsa", AntDesignIconsOutlined.CAR, Secao.PESAGENS_AVULSA, viewModel));
-        filhos.add(botaoNav("Pesagem manual", AntDesignIconsOutlined.CAR, Secao.PESAGEM_MANUAL, viewModel));
-        filhos.add(botaoNav("Histórico de pesagens", Entypo.LIST, Secao.PESAGEM_HISTORICO, viewModel));
+        filhos.add(botaoNav("Início", Entypo.HOME, AppRoutes.Screens.HOME, viewModel));
+        filhos.add(botaoNav("Pesagem entrada", AntDesignIconsOutlined.CAR, AppRoutes.Screens.PESAGEM_ENTRADA, viewModel));
+        filhos.add(botaoNav("Pesagem de saida", AntDesignIconsOutlined.CAR, AppRoutes.Screens.PESAGEM_SAIDA, viewModel));
+        //filhos.add(botaoNav("Pesagem avulsa", AntDesignIconsOutlined.CAR, Secao.PESAGENS_AVULSA, viewModel));
+        //filhos.add(botaoNav("Pesagem manual", AntDesignIconsOutlined.CAR, Secao.PESAGEM_MANUAL, viewModel));
+        //filhos.add(botaoNav("Histórico de pesagens", Entypo.LIST, Secao.PESAGEM_HISTORICO, viewModel));
 
         filhos.add(new SpacerVertical().fill());
         filhos.add(botaoLogout(minimizada, viewModel::logout));
@@ -144,10 +144,10 @@ public class Sidebar {
      * ícone/texto pretos (contraste melhor que branco sobre o amarelo); os demais ficam com
      * ícone e texto brancos sobre o fundo escuro da sidebar.
      */
-    private static Component botaoNav(String texto, Ikon icone, Secao secao, HomeScreenViewModel viewModel) {
+    private static Component botaoNav(String texto, Ikon icone, AppRoutes.Screens screen, HomeScreenViewModel viewModel) {
         var minimizada = viewModel.sidebarMinimizada;
         var textoComputado = ComputedState.of(() -> minimizada.get() ? "" : texto, minimizada);
-        var selecionado = ComputedState.of(() -> viewModel.secaoAtiva.get() == secao, viewModel.secaoAtiva);
+        var selecionado = ComputedState.of(() -> viewModel.screenAtiva.get() == screen, viewModel.screenAtiva);
         var bgComputado = ComputedState.of(
                 () -> selecionado.get() ? ThemeManager.theme().colors().primary() : "transparent",
                 selecionado
@@ -166,7 +166,8 @@ public class Sidebar {
                 .paddingDown(ThemeManager.theme().padding().sm())
                 )
                 .icon(iconeComputado)
-                .onClick(() -> viewModel.navegarPara(secao));
+                //.onClick(() -> viewModel.navegarPara(secao));
+                .onClick(() -> viewModel.getScreenContext().router().spawnWindow(screen.name()));
         alinharEsquerda(botao);
         return botao;
     }

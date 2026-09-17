@@ -30,6 +30,7 @@ public class Main {
     private static final Logger log = LoggerFactory.getLogger(Main.class);
 
     public static final boolean devMode = "true".equals(System.getenv("DEV_MODE"));
+    public static final String devModeEntrypointRoute = System.getenv("DEV_ROUTE");
 
     public static final String APP_NAME = "Gobitech";
 

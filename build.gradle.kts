@@ -127,6 +127,7 @@ tasks.named<JavaExec>("run") {
     jvmArgs = jvmArgsList
 
     environment("DEV_MODE", "true")
+    environment("DEV_ROUTE", "HOME")
 }
 application {
     mainClass.set(props.getProperty("appMainClass"))
