@@ -45,21 +45,19 @@ public class Sidebar {
     public static Component render(HomeScreenViewModel viewModel) {
         var minimizada = viewModel.sidebarMinimizada;
 
-        var filhos = new ArrayList<Component>();
-        filhos.add(logo(minimizada));
-        filhos.add(new SpacerVertical(10));
-        filhos.add(botaoNav("Início", Entypo.HOME, AppRoutes.Screens.HOME, viewModel));
-        filhos.add(botaoNav("Pesagem entrada", AntDesignIconsOutlined.CAR, AppRoutes.Screens.PESAGEM_ENTRADA, viewModel));
-        filhos.add(botaoNav("Pesagem de saida", AntDesignIconsOutlined.CAR, AppRoutes.Screens.PESAGEM_SAIDA, viewModel));
-        filhos.add(botaoNav("Pesagem avulsa", AntDesignIconsOutlined.CAR, AppRoutes.Screens.PESAGEM_AVULSA, viewModel));
-        filhos.add(botaoNav("Pesagem manual", AntDesignIconsOutlined.CAR, AppRoutes.Screens.PESAGEM_MANUAL, viewModel));
-        filhos.add(botaoNav("Histórico de pesagens", Entypo.LIST, AppRoutes.Screens.PESAGEM_HISTORICO, viewModel));
-
-        filhos.add(new SpacerVertical().fill());
-        filhos.add(botaoLogout(minimizada, viewModel::logout));
-
         var coluna = new Column(new ColumnProps().paddingAll(12).spacingOf(14).fillHeight().bgColor(BG))
-                .children(filhos.toArray(new Component[0]));
+                .children(
+                        logo(minimizada),
+                        new SpacerVertical(10),
+                        botaoNav("Início", Entypo.HOME, AppRoutes.Screens.HOME, viewModel),
+                        botaoNav("Pesagem entrada", AntDesignIconsOutlined.CAR, AppRoutes.Screens.PESAGEM_ENTRADA, viewModel),
+                        botaoNav("Pesagem de saida", AntDesignIconsOutlined.CAR, AppRoutes.Screens.PESAGEM_SAIDA, viewModel),
+                        botaoNav("Pesagem avulsa", AntDesignIconsOutlined.CAR, AppRoutes.Screens.PESAGEM_AVULSA, viewModel),
+                        botaoNav("Pesagem manual", AntDesignIconsOutlined.CAR, AppRoutes.Screens.PESAGEM_MANUAL, viewModel),
+                        botaoNav("Histórico de pesagens", Entypo.LIST, AppRoutes.Screens.PESAGEM_HISTORICO, viewModel),
+                        new SpacerVertical().fill(),
+                        botaoLogout(minimizada, viewModel::logout)
+                );
 
         // ScaleProvider (megalodonte-base) detecta o fator de escala UMA VEZ, olhando
         // Screen.getPrimary() — e nunca mais reavalia, mesmo que a janela seja aberta/movida

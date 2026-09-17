@@ -5,6 +5,8 @@ import megalodonte.ComputedState;
 import megalodonte.base.UI;
 import megalodonte.base.state.State;
 import megalodonte.router.v4.ScreenContext;
+import my_app.core.events.EventBus;
+import my_app.core.events.PreferenciasEvent;
 import my_app.db.services.PreferenciasService;
 import my_app.domain.components.Components;
 import my_app.domain.pesagem.TipoImpressao;
@@ -67,6 +69,7 @@ public class ConfiguracoesViewModel {
                 service.salvarConfiguracoes(tipo, logoHorizontal.get());
                 UI.runOnUi(() -> {
                     if (!destruido) Components.ShowPopup(ctx, "Configurações salvas com sucesso");
+                    EventBus.getInstance().publish(PreferenciasEvent.salvas());
                 });
             } catch (IllegalArgumentException e) {
                 UI.runOnUi(() -> {

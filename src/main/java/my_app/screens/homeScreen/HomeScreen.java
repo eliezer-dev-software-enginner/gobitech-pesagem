@@ -1,6 +1,5 @@
 package my_app.screens.homeScreen;
 
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -16,7 +15,6 @@ import megalodonte.props.RowProps;
 import megalodonte.router.v4.ScreenContext;
 import my_app.core.AppRoutes;
 import my_app.domain.SessaoUsuario;
-import my_app.screens.dashboardScreen.DashboardScreen;
 
 public class HomeScreen implements ScreenComponent {
 

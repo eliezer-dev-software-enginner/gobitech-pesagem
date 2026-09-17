@@ -45,7 +45,7 @@ public class DashboardScreen implements ScreenComponent {
         return new Column(new ColumnProps().paddingAll(20).spacingOf(10)).children(
                 new Text("Balanças Gobitech", new TextProps().fontSize(ThemeManager.theme().typography().title()).bold()),
                 new Text("Sistema de pesagem", new TextProps().fontSize(ThemeManager.theme().typography().body())),
-                Show.when(vm.logoVazia, ()->  new Image(vm.logoHorizontal, new ImageProps().width(700).height(200)))
+                Show.when(vm.logoNaoVazia, ()->  new Image(vm.logoHorizontal, new ImageProps().width(700).height(200)))
         );
     }
 

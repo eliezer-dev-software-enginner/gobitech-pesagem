@@ -7,6 +7,8 @@ import megalodonte.base.async.Async;
 import megalodonte.base.state.State;
 import megalodonte.router.v4.ScreenContext;
 import megalodonte.utils.ThrowingSupplier;
+import my_app.core.events.EventBus;
+import my_app.core.events.PreferenciasEvent;
 import my_app.db.services.ClienteService;
 import my_app.db.services.PesagemService;
 import my_app.db.services.PreferenciasService;
@@ -17,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
+import java.util.function.Consumer;
 
 public class DashboardViewModel {
     private static final Logger log = LoggerFactory.getLogger(DashboardViewModel.class);
@@ -37,14 +40,35 @@ public class DashboardViewModel {
 
 
     final State<String> logoHorizontal = State.of("");
-    final ComputedState<Boolean> logoVazia =
-            ComputedState.of(() -> logoHorizontal.get() == null || logoHorizontal.get().isBlank(), logoHorizontal);
+    final ComputedState<Boolean> logoNaoVazia =
+            ComputedState.of(() -> logoHorizontal.get() != null && !logoHorizontal.get().isBlank(), logoHorizontal);
+
+    @SuppressWarnings("rawtypes")
+    private final Consumer<Object> eventListener = this::onEntityEvent;
 
     public DashboardViewModel(ScreenContext ctx) {
         this.produtoService = createOrReport(ProdutoService::new);
         this.clienteService = createOrReport(ClienteService::new);
         this.pesagemService = createOrReport(PesagemService::new);
         this.preferenciasService = createOrReport(PreferenciasService::new);
+        EventBus.getInstance().subscribe(eventListener);
+    }
+
+    private void onEntityEvent(Object event) {
+        if (event instanceof PreferenciasEvent) {
+            atualizarLogo();
+        }
+    }
+
+    private void atualizarLogo() {
+        Async.Run(() -> {
+            try {
+                var imagem = preferenciasService.getImagemHorizontalLogo();
+                UI.runOnUi(() -> logoHorizontal.set(imagem == null ? "" : imagem));
+            } catch (Exception e) {
+                log.error("Erro ao atualizar logomarca no dashboard", e);
+            }
+        });
     }
 
     public void carregar() {
@@ -95,8 +119,10 @@ public class DashboardViewModel {
             produtoService.close();
             clienteService.close();
             pesagemService.close();
+            preferenciasService.close();
         } catch (Exception e) {
             log.warn("Erro ao fechar serviços do dashboard", e);
         }
+        EventBus.getInstance().unsubscribe(eventListener);
     }
 }
