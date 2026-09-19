@@ -29,6 +29,7 @@ public class TicketThermalExporter {
 
     private static final Logger log = LoggerFactory.getLogger(TicketThermalExporter.class);
     private static final DateTimeFormatter DTH_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+    private static final int LARGURA_BOBINA = 32;
 
     record EstiloLinha(String texto, boolean negrito, boolean fonteDupla) {}
 
@@ -122,8 +123,7 @@ public class TicketThermalExporter {
         }
         vazio(linhas);
 
-        raw(linhas, "---------------------------------  --------------------------------", false, false);
-        raw(linhas, padEsq("ADMINISTRADOR") + padDir("MOTORISTA"), false, false);
+        assinaturas(linhas);
 
         return linhas;
     }
@@ -172,12 +172,14 @@ public class TicketThermalExporter {
         return naoVazio(valor) ? valor : fallback;
     }
 
-    private String padEsq(String texto) {
-        return String.format("%-33s", texto);
-    }
-
-    private String padDir(String texto) {
-        return String.format("%33s", texto);
+    /** Linha de assinatura acima de cada nome, espaçados (padrão do ticket do André). */
+    private void assinaturas(List<EstiloLinha> linhas) {
+        String esq = "ADMINISTRADOR";
+        String dir = "MOTORISTA";
+        int colDir = LARGURA_BOBINA - dir.length();
+        String lacuna = " ".repeat(Math.max(0, colDir - esq.length()));
+        raw(linhas, "_".repeat(esq.length()) + lacuna + "_".repeat(dir.length()), false, false);
+        raw(linhas, esq + lacuna + dir, false, false);
     }
 
     private List<String> quebrar(String texto) {

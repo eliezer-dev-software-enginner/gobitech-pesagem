@@ -9,6 +9,12 @@
   Total descontado). Ex.: preencher só "Quebra umidade" → só ele sai no ticket. +2 testes
   (`soImprimeDescontosAplicados`/`semDescontosImprimeMensagemEmVezDaLista`). Suíte: **266 testes,
   0 falhas**.
+- [x] **Fix — assinaturas do ticket térmico saindo juntas**: no rodapé da térmica, "ADMINISTRADOR"
+  e "MOTORISTA" saíam colados (o `padEsq`/`padDir` de 33 caracteres cada estourava a bobina de 32
+  colunas). Agora cada nome tem sua **linha de sublinhado (`_`)** logo acima e os nomes saem
+  espaçados na linha da bobina (`ADMINISTRADOR` à esquerda, `MOTORISTA` à direita) — mesmo padrão
+  das assinaturas do A4. Removidos `padEsq`/`padDir`; novo helper `assinaturas()` + constante
+  `LARGURA_BOBINA`. Teste novo `assinaturasComLinhaAcimaDeCadaNome`. Suíte: **267 testes, 0 falhas**.
 
 ## Ajustes (17/09/2026)
 

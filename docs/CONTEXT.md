@@ -59,6 +59,10 @@ deixando a tela inalcançável pela UI. Ver `/home/eliezer/Desktop/dev/outros/ba
   (`TicketPdfExporter`): filtra `percentual().signum() != 0`; sem nenhum desconto aplicado, saí
   "Nenhum desconto aplicado." e a linha "Total descontado" é omitida. Preencher só "Quebra
   umidade" agora imprime somente esse tipo. Suíte: **266 testes, 0 falhas**.
+- **Assinaturas da térmica espaçadas com linha acima (19/09)**: "ADMINISTRADOR"/"MOTORISTA"
+  saíam colados (o `padEsq`/`padDir` de 33 chars estourava a bobina de 32). Agora cada nome tem
+  sua linha de sublinhado acima e os nomes saem espaçados, como no A4 — novo helper
+  `assinaturas()` + `LARGURA_BOBINA`, `padEsq`/`padDir` removidos. Suíte: **267 testes, 0 falhas**.
 
 ## Estado atual (2026-09-17)
 
@@ -147,6 +151,17 @@ deixando a tela inalcançável pela UI. Ver `/home/eliezer/Desktop/dev/outros/ba
   pares/datas do relatório, limites do PDF e impressão simulada). Prévia A4 conferida visualmente.
 
 ## Histórico
+
+### 2026-09-19 — Fix: assinaturas do ticket térmico saindo coladas
+- Sintoma: no rodapé da térmica, "ADMINISTRADOR" e "MOTORISTA" saíam um em cima do outro/colados
+  em vez de espaçados com a linha de assinatura acima de cada nome (como no A4). Causa: a linha
+  usava `padEsq` (%-33s) + `padDir` (%33s) = 66 caracteres, estourando a bobina de **32 colunas**
+  (o `_underline` quebrado na impressão).
+- **Corrigido**: novo helper `assinaturas()` monta uma linha de sublinhados (`_`) alinhada acima
+  de cada nome, com os nomes espaçados dentro da largura da bobina (`ADMINISTRADOR` à esquerda,
+  `MOTORISTA` à direita; usado `LARGURA_BOBINA = 32`). `padEsq`/`padDir` removidos.
+- Testes: +1 caso (`assinaturasComLinhaAcimaDeCadaNome`). Suíte: `./gradlew test --offline` →
+  **267 testes, 0 falhas** (JDK 25).
 
 ### 2026-09-19 — Fix: ticket térmico imprimia todos os descontos
 - Sintoma: a nota térmica (80mm) saía com os **8 descontos sempre** (Avariados, Ardidos,

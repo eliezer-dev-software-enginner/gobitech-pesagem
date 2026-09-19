@@ -1,5 +1,27 @@
 # Decisões Arquiteturais
 
+## 2026-09-19: Assinaturas do ticket térmico — linha acima de cada nome, espaçados
+
+**Contexto:** no rodapé do ticket térmico, "ADMINISTRADOR" e "MOTORISTA" saíam colados
+(um sobre o outro ou juntos) em vez de espaçados com a linha de assinatura acima de cada nome.
+Causa raiz: a linha montava `padEsq(33) + padDir(33)` = **66 caracteres** — acima das **32
+colunas** da bobina ESC/POS 80mm, então a impressora quebrava a linha e os nomes perdiam o
+espaçamento.
+
+**Decisão:** novo helper `TicketThermalExporter.assinaturas()` monta **duas linhas** dentro da
+largura da bobina (`LARGURA_BOBINA = 32`):
+1. linha de sublinhados `_` alinhada acima de cada nome (padrão das assinaturas do A4);
+2. os nomes espaçados — `ADMINISTRADOR` à esquerda, `MOTORISTA` à direita, sublinhado exatamente
+   sobre cada um.
+
+`padEsq`/`padDir` (33 chars) removidos por não caberem na bobina. Sem alteração de schema nem de
+`TicketPesagemDados`.
+
+**Testado por build:** `./gradlew test --offline` → **267 testes, 0 falhas** (JDK 25, +1 caso
+`assinaturasComLinhaAcimaDeCadaNome`).
+
+---
+
 ## 2026-09-19: Ticket térmico imprime somente descontos aplicados
 
 **Contexto:** o usuário reportou que a nota térmica (80mm) imprimia todos os descontos —

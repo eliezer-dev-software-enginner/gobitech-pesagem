@@ -139,6 +139,25 @@ class TicketThermalExporterTest {
     }
 
     @Test
+    void assinaturasComLinhaAcimaDeCadaNome() {
+        var linhas = exporter.montarLinhas(null, pesagemBasica(), null);
+        var textos = linhas.stream().map(TicketThermalExporterTest::texto).toList();
+
+        String linhaSublinhado = textos.get(textos.size() - 2);
+        String linhaNomes = textos.get(textos.size() - 1);
+
+        assertTrue(linhaSublinhado.startsWith("_".repeat("ADMINISTRADOR".length())),
+                "Linha de sublinhado deve começar abaixo do ADMINISTRADOR: " + linhaSublinhado);
+        assertTrue(linhaSublinhado.trim().endsWith("_".repeat("MOTORISTA".length())),
+                "Linha de sublinhado deve terminar no MOTORISTA: " + linhaSublinhado);
+        assertTrue(linhaNomes.startsWith("ADMINISTRADOR"), "Nome esquerdo deve iniciar a linha");
+        assertTrue(linhaNomes.endsWith("MOTORISTA"), "Nome direito deve terminar a linha");
+        assertTrue(linhaNomes.indexOf("MOTORISTA") > linhaNomes.indexOf("ADMINISTRADOR") + "ADMINISTRADOR".length(),
+                "Nomes devem sair espaçados: " + linhaNomes);
+        assertTrue(linhaNomes.length() <= 32, "Linha de nomes deve caber na bobina: " + linhaNomes);
+    }
+
+    @Test
     void soImprimeDescontosAplicados() {
         var p = pesagemBasica();
         p.setPesoVeiculo(new BigDecimal("8500"));
