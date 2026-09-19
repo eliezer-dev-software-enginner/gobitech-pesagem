@@ -43,7 +43,6 @@ public class DashboardViewModel {
     final ComputedState<Boolean> logoNaoVazia =
             ComputedState.of(() -> logoHorizontal.get() != null && !logoHorizontal.get().isBlank(), logoHorizontal);
 
-    @SuppressWarnings("rawtypes")
     private final Consumer<Object> eventListener = this::onEntityEvent;
 
     public DashboardViewModel(ScreenContext ctx) {

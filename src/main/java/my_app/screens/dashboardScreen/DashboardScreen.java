@@ -8,6 +8,7 @@ import megalodonte.components.Image;
 import megalodonte.components.SpacerVertical;
 import megalodonte.components.Text;
 import megalodonte.components.layout_components.Column;
+import megalodonte.components.layout_components.Container;
 import megalodonte.components.layout_components.FlowRow;
 import megalodonte.components.layout_components.Row;
 import megalodonte.props.*;
@@ -36,23 +37,15 @@ public class DashboardScreen implements ScreenComponent {
     @Override
     public Component render() {
         return new Column(new ColumnProps().paddingAll(20).fillHeight())
-                .c_child(renderTop())
+                .c_child(Show.when(vm.logoNaoVazia, ()->  new Image(vm.logoHorizontal, new ImageProps().width(700).height(200))))
                 .c_child(new SpacerVertical().fill())
                 .c_child(renderBalancaLive());
-    }
-
-    Column renderTop(){
-        return new Column(new ColumnProps().paddingAll(20).spacingOf(10)).children(
-                new Text("Balanças Gobitech", new TextProps().fontSize(ThemeManager.theme().typography().title()).bold()),
-                new Text("Sistema de pesagem", new TextProps().fontSize(ThemeManager.theme().typography().body())),
-                Show.when(vm.logoNaoVazia, ()->  new Image(vm.logoHorizontal, new ImageProps().width(700).height(200)))
-        );
     }
 
      Component renderBalancaLive() {
         return new Row(new RowProps().fillWidth().rightHorizontally()).children(
                 new Column(new ColumnProps().paddingAll(20).spacingOf(5)).children(
-                        new Text("Balança", new TextProps().fontSize(ThemeManager.theme().typography().title()).bold()),
+                        new Text("Balança", new TextProps().bold()),
                         new Text(vm.pesoAoVivo, new TextProps().fontSize(ThemeManager.theme().typography().title()).bold())
                 )
         );

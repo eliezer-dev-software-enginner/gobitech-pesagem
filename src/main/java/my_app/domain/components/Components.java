@@ -1,7 +1,5 @@
 package my_app.domain.components;
 
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -62,16 +60,6 @@ public class Components {
     }
 
     public record Endereco(String uf, String cep, String cidade, String bairro, String rua, String numero) {
-    }
-
-    public static Component ItemDetailEndereco(Endereco endereco) {
-        return new Container()
-                .c_child(Components.TextWithDetails("UF: ", endereco.uf()))
-                .c_child(Components.TextWithDetails("CEP: ", formatCep(endereco.cep())))
-                .c_child(Components.TextWithDetails("Cidade: ", endereco.cidade()))
-                .c_child(Components.TextWithDetails("Bairro: ", endereco.bairro()))
-                .c_child(Components.TextWithDetails("Rua: ", endereco.rua()))
-                .c_child(Components.TextWithDetails("Número: ", endereco.numero()));
     }
 
     public static Component ItemDetailEnderecoState(ReadableState<Endereco> enderecoState) {
@@ -210,27 +198,6 @@ public class Components {
         timer.play();
     }
 
-
-    public static Stage ShowModal(Component ui, ScreenContext context, int height) {
-        Stage stage = new Stage();
-
-        Scroll scroll = new Scroll(ui);
-        stage.setScene(new Scene((Parent) scroll.getJavaFxNode(), 800, height));
-        stage.setTitle("Detalhes");
-        stage.setResizable(true);
-
-        Stage owner = context.selfStage();
-        stage.initOwner(owner);
-
-        stage.setOnHidden(event -> {
-            owner.requestFocus();
-            owner.toFront();
-        });
-
-        stage.show();
-        return stage;
-    }
-
     public static void ShowAlertAdvice(String bodyMessage, RunnableThrowing handleSuccessEvent) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirmação");
@@ -355,19 +322,6 @@ public class Components {
                 .c_child(select);
     }
 
-    public static Component SubtitleWithState(String label, ReadableState<String> valueState) {
-        return new Row(new RowProps().centerVertically().hugWidth().
-                bgColor(ThemeManager.theme().colors().selection()))
-                .r_child(new Text(label, new TextProps().fontSize(ThemeManager.theme().typography().subtitle())))
-                .r_child(new Text(valueState, new TextProps().fontSize(ThemeManager.theme().typography().body())));
-    }
-
-    public static Component TextWithValue(String label, ReadableState<String> valueState) {
-        return new Row()
-                .r_child(new Text(label, new TextProps().fontSize(ThemeManager.theme().typography().body()).bold()))
-                .r_child(new Text(valueState, new TextProps().fontSize(ThemeManager.theme().typography().body())));
-    }
-
     public static Component InputColumnCep(String label, State<String> inputState) {
         var inputProps = getInputPropsV2("00000-000").width(120);
 
@@ -393,19 +347,7 @@ public class Components {
                 .c_child(input);
     }
 
-    public static class InputRef {
-        private Input inputRef;
-
-        public void set(Input input) {
-            this.inputRef = input;
-        }
-
-        public void requestFocus() {
-            inputRef.requestFocus();
-        }
-    }
-
-    public static Component InputColumnDecimal(String label, State<String> inputState, String placeholder, InputRef inputRef) {
+    public static Component InputColumnDecimal(String label, State<String> inputState, String placeholder) {
         var inputProps = getInputPropsV2(placeholder).width(140);
 
         var input = new Input(inputState, inputProps)
@@ -438,20 +380,9 @@ public class Components {
                 })
                 .lockCursorToEnd();
 
-        if (inputRef != null) inputRef.set((Input) input);
-
         return new Column()
                 .c_child(new Text(label, new TextProps().fontSize(ThemeManager.theme().typography().small())))
                 .c_child(input);
-    }
-
-    public static Component InputColumnDecimal(String label, State<String> inputState, String placeholder) {
-        return InputColumnDecimal(label, inputState, placeholder, null);
-    }
-
-    /** Input numérico de inteiro (sem casa decimal), com separador de milhar (ponto). */
-    public static Component InputColumnInteger(String label, State<String> inputState, String placeholder) {
-        return InputColumnInteger(label, inputState, placeholder, false);
     }
 
     /**
@@ -756,31 +687,6 @@ public class Components {
                 .c_child(textAreaInput);
     }
 
-
-
-    @Deprecated
-    public static Row commonCustomMenus(Runnable onClickNew, Runnable onEdit, Runnable onDelete, Runnable onClone) {
-        return new Row(new RowProps().spacingOf(20))
-                .r_child(MenuItem("Novo (CTRL + N)", Entypo.ADD_TO_LIST, "green", () -> executar(onClickNew::run)))
-                .r_child(MenuItem("Editar", Entypo.EDIT, "blue", () -> executar(onEdit::run)))
-                .r_child(MenuItem("Excluir", Entypo.TRASH, "red", () -> executar(onDelete::run)))
-                .r_child(MenuItem("Clonar", Entypo.COPY, "black", () -> executar(onClone::run)))
-                .r_child(new SpacerHorizontal().fill())
-                //.r_child(MenuItem("Sair", Entypo.REPLY, "red", () -> router.closeSpawn("cad-produtos/"+id)));
-                ;
-    }
-
-    public static Component MenuItem(String title, Ikon ikon, String color, Runnable onClick) {
-        var icon = Component.CreateFromJavaFxNode(FontIcon.of(ikon, 25, Color.web(color)));
-
-        return new Clickable(new Card(
-                new Column(new ColumnProps().centerHorizontally())
-                        .c_child(icon)
-                        .c_child(new SpacerVertical(6))
-                        .c_child(new Text(title, new TextProps().fontSize(ThemeManager.theme().typography().small())))
-        ), onClick);
-    }
-
     public static Component searchInput(State<String> stateInput, String placeholder) {
         var icon = FontIcon.of(AntDesignIconsOutlined.SEARCH, 20, Color.web(ThemeManager.theme().colors().secondary()));
         return new Input(stateInput,
@@ -788,18 +694,5 @@ public class Components {
                         .width(300)
                         .height(31))
                 .left(icon);
-    }
-
-    private static void executar(Action action) {
-        try {
-            action.run();
-        } catch (Exception e) {
-            IO.println("Error: " + e.getMessage());
-        }
-    }
-
-    @FunctionalInterface
-    interface Action {
-        void run() throws Exception;
     }
 }

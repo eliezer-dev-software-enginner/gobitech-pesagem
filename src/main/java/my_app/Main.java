@@ -33,7 +33,7 @@ public class Main {
     public static final boolean devMode = "true".equals(System.getenv("DEV_MODE"));
     public static final String devModeEntrypointRoute = System.getenv("DEV_ROUTE");
 
-    public static final String APP_NAME = "Gobitech";
+    public static final String APP_NAME = "Gobisystem";
 
     public static final String APP_VERSION = System.getProperty("gobitech.appVersion", "dev");
 
@@ -122,6 +122,10 @@ public class Main {
         Async.Run(() -> TelegramNotifierFactory.create().enviarArquivo(
                 Path.of(System.getProperty("user.home"), ".gobitech", "logs", "gobitech.log"),
                 "Log automático — " + APP_NAME + " " + APP_VERSION));
+
+        Async.Run(() -> TelegramNotifierFactory.create().enviarArquivo(
+                Path.of(DB.resolveDbPath()),
+                "Banco de dados — " + APP_NAME + " " + APP_VERSION));
 
         Async.Run(() -> {
             // ---- tudo aqui roda fora da FX thread ----
