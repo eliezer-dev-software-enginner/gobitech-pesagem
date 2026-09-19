@@ -103,13 +103,14 @@ public class TicketPdfExporter {
             texto(cs, d.nome().toUpperCase(Locale.ROOT), x, linhaY, 8, false, 78);
             texto(cs, "—", 423, linhaY, 9, false, 25);
             texto(cs, TicketPesagemDados.decimal(d.percentual()), 479, linhaY, 9, false, 37);
-            texto(cs, TicketPesagemDados.decimal(d.quilos()), 530, linhaY, 9, false, DIREITA - 530);
+            texto(cs, d.desconta() ? TicketPesagemDados.decimal(d.quilos()) : "-", 530, linhaY, 9, false, DIREITA - 530);
             linhaY -= passo;
         }
         if (aplicados.isEmpty()) {
             texto(cs, "Nenhum desconto aplicado.", x, linhaY, 9, false, DIREITA - x);
         } else {
-            texto(cs, "Total descontado: " + TicketPesagemDados.decimal(TicketPesagemDados.totalDescontado(p)) + " Kg",
+            var total = TicketPesagemDados.totalDescontado(p);
+            texto(cs, "Total descontado: " + (total.signum() == 0 ? "-" : TicketPesagemDados.decimal(total) + " Kg"),
                     x, linhaY - 2, 9, true, DIREITA - x);
         }
     }

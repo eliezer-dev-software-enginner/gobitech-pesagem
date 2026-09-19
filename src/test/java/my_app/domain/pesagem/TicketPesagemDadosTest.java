@@ -51,15 +51,48 @@ class TicketPesagemDadosTest {
     void descontosIncidemSobreBrutoMenosTaraSemAplicacaoSequencial() {
         var p = pesagem("manual", 8500, 32000);
         var d = new DescontoModel();
-        d.setArdidos(new BigDecimal("2"));
-        d.setImpurezas(new BigDecimal("3"));
+        d.setQuebraArdidos(new BigDecimal("2"));
+        d.setQuebraImpurezas(new BigDecimal("3"));
         p.setDesconto(d);
         var linhas = TicketPesagemDados.descontos(p);
         assertEquals(8, linhas.size());
-        assertEquals(0, new BigDecimal("470").compareTo(linhas.get(1).quilos()));
-        assertEquals(0, new BigDecimal("705").compareTo(linhas.get(3).quilos()));
+        assertEquals(0, new BigDecimal("470").compareTo(linhas.get(2).quilos()));
+        assertEquals(0, new BigDecimal("705").compareTo(linhas.get(4).quilos()));
         assertEquals(0, new BigDecimal("1175").compareTo(TicketPesagemDados.totalDescontado(p)));
         assertEquals(new BigDecimal("23500"), TicketPesagemDados.liquidoAntesDescontos(p));
+    }
+
+    @Test
+    void descontosSoloExibicaoNaoDescontamDoTotal() {
+        var p = pesagem("manual", 8500, 32000);
+        var d = new DescontoModel();
+        d.setAvariados(new BigDecimal("10"));
+        d.setArdidos(new BigDecimal("2"));
+        d.setImpurezas(new BigDecimal("3"));
+        d.setUmidade(new BigDecimal("5"));
+        p.setDesconto(d);
+        var linhas = TicketPesagemDados.descontos(p);
+        assertEquals(0, linhas.get(0).quilos().signum());
+        assertEquals(0, linhas.get(1).quilos().signum());
+        assertEquals(0, linhas.get(3).quilos().signum());
+        assertEquals(0, linhas.get(5).quilos().signum());
+        assertEquals(0, TicketPesagemDados.totalDescontado(p).signum());
+    }
+
+    @Test
+    void descontosQueDescontamSaoMarcadosComoTal() {
+        var p = pesagem("manual", 8500, 32000);
+        var d = new DescontoModel();
+        d.setQuebraArdidos(new BigDecimal("2"));
+        d.setQuebraImpurezas(new BigDecimal("3"));
+        d.setQuebraUmidade(new BigDecimal("4"));
+        d.setOutros(new BigDecimal("5"));
+        p.setDesconto(d);
+        var linhas = TicketPesagemDados.descontos(p);
+        assertTrue(linhas.get(2).desconta());
+        assertTrue(linhas.get(4).desconta());
+        assertTrue(linhas.get(6).desconta());
+        assertTrue(linhas.get(7).desconta());
     }
 
     @Test

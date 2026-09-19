@@ -11,7 +11,7 @@ import java.util.List;
 public final class TicketPesagemDados {
     private TicketPesagemDados() { }
 
-    public record Desconto(String nome, BigDecimal percentual, BigDecimal quilos) { }
+    public record Desconto(String nome, BigDecimal percentual, BigDecimal quilos, boolean desconta) { }
 
     public static LocalDateTime dataEntrada(PesagemModel pesagem, PesagemModel entrada) {
         if (entrada != null) return entrada.getDataCriacao();
@@ -43,23 +43,27 @@ public final class TicketPesagemDados {
     public static List<Desconto> descontos(PesagemModel pesagem) {
         var d = pesagem.getDesconto() == null ? new DescontoModel() : pesagem.getDesconto();
         var base = liquidoAntesDescontos(pesagem);
-        return List.of(desconto("Avariados", d.getAvariados(), base),
-                desconto("Ardidos", d.getArdidos(), base),
-                desconto("Quebra ardidos", d.getQuebraArdidos(), base),
-                desconto("Impurezas", d.getImpurezas(), base),
-                desconto("Quebra impurezas", d.getQuebraImpurezas(), base),
-                desconto("Umidade", d.getUmidade(), base),
-                desconto("Quebra umidade", d.getQuebraUmidade(), base),
-                desconto("Outros", d.getOutros(), base));
+        return List.of(desconto("Avariados", d.getAvariados(), base, false),
+                desconto("Ardidos", d.getArdidos(), base, false),
+                desconto("Quebra ardidos", d.getQuebraArdidos(), base, true),
+                desconto("Impurezas", d.getImpurezas(), base, false),
+                desconto("Quebra impurezas", d.getQuebraImpurezas(), base, true),
+                desconto("Umidade", d.getUmidade(), base, false),
+                desconto("Quebra umidade", d.getQuebraUmidade(), base, true),
+                desconto("Outros", d.getOutros(), base, true));
     }
 
-    private static Desconto desconto(String nome, BigDecimal percentual, BigDecimal base) {
+    private static Desconto desconto(String nome, BigDecimal percentual, BigDecimal base, boolean desconta) {
         var p = nz(percentual);
-        return new Desconto(nome, p, base.multiply(p).movePointLeft(2));
+        var quilos = desconta ? base.multiply(p).movePointLeft(2) : BigDecimal.ZERO;
+        return new Desconto(nome, p, quilos, desconta);
     }
 
     public static BigDecimal totalDescontado(PesagemModel pesagem) {
-        return descontos(pesagem).stream().map(Desconto::quilos).reduce(BigDecimal.ZERO, BigDecimal::add);
+        return descontos(pesagem).stream()
+                .filter(Desconto::desconta)
+                .map(Desconto::quilos)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public static String decimal(BigDecimal valor) {

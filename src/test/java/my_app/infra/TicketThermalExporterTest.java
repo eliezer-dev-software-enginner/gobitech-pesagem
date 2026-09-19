@@ -122,8 +122,10 @@ class TicketThermalExporterTest {
         p.setPesoTotal(new BigDecimal("32000"));
         p.setPesoFinal(new BigDecimal("22325"));
         var d = new my_app.db.models.DescontoModel();
-        d.setArdidos(new BigDecimal("2"));
-        d.setImpurezas(new BigDecimal("3"));
+        d.setQuebraArdidos(new BigDecimal("2"));
+        d.setQuebraImpurezas(new BigDecimal("3"));
+        d.setArdidos(new BigDecimal("7"));
+        d.setImpurezas(new BigDecimal("8"));
         p.setDesconto(d);
         var entrada = entradaBasica();
         entrada.setPesoTotal(BigDecimal.ZERO);
@@ -132,10 +134,30 @@ class TicketThermalExporterTest {
                 .map(TicketThermalExporter.EstiloLinha::texto).toList());
         assertFalse(texto.contains("Fornecedor"));
         assertTrue(texto.contains("Peso de Entrada....: 8500 Kg"));
-        assertTrue(texto.contains("Ardidos\n  2% / 470 Kg"));
-        assertTrue(texto.contains("Impurezas\n  3% / 705 Kg"));
+        assertTrue(texto.contains("Quebra ardidos\n  2% / 470 Kg"));
+        assertTrue(texto.contains("Quebra impurezas\n  3% / 705 Kg"));
         assertTrue(texto.contains("Total descontado: 1175 Kg"));
         assertTrue(texto.contains("Peso Líquido Final.: 22325 Kg"));
+    }
+
+    @Test
+    void descontosSoloExibicaoMostramPercentualSemKgNaTermica() {
+        var p = pesagemBasica();
+        p.setPesoVeiculo(new BigDecimal("8500"));
+        p.setPesoTotal(new BigDecimal("32000"));
+        p.setPesoFinal(new BigDecimal("23500"));
+        var d = new my_app.db.models.DescontoModel();
+        d.setImpurezas(new BigDecimal("20"));
+        d.setUmidade(new BigDecimal("10"));
+        p.setDesconto(d);
+        var texto = String.join("\n", exporter.montarLinhas(null, p, null).stream()
+                .map(TicketThermalExporter.EstiloLinha::texto).toList());
+        assertTrue(texto.contains("Impurezas\n  20% / -"));
+        assertTrue(texto.contains("Umidade\n  10% / -"));
+        assertTrue(texto.contains("Total descontado: -"));
+        assertFalse(texto.contains("Avariados"));
+        assertFalse(texto.contains("Quebra ardidos"));
+        assertFalse(texto.contains("Outros"));
     }
 
     @Test

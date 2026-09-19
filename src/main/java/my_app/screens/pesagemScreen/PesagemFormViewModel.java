@@ -212,12 +212,23 @@ public abstract class PesagemFormViewModel {
 
     /**
      * Soma os 8 percentuais de desconto da pesagem, delegando a {@link PesagemRegras} (testável
-     * isoladamente).
+     * isoladamente). Usada na validação de "soma dos descontos ≤ 100%", que segue considerando
+     * todos os tipos (inclusive os que só exibem o percentual no ticket).
      */
     private BigDecimal somaDescontos() {
         return PesagemRegras.somarDescontos(avariados.get(), ardidos.get(),
                 quebraArdidos.get(), impurezas.get(), quebraImpurezas.get(),
                 umidade.get(), quebraUmidade.get(), outros.get());
+    }
+
+    /**
+     * Soma só os percentuais que descontam de fato o peso: Quebra ardidos, Quebra impurezas,
+     * Quebra umidade e Outros. Avariados, Ardidos, Impurezas e Umidade apenas exibem o
+     * percentual no ticket (não reduzem o peso), então não entram no cálculo do líquido.
+     */
+    private BigDecimal somaDescontosQueDescontam() {
+        return PesagemRegras.somarDescontos(quebraArdidos.get(), quebraImpurezas.get(),
+                quebraUmidade.get(), outros.get());
     }
 
     /**
@@ -231,7 +242,7 @@ public abstract class PesagemFormViewModel {
         }
         var bruto = parseDecimal(pesoTotal.get());
         var tara = parseDecimal(pesoVeiculo.get());
-        var percentualDesconto = somaDescontos();
+        var percentualDesconto = somaDescontosQueDescontam();
 
         return PesagemCalculo.calcularPesoLiquido(bruto, tara, percentualDesconto);
     }
@@ -328,7 +339,7 @@ public abstract class PesagemFormViewModel {
             Components.ShowAlertError("A soma dos descontos não pode ultrapassar 100%.");
             return;
         }
-        if (PesagemRegras.liquidoNegativo(pesoTotal.get(), pesoVeiculo.get(), percentualDesconto)) {
+        if (PesagemRegras.liquidoNegativo(pesoTotal.get(), pesoVeiculo.get(), somaDescontosQueDescontam())) {
             Components.ShowAlertError("Peso bruto não pode ser menor que a Tara (peso líquido estaria negativo).");
             return;
         }

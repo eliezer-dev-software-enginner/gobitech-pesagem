@@ -53,12 +53,22 @@ deixando a tela inalcançável pela UI. Ver `/home/eliezer/Desktop/dev/outros/ba
 
 ## Estado atual (2026-09-19)
 
+- **Descontos que só exibem % não descontam do peso (19/09)**: Avariados, Ardidos, Impurezas e
+  Umidade passaram a ser **só-exibição** — aparecem no ticket (A4 e térmica) com o percentual
+  aplicado, mas **não reduzem o peso**. Só descontam de fato: **Quebra ardidos, Quebra impurezas,
+  Quebra umidade e Outros**. `TicketPesagemDados` ganhou flag `desconta` no `Desconto` (quilos=0
+  pros só-exibição) e `totalDescontado()` soma só os que descontam — quando só há só-exibição, o
+  ticket A4/térmico mostra "Total descontado: -" e "-" na coluna Total (Kg). O líquido final
+  salvo (`PesagemFormViewModel.calcLiquido`) desconta só os 4 tipos que descontam; a validação
+  "soma dos descontos > 100%" continua somando os 8 (decisão do usuário). Suíte: **271 testes,
+  0 falhas**.
 - **Ticket térmico só com descontos aplicados (19/09)**: a nota térmica imprimia os **8 tipos de
   desconto sempre**, inclusive os zerados (Avariados, Ardidos, Impurezas, etc.). Corrigido em
   `TicketThermalExporter.montarLinhas` seguindo o mesmo padrão que o A4 já usava
   (`TicketPdfExporter`): filtra `percentual().signum() != 0`; sem nenhum desconto aplicado, saí
   "Nenhum desconto aplicado." e a linha "Total descontado" é omitida. Preencher só "Quebra
-  umidade" agora imprime somente esse tipo. Suíte: **266 testes, 0 falhas**.
+  umidade" agora imprime somente esse tipo. Suíte: **266 testes, 0 falhas**. (depois disso,
+  suíte passou a 271 testes)
 - **Assinaturas da térmica espaçadas com linha acima (19/09)**: "ADMINISTRADOR"/"MOTORISTA"
   saíam colados (o `padEsq`/`padDir` de 33 chars estourava a bobina de 32). Agora cada nome tem
   sua linha de sublinhado acima e os nomes saem espaçados, como no A4 — novo helper
@@ -151,6 +161,21 @@ deixando a tela inalcançável pela UI. Ver `/home/eliezer/Desktop/dev/outros/ba
   pares/datas do relatório, limites do PDF e impressão simulada). Prévia A4 conferida visualmente.
 
 ## Histórico
+
+### 2026-09-19 — Descontos que só exibem % não descontam do peso
+- Pedido do usuário: alguns descontos (Avariados, Ardidos, Impurezas, Umidade) são só **exibição**
+  de percentual no ticket — não devem reduzir o peso. Os que descontam de fato são **Quebra
+  ardidos, Quebra impurezas, Quebra umidade e Outros**.
+- **Implementado**: `TicketPesagemDados.Desconto` ganhou a flag `desconta`; `descontos()` marca
+  os válidos e zera `quilos` dos só-exibição; `totalDescontado()` soma apenas os que descontam.
+  A4 e térmica mostram "-" na coluna Total (Kg) / linha do desconto e "Total descontado: -"
+  quando nenhum desconto de fato se aplica. `PesagemFormViewModel` ganhou
+  `somaDescontosQueDescontam()`, usada no `calcLiquido()` e no `liquidoNegativo`; a validação
+  "soma > 100%" continua com os 8 tipos (decisão do usuário).
+- Testes: `descontosSoloExibicaoNaoDescontamDoTotal`, `descontosQueDescontamSaoMarcadosComoTal`,
+  `descontosSoloExibicaoMostramPercentualSemKgNaTermica`, `descontosSoloExibicaoMostramPercentualSemKgNoA4`;
+  casos existentes atualizados (Ardidos/Impurezas dos testes trocados por Quebra *). Suíte:
+  `./gradlew test --offline` → **271 testes, 0 falhas** (JDK 25).
 
 ### 2026-09-19 — Fix: assinaturas do ticket térmico saindo coladas
 - Sintoma: no rodapé da térmica, "ADMINISTRADOR" e "MOTORISTA" saíam um em cima do outro/colados

@@ -135,8 +135,10 @@ class TicketPdfExporterTest {
         pesagem.setPesoTotal(new BigDecimal("32000"));
         pesagem.setPesoFinal(new BigDecimal("22325"));
         var desconto = new my_app.db.models.DescontoModel();
-        desconto.setArdidos(new BigDecimal("2"));
-        desconto.setImpurezas(new BigDecimal("3"));
+        desconto.setQuebraArdidos(new BigDecimal("2"));
+        desconto.setQuebraImpurezas(new BigDecimal("3"));
+        desconto.setArdidos(new BigDecimal("7"));
+        desconto.setImpurezas(new BigDecimal("8"));
         pesagem.setDesconto(desconto);
         var entrada = entradaBasica();
         entrada.setPesoTotal(BigDecimal.ZERO);
@@ -151,7 +153,8 @@ class TicketPdfExporterTest {
         assertEquals(2, ocorrencias(texto, "Peso entrada: 8500 Kg"));
         assertEquals(2, ocorrencias(texto, "Total descontado: 1175 Kg"));
         assertEquals(2, ocorrencias(texto, "Peso liquido final: 22325 Kg"));
-        assertFalse(texto.contains("QUEBRA IMPUREZAS"));
+        assertTrue(texto.contains("QUEBRA ARDIDOS"));
+        assertTrue(texto.contains("QUEBRA IMPUREZAS"));
         assertTrue(texto.contains("% Classificado"));
         assertTrue(texto.contains("% Aplicado"));
         assertTrue(texto.contains("ARDIDOS"));
@@ -173,6 +176,27 @@ class TicketPdfExporterTest {
             var imagem = new org.apache.pdfbox.rendering.PDFRenderer(doc).renderImageWithDPI(0, 120);
             javax.imageio.ImageIO.write(imagem, "png", pasta.resolve("ticket-descontos.png").toFile());
         }
+    }
+
+    @Test
+    void descontosSoloExibicaoMostramPercentualSemKgNoA4(@TempDir Path tempDir) throws Exception {
+        var p = pesagemBasica();
+        p.setPesoVeiculo(new BigDecimal("8500"));
+        p.setPesoTotal(new BigDecimal("32000"));
+        p.setPesoFinal(new BigDecimal("23500"));
+        var descontos = new my_app.db.models.DescontoModel();
+        descontos.setImpurezas(new BigDecimal("20"));
+        descontos.setUmidade(new BigDecimal("10"));
+        p.setDesconto(descontos);
+        var destino = tempDir.resolve("ticket-so-exibicao.pdf").toFile();
+        exporter.gerar(destino, null, p, null);
+        var texto = extrairTexto(destino);
+        assertTrue(texto.contains("IMPUREZAS"));
+        assertTrue(texto.contains("UMIDADE"));
+        assertTrue(texto.contains("Total descontado: -"));
+        assertFalse(texto.contains("Total descontado: 0 Kg"));
+        assertFalse(texto.contains("QUEBRA ARDIDOS"));
+        assertFalse(texto.contains("OUTROS"));
     }
 
     @Test
@@ -203,8 +227,8 @@ class TicketPdfExporterTest {
         produto.setNome("MILHO");
         p.setProduto(produto);
         var descontos = new my_app.db.models.DescontoModel();
-        descontos.setImpurezas(new BigDecimal("10"));
-        descontos.setUmidade(new BigDecimal("5"));
+        descontos.setQuebraImpurezas(new BigDecimal("10"));
+        descontos.setQuebraUmidade(new BigDecimal("5"));
         p.setDesconto(descontos);
         var entrada = entradaBasica();
         entrada.setPesoTotal(new BigDecimal("1000"));

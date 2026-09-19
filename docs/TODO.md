@@ -2,6 +2,15 @@
 
 ## Ajustes (19/09/2026)
 
+- [x] **Descontos que só exibem % não descontam do peso**: Avariados, Ardidos, Impurezas e
+  Umidade passaram a ser **só-exibição** — saíam no ticket com kg (soma no total descontado e no
+  líquido final), mas hoje aparecem só com o percentual aplicado, sem reduzir peso. Só descontam
+  de fato: **Quebra ardidos, Quebra impurezas, Quebra umidade e Outros**. `TicketPesagemDados`
+  tem flag `desconta` no `Desconto` (quilos=0 pros só-exibição) e `totalDescontado()` soma só os
+  que descontam → com só só-exibição, A4/térmica mostram "-" na coluna Total (Kg) e
+  "Total descontado: -". `PesagemFormViewModel.somaDescontosQueDescontam()` no líquido final e no
+  `liquidoNegativo`; validação "soma > 100%" segue com os 8 (decisão do usuário). +4 testes;
+  casos existentes com Ardidos/Impurezas trocados por Quebra *. Suíte: **271 testes, 0 falhas**.
 - [x] **Fix — ticket térmico imprimia todos os descontos**: o `TicketThermalExporter` montava os
   **8 descontos incondicionalmente** (inclusive os zerados) — "Avariados", "Ardidos", "Impurezas"
   etc. apareciam mesmo sem valor. Corrigido no mesmo padrão do A4 (`TicketPdfExporter`): só

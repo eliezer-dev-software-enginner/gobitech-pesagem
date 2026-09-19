@@ -1,5 +1,30 @@
 # Decisões Arquiteturais
 
+## 2026-09-19: Descontos — só-exibição não descontam; validação 100% segue com os 8
+
+**Contexto:** pedido do usuário — Avariados, Ardidos, Impurezas e Umidade são apenas
+informativos no ticket (o operador registra o percentual encontrado no produto, como 20% de
+impureza), mas **não** devem reduzir o peso na pesagem. Quem desconta de fato: Quebra ardidos,
+Quebra impurezas, Quebra umidade e Outros.
+
+**Decisão:**
+1. `TicketPesagemDados.Desconto` ganhou flag `desconta`; `quilos` vale ZERO pros só-exibição e
+   `totalDescontado()` soma apenas os que descontam (antes somava os 8). Sem nenhum desconto
+   real, o ticket mostra "-" na coluna Total (Kg) / linha do desconto e "Total descontado: -"
+   (A4 e térmica).
+2. O **peso líquido final** (exibido e salvo) desconta só os tipos que descontam — novo
+   `PesagemFormViewModel.somaDescontosQueDescontam()`, usado no `calcLiquido()` e na validação
+   `liquidoNegativo`.
+3. A validação "soma dos descontos > 100%" **continua somando os 8 tipos** (decisão do usuário).
+4. `Desconto.service` (camada de dados) mantém `somaPercentuais()` = 8 tipos, coerente com a
+   validação acima — sem migration.
+
+**Testado por build:** `./gradlew test --offline` → **271 testes, 0 falhas** (JDK 25, +4 casos
+novos: 2 em `TicketPesagemDadosTest`, 1 em `TicketThermalExporterTest`, 1 em
+`TicketPdfExporterTest`).
+
+---
+
 ## 2026-09-19: Assinaturas do ticket térmico — linha acima de cada nome, espaçados
 
 **Contexto:** no rodapé do ticket térmico, "ADMINISTRADOR" e "MOTORISTA" saíam colados

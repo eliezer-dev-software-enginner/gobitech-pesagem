@@ -108,9 +108,10 @@ public class TicketThermalExporter {
             for (var desconto : aplicados) {
                 raw(linhas, desconto.nome(), false, false);
                 raw(linhas, "  " + TicketPesagemDados.decimal(desconto.percentual()) + "% / "
-                        + TicketPesagemDados.decimal(desconto.quilos()) + " Kg", false, false);
+                        + (desconto.desconta() ? TicketPesagemDados.decimal(desconto.quilos()) + " Kg" : "-"), false, false);
             }
-            raw(linhas, "Total descontado: " + TicketPesagemDados.decimal(TicketPesagemDados.totalDescontado(pesagem)) + " Kg", true, false);
+            var total = TicketPesagemDados.totalDescontado(pesagem);
+            raw(linhas, "Total descontado: " + (total.signum() == 0 ? "-" : TicketPesagemDados.decimal(total) + " Kg"), true, false);
         }
         raw(linhas, "Peso Líquido Final.: " + peso(pesagem.getPesoFinal()) + " Kg", true, false);
         vazio(linhas);
