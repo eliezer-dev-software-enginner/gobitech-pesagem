@@ -24,8 +24,7 @@ Não inicie nenhuma tarefa sem ter lido esses arquivos primeiro.
 
 ## 4. Tarefa
 
-Fiz uma refatoração no aplicativo e dentre essas refatorações está a visualização ao vivo do peso na dashboard no canto inferior direito.
-E está ok essa parte. O problema agora é que as telas de pesagem não estão conseguindo se conectar à mesma balança, então quando tento capturar tara por exemplo dá erro de "Balança não conectada", mapeie o erro e me mostre o porque isso está acontecendo.
+Na impressão de nota térmica está saindo todos os descontos, e deve sair apenas os que foram aplicados, por exemplo: Se o usuário preencheu apenas "Quebra umidade" então é somente ele que deveria aparecer, não precisaria aparecer o restante: Avariados, Ardidos, Impurezas e etc.
 
 ## 5. Ao final da tarefa
 

@@ -51,6 +51,15 @@ menu "Conexão das câmeras" está **comentado** em `HomeScreen.java:74` **por d
 (pendência M3 da vistoria, "decidido: manter" — a câmera entra no fluxo só na Fase 2/uso real),
 deixando a tela inalcançável pela UI. Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTREGAS.md`.
 
+## Estado atual (2026-09-19)
+
+- **Ticket térmico só com descontos aplicados (19/09)**: a nota térmica imprimia os **8 tipos de
+  desconto sempre**, inclusive os zerados (Avariados, Ardidos, Impurezas, etc.). Corrigido em
+  `TicketThermalExporter.montarLinhas` seguindo o mesmo padrão que o A4 já usava
+  (`TicketPdfExporter`): filtra `percentual().signum() != 0`; sem nenhum desconto aplicado, saí
+  "Nenhum desconto aplicado." e a linha "Total descontado" é omitida. Preencher só "Quebra
+  umidade" agora imprime somente esse tipo. Suíte: **266 testes, 0 falhas**.
+
 ## Estado atual (2026-09-17)
 
 - **Logomarca horizontal nas Configurações (17/09)**: `preferencias.imagem_horizontal` (V21)
@@ -138,6 +147,18 @@ deixando a tela inalcançável pela UI. Ver `/home/eliezer/Desktop/dev/outros/ba
   pares/datas do relatório, limites do PDF e impressão simulada). Prévia A4 conferida visualmente.
 
 ## Histórico
+
+### 2026-09-19 — Fix: ticket térmico imprimia todos os descontos
+- Sintoma: a nota térmica (80mm) saía com os **8 descontos sempre** (Avariados, Ardidos,
+  Quebra ardidos, Impurezas, Quebra impurezas, Umidade, Quebra umidade, Outros), mesmo os que o
+  operador não preencheu (0%). O layout A4 já só mostrava os aplicados
+  (`TicketPdfExporter.java:99`, `filter(d -> d.percentual().signum() != 0)`), mas a térmica
+  iterava `TicketPesagemDados.descontos()` sem nenhum filtro (`TicketThermalExporter.java:101`).
+- **Corrigido**: `montarLinhas` filtra os descontos aplicados (mesmo critério do A4); quando não
+  há nenhum, imprime "Nenhum desconto aplicado." e omite a linha "Total descontado" (consistente
+  com o A4, que também não imprime total sem descontos).
+- Testes: +2 casos novos em `TicketThermalExporterTest` (só aplicados / mensagem quando nenhum).
+  Suíte: `./gradlew test --offline` → **266 testes, 0 falhas** (JDK 25).
 
 ### 2026-09-17 — Fix: logomarca horizontal nas Configurações (erros da implementação do usuário)
 - O usuário adicionou save/carregar de logomarca horizontal (V21 + `imagem_horizontal` +

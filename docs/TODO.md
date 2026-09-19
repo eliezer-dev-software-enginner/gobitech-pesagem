@@ -1,5 +1,15 @@
 # TODO
 
+## Ajustes (19/09/2026)
+
+- [x] **Fix — ticket térmico imprimia todos os descontos**: o `TicketThermalExporter` montava os
+  **8 descontos incondicionalmente** (inclusive os zerados) — "Avariados", "Ardidos", "Impurezas"
+  etc. apareciam mesmo sem valor. Corrigido no mesmo padrão do A4 (`TicketPdfExporter`): só
+  descontos com percentual ≠ 0; sem nenhum, imprime "Nenhum desconto aplicado." (sem linha de
+  Total descontado). Ex.: preencher só "Quebra umidade" → só ele sai no ticket. +2 testes
+  (`soImprimeDescontosAplicados`/`semDescontosImprimeMensagemEmVezDaLista`). Suíte: **266 testes,
+  0 falhas**.
+
 ## Ajustes (17/09/2026)
 
 - [x] **Fix — logomarca horizontal nas Configurações**: implementação do usuário conferida e

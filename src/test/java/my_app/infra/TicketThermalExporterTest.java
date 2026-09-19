@@ -137,4 +137,36 @@ class TicketThermalExporterTest {
         assertTrue(texto.contains("Total descontado: 1175 Kg"));
         assertTrue(texto.contains("Peso Líquido Final.: 22325 Kg"));
     }
+
+    @Test
+    void soImprimeDescontosAplicados() {
+        var p = pesagemBasica();
+        p.setPesoVeiculo(new BigDecimal("8500"));
+        p.setPesoTotal(new BigDecimal("32000"));
+        p.setPesoFinal(new BigDecimal("22325"));
+        var d = new my_app.db.models.DescontoModel();
+        d.setQuebraUmidade(new BigDecimal("5"));
+        p.setDesconto(d);
+        var texto = String.join("\n", exporter.montarLinhas(null, p, null).stream()
+                .map(TicketThermalExporter.EstiloLinha::texto).toList());
+        assertTrue(texto.contains("Quebra umidade\n  5% / 1175 Kg"));
+        assertTrue(texto.contains("Total descontado: 1175 Kg"));
+        assertFalse(texto.contains("Avariados"));
+        assertFalse(texto.contains("Ardidos"));
+        assertFalse(texto.contains("Impurezas"));
+        assertFalse(texto.contains("Outros"));
+        assertFalse(texto.contains("Quebra ardidos"));
+        assertFalse(texto.contains("Quebra impurezas"));
+        assertFalse(texto.contains("Umidade"));
+    }
+
+    @Test
+    void semDescontosImprimeMensagemEmVezDaLista() {
+        var texto = String.join("\n", exporter.montarLinhas(null, pesagemBasica(), null).stream()
+                .map(TicketThermalExporter.EstiloLinha::texto).toList());
+        assertTrue(texto.contains("DESCONTOS"));
+        assertTrue(texto.contains("Nenhum desconto aplicado."));
+        assertFalse(texto.contains("Avariados"));
+        assertFalse(texto.contains("Total descontado"));
+    }
 }

@@ -1,5 +1,24 @@
 # Decisões Arquiteturais
 
+## 2026-09-19: Ticket térmico imprime somente descontos aplicados
+
+**Contexto:** o usuário reportou que a nota térmica (80mm) imprimia todos os descontos —
+"Avariados, Ardidos, Impurezas e etc." — mesmo quando o operador preenchia apenas um (ex.:
+"Quebra umidade"). O A4 (`TicketPdfExporter`) já escondia os percentuais zerados
+(`filter(d -> d.percentual().signum() != 0)` e "Nenhum desconto aplicado." quando vazio), mas o
+`TicketThermalExporter.montarLinhas` iterava `TicketPesagemDados.descontos()` sem filtro nenhum.
+
+**Decisão:** aplicar o mesmo padrão do A4 na térmica — seção **DESCONTOS** mostra somente os
+tipos com percentual ≠ 0; quando não há nenhum, imprime "Nenhum desconto aplicado." e **omite** a
+linha "Total descontado" (o A4 também não imprime total sem descontos). A base de cálculo dos
+descontos, o total e o líquido final não mudam — apenas a apresentação na bobina. Sem alteração
+de schema nem de `TicketPesagemDados`.
+
+**Testado por build:** `./gradlew test --offline` → **266 testes, 0 falhas** (JDK 25, +2 casos
+novos em `TicketThermalExporterTest`).
+
+---
+
 ## 2026-09-17: Salvar/carregar logomarca horizontal — correções na implementação do usuário
 
 **Contexto:** o usuário implementou em Gerencial → Configurações o salvamento/exibição de uma

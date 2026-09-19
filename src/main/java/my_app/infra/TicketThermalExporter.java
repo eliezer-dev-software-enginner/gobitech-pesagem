@@ -98,12 +98,19 @@ public class TicketThermalExporter {
         raw(linhas, "Peso Líquido Inicial: " + peso(TicketPesagemDados.liquidoAntesDescontos(pesagem)) + " Kg", false, false);
         raw(linhas, "DESCONTOS", true, false);
         raw(linhas, "Tipo / % / descontado (Kg)", true, false);
-        for (var desconto : TicketPesagemDados.descontos(pesagem)) {
-            raw(linhas, desconto.nome(), false, false);
-            raw(linhas, "  " + TicketPesagemDados.decimal(desconto.percentual()) + "% / "
-                    + TicketPesagemDados.decimal(desconto.quilos()) + " Kg", false, false);
+        var aplicados = TicketPesagemDados.descontos(pesagem).stream()
+                .filter(d -> d.percentual().signum() != 0)
+                .toList();
+        if (aplicados.isEmpty()) {
+            raw(linhas, "Nenhum desconto aplicado.", false, false);
+        } else {
+            for (var desconto : aplicados) {
+                raw(linhas, desconto.nome(), false, false);
+                raw(linhas, "  " + TicketPesagemDados.decimal(desconto.percentual()) + "% / "
+                        + TicketPesagemDados.decimal(desconto.quilos()) + " Kg", false, false);
+            }
+            raw(linhas, "Total descontado: " + TicketPesagemDados.decimal(TicketPesagemDados.totalDescontado(pesagem)) + " Kg", true, false);
         }
-        raw(linhas, "Total descontado: " + TicketPesagemDados.decimal(TicketPesagemDados.totalDescontado(pesagem)) + " Kg", true, false);
         raw(linhas, "Peso Líquido Final.: " + peso(pesagem.getPesoFinal()) + " Kg", true, false);
         vazio(linhas);
         raw(linhas, "Observação:", false, false);
