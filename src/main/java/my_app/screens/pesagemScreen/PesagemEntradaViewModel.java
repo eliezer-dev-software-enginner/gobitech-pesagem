@@ -1,6 +1,6 @@
 package my_app.screens.pesagemScreen;
 
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 
 /**
  * Pesagem de entrada: caminhão vazio chegando pra carregar. Formulário completo
@@ -8,7 +8,7 @@ import megalodonte.router.v4.ScreenContext;
  */
 public class PesagemEntradaViewModel extends PesagemFormViewModel {
 
-    public PesagemEntradaViewModel(ScreenContext ctx) {
+    public PesagemEntradaViewModel(ScreenContextInterface ctx) {
         super(ctx);
     }
 

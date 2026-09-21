@@ -4,7 +4,7 @@ import javafx.stage.FileChooser;
 import megalodonte.base.UI;
 import megalodonte.base.async.Async;
 import megalodonte.base.state.State;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import megalodonte.v2.ListState;
 import my_app.core.events.ClienteEvent;
 import my_app.core.events.EventBus;
@@ -49,7 +49,7 @@ public abstract class PesagemFormViewModel {
 
     private static final Logger log = LoggerFactory.getLogger(PesagemFormViewModel.class);
 
-    protected final ScreenContext ctx;
+    protected final ScreenContextInterface ctx;
     protected final PesagemService pesagemService;
     protected final ClienteService clienteService;
     protected final ProdutoService produtoService;
@@ -94,7 +94,7 @@ public abstract class PesagemFormViewModel {
     protected final State<String> fotoCostas1 = State.of(null);
     protected final State<String> fotoCostas2 = State.of(null);
 
-    protected PesagemFormViewModel(ScreenContext ctx) {
+    protected PesagemFormViewModel(ScreenContextInterface ctx) {
         this.ctx = ctx;
         this.pesagemService = createOrReport(PesagemService::new);
         this.clienteService = createOrReport(ClienteService::new);

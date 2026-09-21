@@ -12,8 +12,9 @@ import megalodonte.application.MegalodonteApp;
 import megalodonte.application.MegalodonteApplication;
 import megalodonte.base.UI;
 import megalodonte.base.async.Async;
+import megalodonte.base.route.RouteTable;
 import megalodonte.base.theme.ThemeManager;
-import megalodonte.router.v4.Router;
+import megalodonte.router.v5.Router;
 import my_app.core.InitialRouteResolver;
 import my_app.core.Themes;
 import my_app.db.DB;
@@ -112,7 +113,7 @@ public class Main {
         ThemeManager.setTheme(Themes.LIGHT); // mexe em Scene/Stylesheets -> FX thread, fica fora do Async.Run
 
         var routes = new AppRoutes().routes();
-        Router router = new Router(routes, AppRoutes.Screens.SPLASH.name());
+        Router router = new Router(new RouteTable(routes, AppRoutes.Screens.SPLASH.name()));
         context.useRouter(router).start(); // mostra a splash via fluxo normal do Router
 
         // Manda o log acumulado até agora pro Telegram a cada abertura do app — dá

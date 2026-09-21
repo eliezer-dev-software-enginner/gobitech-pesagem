@@ -12,14 +12,14 @@ import megalodonte.components.layout_components.Container;
 import megalodonte.components.layout_components.FlowRow;
 import megalodonte.components.layout_components.Row;
 import megalodonte.props.*;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import megalodonte.v2.Show;
 import my_app.domain.components.Components;
 
 public class DashboardScreen implements ScreenComponent {
     private final DashboardViewModel vm;
 
-    public DashboardScreen(ScreenContext ctx) {
+    public DashboardScreen(ScreenContextInterface ctx) {
         this.vm = new DashboardViewModel(ctx);
     }
 

@@ -3,7 +3,7 @@ package my_app.screens.conexaoCameraScreen;
 import megalodonte.base.UI;
 import megalodonte.base.async.Async;
 import megalodonte.base.state.State;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import my_app.db.models.ConexaoCameraModel;
 import my_app.db.services.ConexaoCameraService;
 import my_app.domain.components.Components;
@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 public class ConexaoCameraViewModel {
     private static final Logger log = LoggerFactory.getLogger(ConexaoCameraViewModel.class);
 
-    private final ScreenContext ctx;
+    private final ScreenContextInterface ctx;
     private final ConexaoCameraService conexaoCameraService;
     private final CameraSnapshotClient cameraSnapshotClient = new CameraSnapshotClient();
 
@@ -33,7 +33,7 @@ public class ConexaoCameraViewModel {
     final State<String> costasSenha = State.of("");
     final State<String> costasPreview = State.of(null);
 
-    public ConexaoCameraViewModel(ScreenContext ctx) {
+    public ConexaoCameraViewModel(ScreenContextInterface ctx) {
         this.ctx = ctx;
         this.conexaoCameraService = createOrReport(ConexaoCameraService::new);
     }

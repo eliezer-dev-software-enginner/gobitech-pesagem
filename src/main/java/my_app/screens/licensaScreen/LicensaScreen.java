@@ -11,7 +11,7 @@ import megalodonte.components.layout_components.Container;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.ContainerProps;
 import megalodonte.props.SimpleTableProps;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import megalodonte.v2.Show;
 import my_app.db.models.LicensaModel;
 import my_app.domain.Data;
@@ -21,7 +21,7 @@ import pack.utilities.DatePack;
 public class LicensaScreen implements ScreenComponent {
     private final LicensaViewModel vm;
 
-    public LicensaScreen(ScreenContext ctx) {
+    public LicensaScreen(ScreenContextInterface ctx) {
         this.vm = new LicensaViewModel(ctx);
     }
 

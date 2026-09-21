@@ -17,12 +17,12 @@ import megalodonte.props.ContainerProps;
 import megalodonte.props.InputProps;
 import megalodonte.props.RowProps;
 import megalodonte.props.TextProps;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 
 public class LogsScreen implements ScreenComponent {
     private final LogsScreenViewModel vm;
 
-    public LogsScreen(ScreenContext ctx) {
+    public LogsScreen(ScreenContextInterface ctx) {
         this.vm = new LogsScreenViewModel();
     }
 

@@ -4,7 +4,7 @@ import megalodonte.ComputedState;
 import megalodonte.base.state.State;
 import megalodonte.base.UI;
 import megalodonte.base.async.Async;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import megalodonte.v2.ListState;
 import my_app.core.AppRoutes;
 import my_app.db.models.LicensaModel;
@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 public class LicensaViewModel {
     private static final Logger log = LoggerFactory.getLogger(LicensaViewModel.class);
 
-    private final ScreenContext ctx;
+    private final ScreenContextInterface ctx;
     private final LicensaService licensaService;
 
     final State<LocalDate> dataExpiracao = State.of(null);
@@ -39,7 +39,7 @@ public class LicensaViewModel {
             () -> !codigoGerado.get().isEmpty(), codigoGerado
     );
 
-    public LicensaViewModel(ScreenContext ctx) {
+    public LicensaViewModel(ScreenContextInterface ctx) {
         this.ctx = ctx;
         this.licensaService = createOrReport(LicensaService::new);
     }

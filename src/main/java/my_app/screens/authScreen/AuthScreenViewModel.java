@@ -3,7 +3,7 @@ package my_app.screens.authScreen;
 import megalodonte.base.state.State;
 import megalodonte.base.UI;
 import megalodonte.base.async.Async;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import my_app.core.AppRoutes;
 import my_app.db.services.LicensaService;
 import my_app.db.services.PreferenciasService;
@@ -39,7 +39,7 @@ public class AuthScreenViewModel {
         }
     }
 
-    void entrar(ScreenContext ctx) {
+    void entrar(ScreenContextInterface ctx) {
         String loginValue = loginState.get().trim();
         String senhaValue = passwordState.get().trim();
 

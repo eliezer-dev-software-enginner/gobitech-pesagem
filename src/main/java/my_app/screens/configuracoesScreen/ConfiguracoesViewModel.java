@@ -4,7 +4,7 @@ import javafx.stage.FileChooser;
 import megalodonte.ComputedState;
 import megalodonte.base.UI;
 import megalodonte.base.state.State;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import my_app.core.events.EventBus;
 import my_app.core.events.PreferenciasEvent;
 import my_app.db.services.PreferenciasService;
@@ -30,10 +30,10 @@ public class ConfiguracoesViewModel {
     final State<String> status = State.of("Carregando configurações...");
 
     private final AtomicBoolean ocupado = new AtomicBoolean();
-    private final ScreenContext ctx;
+    private final ScreenContextInterface ctx;
     private volatile boolean destruido;
 
-    public ConfiguracoesViewModel(ScreenContext ctx) {
+    public ConfiguracoesViewModel(ScreenContextInterface ctx) {
         this.ctx = ctx;
     }
 

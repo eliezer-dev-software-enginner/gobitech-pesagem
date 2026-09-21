@@ -6,7 +6,7 @@ import megalodonte.base.theme.ThemeManager;
 import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.Container;
 import megalodonte.components.layout_components.FlowRow;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import my_app.domain.Data;
 import my_app.domain.components.Components;
 import megalodonte.components.*;
@@ -16,7 +16,7 @@ import megalodonte.props.*;
 public class CadastroEmpresaScreen implements ScreenComponent {
     private final EmpresaViewModel vm;
 
-    public CadastroEmpresaScreen(ScreenContext ctx) {
+    public CadastroEmpresaScreen(ScreenContextInterface ctx) {
         vm = new EmpresaViewModel(ctx);
     }
 

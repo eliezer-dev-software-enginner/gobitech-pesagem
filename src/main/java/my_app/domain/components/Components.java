@@ -25,7 +25,7 @@ import megalodonte.components.layout_components.FlowRow;
 import megalodonte.components.layout_components.Row;
 import megalodonte.props.*;
 import megalodonte.props.v2.InputProps;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import megalodonte.v2.ListState;
 import my_app.domain.Data;
 import my_app.domain.states.EnderecoState;
@@ -176,7 +176,7 @@ public class Components {
         return Component.CreateFromJavaFxNode(scroll);
     }
 
-    public static void ShowPopup(ScreenContext context, String message) {
+    public static void ShowPopup(ScreenContextInterface context, String message) {
         Popup popup = new Popup();
 
         Label label = new Label(message);

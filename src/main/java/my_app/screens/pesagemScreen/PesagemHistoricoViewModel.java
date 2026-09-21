@@ -3,7 +3,7 @@ package my_app.screens.pesagemScreen;
 import megalodonte.base.async.Async;
 import megalodonte.base.UI;
 import megalodonte.base.state.State;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import megalodonte.v2.ListState;
 import my_app.core.events.PesagemEvent;
 import my_app.core.events.EventBus;
@@ -52,7 +52,7 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
     static final List<String> tiposPesagemOpcoes = List.of(
             TIPO_TODOS, "Entrada", "Saída", "Avulsa", "Manual");
 
-    public PesagemHistoricoViewModel(ScreenContext ctx) {
+    public PesagemHistoricoViewModel(ScreenContextInterface ctx) {
         super(ctx);
         this.pesagemService = createOrReport(PesagemService::new);
         this.clienteService = createOrReport(ClienteService::new);

@@ -22,13 +22,13 @@ import megalodonte.props.FlowRowProps;
 import megalodonte.props.ImageProps;
 import megalodonte.props.RowProps;
 import megalodonte.props.TextProps;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import my_app.domain.components.Components;
 
 public class ConexaoCameraScreen implements ScreenComponent {
     private final ConexaoCameraViewModel vm;
 
-    public ConexaoCameraScreen(ScreenContext ctx) {
+    public ConexaoCameraScreen(ScreenContextInterface ctx) {
         this.vm = new ConexaoCameraViewModel(ctx);
     }
 

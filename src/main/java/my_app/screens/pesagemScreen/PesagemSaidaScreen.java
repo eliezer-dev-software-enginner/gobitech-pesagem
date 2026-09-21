@@ -3,7 +3,7 @@ package my_app.screens.pesagemScreen;
 import megalodonte.base.components.Component;
 import megalodonte.components.Text;
 import megalodonte.props.TextProps;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 
 /**
  * Pesagem de saída — digite a placa e os dados da última entrada são puxados; a Tara vem
@@ -12,12 +12,12 @@ import megalodonte.router.v4.ScreenContext;
  */
 public class PesagemSaidaScreen extends PesagemFormScreen {
 
-    public PesagemSaidaScreen(ScreenContext ctx) {
+    public PesagemSaidaScreen(ScreenContextInterface ctx) {
         super(ctx);
     }
 
     @Override
-    protected PesagemFormViewModel criarViewModel(ScreenContext ctx) {
+    protected PesagemFormViewModel criarViewModel(ScreenContextInterface ctx) {
         return new PesagemSaidaViewModel(ctx);
     }
 

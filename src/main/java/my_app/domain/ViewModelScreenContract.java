@@ -2,8 +2,8 @@ package my_app.domain;
 
 import megalodonte.ComputedState;
 import megalodonte.application.ErrorReporter;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import megalodonte.base.state.State;
-import megalodonte.router.v4.ScreenContext;
 import megalodonte.utils.ThrowingSupplier;
 import megalodonte.v2.ListState;
 import my_app.core.Identifier;
@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public abstract class ViewModelScreenContract<Model extends Identifier> {
-    protected final ScreenContext ctx;
+    protected final ScreenContextInterface ctx;
     protected final State<Boolean> modoEdicao = State.of(false);
     private final AtomicBoolean salvando = new AtomicBoolean(false);
 
@@ -26,7 +26,7 @@ public abstract class ViewModelScreenContract<Model extends Identifier> {
 
     public final State<Model> selected = State.of(null);
 
-    public ViewModelScreenContract(ScreenContext ctx) {
+    public ViewModelScreenContract(ScreenContextInterface ctx) {
         this.ctx = ctx;
         searchState.subscribe(_ -> applyFilter());
         allDataList.subscribe(_ -> applyFilter());

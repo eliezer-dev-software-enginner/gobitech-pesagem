@@ -1,6 +1,6 @@
 package my_app.screens.pesagemScreen;
 
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 
 /**
  * Pesagem avulsa — caminhão direto na balança, sem entrada prévia. O operador digita a Tara
@@ -8,12 +8,12 @@ import megalodonte.router.v4.ScreenContext;
  */
 public class PesagemAvulsaScreen extends PesagemFormScreen {
 
-    public PesagemAvulsaScreen(ScreenContext ctx) {
+    public PesagemAvulsaScreen(ScreenContextInterface ctx) {
         super(ctx);
     }
 
     @Override
-    protected PesagemFormViewModel criarViewModel(ScreenContext ctx) {
+    protected PesagemFormViewModel criarViewModel(ScreenContextInterface ctx) {
         return new PesagemAvulsaViewModel(ctx);
     }
 

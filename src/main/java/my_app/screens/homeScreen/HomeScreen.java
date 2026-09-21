@@ -12,16 +12,16 @@ import megalodonte.components.layout_components.Row;
 import megalodonte.components.layout_components.Stack;
 import megalodonte.props.ContainerProps;
 import megalodonte.props.RowProps;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import my_app.core.AppRoutes;
 import my_app.domain.SessaoUsuario;
 
 public class HomeScreen implements ScreenComponent {
 
     private final HomeScreenViewModel viewModel;
-    private final ScreenContext ctx;
+    private final ScreenContextInterface ctx;
 
-    public HomeScreen(ScreenContext ctx) {
+    public HomeScreen(ScreenContextInterface ctx) {
         this.ctx = ctx;
         this.viewModel = new HomeScreenViewModel(ctx);
     }
@@ -61,21 +61,21 @@ public class HomeScreen implements ScreenComponent {
     private Component menuBar() {
         boolean isAdmin = SessaoUsuario.isAdmin();
                // Pendência M3: reativar item quando a câmera fizer parte do fluxo
-                        // .item("Conexão das câmeras", () -> ctx.router().spawnWindow(AppRoutes.Screens.CONEXAO_CAMERA.name(), e -> {}));
+                        // .item("Conexão das câmeras", () -> ctx.spawnWindow(AppRoutes.Screens.CONEXAO_CAMERA.name(), e -> {}));
 
                         return new MenuBar()
                                 .bgColor(Sidebar.BG)
                                 .menu(new Menu("Gerencial")
                                         .textColor(Sidebar.TEXT_COLOR)
-                                        .item("Empresa", () -> ctx.router().spawnWindow(AppRoutes.Screens.EMPRESA.name(), e -> {}))
-                                        .item("Configurações", () -> ctx.router().spawnWindow(AppRoutes.Screens.CONFIGURACOES.name(), e -> {}))
-                                        .item("Conexão da balança", () -> ctx.router().spawnWindow(AppRoutes.Screens.CONEXAO_BALANCA.name(), e -> {}))
-                                        .item("Produtos", () -> ctx.router().spawnWindow(AppRoutes.Screens.PRODUTOS.name(), e -> {}))
-                                        .item("Clientes", () -> ctx.router().spawnWindow(AppRoutes.Screens.CLIENTES.name(), e -> {}))
-                                        .itemIf(isAdmin, "Usuários do sistema", () -> ctx.router().spawnWindow(AppRoutes.Screens.USUARIOS.name(), e -> {}))
-                                        .itemIf(isAdmin, "Gerar licença", () -> ctx.router().spawnWindow(AppRoutes.Screens.LICENSA.name(), e -> {})))
+                                        .item("Empresa", () -> ctx.spawnWindow(AppRoutes.Screens.EMPRESA.name(), e -> {}))
+                                        .item("Configurações", () -> ctx.spawnWindow(AppRoutes.Screens.CONFIGURACOES.name(), e -> {}))
+                                        .item("Conexão da balança", () -> ctx.spawnWindow(AppRoutes.Screens.CONEXAO_BALANCA.name(), e -> {}))
+                                        .item("Produtos", () -> ctx.spawnWindow(AppRoutes.Screens.PRODUTOS.name(), e -> {}))
+                                        .item("Clientes", () -> ctx.spawnWindow(AppRoutes.Screens.CLIENTES.name(), e -> {}))
+                                        .itemIf(isAdmin, "Usuários do sistema", () -> ctx.spawnWindow(AppRoutes.Screens.USUARIOS.name(), e -> {}))
+                                        .itemIf(isAdmin, "Gerar licença", () -> ctx.spawnWindow(AppRoutes.Screens.LICENSA.name(), e -> {})))
                                 .menu(new Menu("Logs")
                                         .textColor(Sidebar.TEXT_COLOR)
-                                        .itemIf(isAdmin, "Ver logs da aplicação", () -> ctx.router().spawnWindow(AppRoutes.Screens.LOGS.name(), e -> {})));
+                                        .itemIf(isAdmin, "Ver logs da aplicação", () -> ctx.spawnWindow(AppRoutes.Screens.LOGS.name(), e -> {})));
     }
 }

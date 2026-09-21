@@ -18,7 +18,7 @@ import megalodonte.props.ButtonProps;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.RowProps;
 import megalodonte.props.TextProps;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import megalodonte.utils.ThrowingSupplier;
 import my_app.db.models.PesagemModel;
 import my_app.db.services.PesagemService;
@@ -31,7 +31,7 @@ import java.util.function.Function;
 
 public class DetailsPesagemScreen implements ScreenComponent {
     private static final Logger log = LoggerFactory.getLogger(DetailsPesagemScreen.class);
-    private final ScreenContext ctx;
+    private final ScreenContextInterface ctx;
     private final PesagemService pesagemService;
     private final PesagemHistoricoViewModel vm;
     private final State<PesagemModel> model = State.of(null);
@@ -50,7 +50,7 @@ public class DetailsPesagemScreen implements ScreenComponent {
     private final ComputedState<String> dataCriacao = campo(p -> DatePack.localDateTimeToBrazilianDateTime(p.getDataCriacao()));
     private final ComputedState<String> observacoes = campo(PesagemModel::getObservacoes);
 
-    public DetailsPesagemScreen(ScreenContext ctx) {
+    public DetailsPesagemScreen(ScreenContextInterface ctx) {
         this.ctx = ctx;
         long id;
         try {

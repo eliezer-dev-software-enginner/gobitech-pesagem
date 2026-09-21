@@ -14,7 +14,7 @@ import megalodonte.components.Text;
 import megalodonte.components.layout_components.Column;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.TextProps;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import megalodonte.utils.ThrowingSupplier;
 import my_app.db.models.ProdutoModel;
 import my_app.db.services.ProdutoService;
@@ -37,7 +37,7 @@ public class DetailsProdutoScreen implements ScreenComponent {
     private final ComputedState<String> dataCriacao = campo(p -> DatePack.localDateTimeToBrazilianDateTime(p.getDataCriacao()));
     private final ComputedState<String> observacoes = campo(ProdutoModel::getObservacoes);
 
-    public DetailsProdutoScreen(ScreenContext ctx) {
+    public DetailsProdutoScreen(ScreenContextInterface ctx) {
         long id;
         try {
             id = Long.parseLong(ctx.getParams().get("id"));

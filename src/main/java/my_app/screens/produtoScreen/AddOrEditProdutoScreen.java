@@ -13,7 +13,7 @@ import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.FlowRow;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.FlowRowProps;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import megalodonte.utils.ThrowingSupplier;
 import my_app.db.services.ProdutoService;
 import my_app.domain.Data;
@@ -29,7 +29,7 @@ public class AddOrEditProdutoScreen implements ScreenComponent {
 
     State<String> titleState = new State<>("");
 
-    public AddOrEditProdutoScreen(ScreenContext screenContext){
+    public AddOrEditProdutoScreen(ScreenContextInterface screenContext){
         viewModel = new ProdutoScreenViewModel(screenContext);
         produtoService = createOrReport(ProdutoService::new);
         String type = screenContext.getParams().get("type");

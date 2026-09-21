@@ -3,7 +3,7 @@ package my_app.screens.produtoScreen;
 import megalodonte.base.state.State;
 import megalodonte.base.UI;
 import megalodonte.base.async.Async;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import my_app.core.AppRoutes;
 import my_app.db.models.ProdutoModel;
 import my_app.db.services.ProdutoService;
@@ -31,7 +31,7 @@ public class ProdutoScreenViewModel extends ViewModelScreenContract<ProdutoModel
     // Desconto padrão do produto — carregado no campo "Outros" da Pesagem ao selecioná-lo.
     final State<String> desconto = new State<>("");
 
-    public ProdutoScreenViewModel(ScreenContext ctx) {
+    public ProdutoScreenViewModel(ScreenContextInterface ctx) {
         super(ctx);
         this.produtoService = createOrReport(ProdutoService::new);
         screenNameSpawn = AppRoutes.Screens.ADD_OR_EDIT_PRODUTO.name();

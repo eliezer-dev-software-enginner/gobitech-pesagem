@@ -11,7 +11,7 @@ import megalodonte.components.layout_components.Container;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.SimpleTableProps;
 import megalodonte.props.TextProps;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import my_app.core.AppRoutes;
 import my_app.db.models.ClienteModel;
 import my_app.domain.ContratoTelaCrudV3;
@@ -27,9 +27,9 @@ import java.util.List;
 
 public class ClienteScreen implements ScreenComponent, ContratoTelaCrudV3<ClienteModel> {
     private final ClienteViewModel vm;
-    private final ScreenContext screenContext;
+    private final ScreenContextInterface screenContext;
 
-    public ClienteScreen(ScreenContext ctx) {
+    public ClienteScreen(ScreenContextInterface ctx) {
         this.screenContext = ctx;
         this.vm = new ClienteViewModel(ctx);
     }
@@ -75,7 +75,7 @@ public class ClienteScreen implements ScreenComponent, ContratoTelaCrudV3<Client
                 .build()
                 .onItemSelectChange(vm.selected::set)
                 //.onItemDoubleClick(it -> showItemDetails(it, this.screenContext, 350));
-                .onItemDoubleClick(it -> screenContext.router().spawnWindow(AppRoutes.Screens.DETAILS_CLIENTE.name() + "/" + it.getId()));
+                .onItemDoubleClick(it -> screenContext.spawnWindow(AppRoutes.Screens.DETAILS_CLIENTE.name() + "/" + it.getId()));
 
         return simpleTable;
     }

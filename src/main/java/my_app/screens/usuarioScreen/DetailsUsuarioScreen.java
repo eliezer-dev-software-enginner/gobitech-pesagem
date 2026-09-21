@@ -14,7 +14,7 @@ import megalodonte.components.Text;
 import megalodonte.components.layout_components.Column;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.TextProps;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import megalodonte.utils.ThrowingSupplier;
 import my_app.db.models.UsuarioModel;
 import my_app.db.services.UsuarioService;
@@ -37,7 +37,7 @@ public class DetailsUsuarioScreen implements ScreenComponent {
     private final ComputedState<String> admin = campo(u -> Boolean.TRUE.equals(u.getAdmin()) ? "Sim" : "Não");
     private final ComputedState<String> dataCriacao = campo(u -> DatePack.localDateTimeToBrazilianDateTime(u.getDataCriacao()));
 
-    public DetailsUsuarioScreen(ScreenContext ctx) {
+    public DetailsUsuarioScreen(ScreenContextInterface ctx) {
         long id;
         try {
             id = Long.parseLong(ctx.getParams().get("id"));

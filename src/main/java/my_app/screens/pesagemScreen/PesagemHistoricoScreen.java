@@ -13,7 +13,7 @@ import megalodonte.props.ColumnProps;
 import megalodonte.props.FlowRowProps;
 import megalodonte.props.RowProps;
 import megalodonte.props.SimpleTableProps;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import my_app.core.AppRoutes;
 import my_app.db.models.EmpresaModel;
 import my_app.db.models.PesagemModel;
@@ -37,9 +37,9 @@ import static my_app.domain.pesagem.RelatorioPesagemDados.pesoStr;
 public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrudV3<PesagemModel> {
 
     private final PesagemHistoricoViewModel vm;
-    private final ScreenContext screenContext;
+    private final ScreenContextInterface screenContext;
 
-    public PesagemHistoricoScreen(ScreenContext ctx) {
+    public PesagemHistoricoScreen(ScreenContextInterface ctx) {
         this.screenContext = ctx;
         this.vm = new PesagemHistoricoViewModel(ctx);
     }
@@ -110,7 +110,7 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
                 .build()
                 .onItemSelectChange(vm.selected::set)
                 //.onItemDoubleClick(it -> showItemDetailsComAcoes(it, this.screenContext, 500));
-                .onItemDoubleClick(it -> screenContext.router().spawnWindow(AppRoutes.Screens.DETAILS_PESAGEM.name() + "/" + it.getId()));
+                .onItemDoubleClick(it -> screenContext.spawnWindow(AppRoutes.Screens.DETAILS_PESAGEM.name() + "/" + it.getId()));
 
         return simpleTable;
     }

@@ -2,7 +2,7 @@ package my_app.screens.pesagemScreen;
 
 import megalodonte.base.UI;
 import megalodonte.base.async.Async;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import my_app.db.models.PesagemModel;
 import my_app.domain.components.Components;
 import my_app.domain.pesagem.PesagemRegras;
@@ -20,7 +20,7 @@ public class PesagemSaidaViewModel extends PesagemFormViewModel {
 
     private Integer entradaIdVinculada;
 
-    public PesagemSaidaViewModel(ScreenContext ctx) {
+    public PesagemSaidaViewModel(ScreenContextInterface ctx) {
         super(ctx);
 
         // Digitar a placa dispara a busca pela última Entrada daquele caminhão. Assíncrono

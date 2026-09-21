@@ -22,7 +22,7 @@ import megalodonte.props.CardProps;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.ContainerProps;
 import megalodonte.props.RowProps;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import my_app.core.Identifier;
 import my_app.db.models.EmpresaModel;
 import my_app.domain.components.Components;
@@ -51,7 +51,7 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
     ViewModelScreenContract<T> viewModel();
 
     default void handleClickNew() {
-        viewModel().ctx.router().spawnWindow(viewModel().screenNameSpawn+"/-1/add/");
+        viewModel().ctx.spawnWindow(viewModel().screenNameSpawn+"/-1/add/");
     }
 
     default void handleClickBaixarLista() {
@@ -93,7 +93,7 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
         if(viewModel().selected.get() == null)throw new IllegalArgumentException("Selecione o item na tabela antes!");
 
         long id = viewModel().selected.get().getId();
-        viewModel().ctx.router().spawnWindow(viewModel().screenNameSpawn+"/"+id+"/edit/");
+        viewModel().ctx.spawnWindow(viewModel().screenNameSpawn+"/"+id+"/edit/");
     }
 
     SimpleTable<T> table();
@@ -125,7 +125,7 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
                                         new Column(new ColumnProps().fillWidth().spacingOf(15))
                                                 .children(
                                                         Components.searchInput(viewModel().searchState, "Pesquisar"),
-                                                        table()
+                                                        table().horizontalScroll()
                                                 ),
                                         new CardProps().fillWidth().paddingAll(20).bgColor("#ffffff")
                                 )

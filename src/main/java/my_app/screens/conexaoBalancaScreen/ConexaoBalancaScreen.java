@@ -11,14 +11,14 @@ import megalodonte.components.layout_components.Row;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.ContainerProps;
 import megalodonte.props.RowProps;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import megalodonte.v2.Show;
 import my_app.domain.components.Components;
 
 public class ConexaoBalancaScreen implements ScreenComponent {
     private final ConexaoBalancaViewModel vm;
 
-    public ConexaoBalancaScreen(ScreenContext ctx) {
+    public ConexaoBalancaScreen(ScreenContextInterface ctx) {
         this.vm = new ConexaoBalancaViewModel(ctx);
     }
 

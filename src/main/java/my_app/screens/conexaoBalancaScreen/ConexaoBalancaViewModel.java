@@ -5,7 +5,7 @@ import megalodonte.ComputedState;
 import megalodonte.base.state.State;
 import megalodonte.base.UI;
 import megalodonte.base.async.Async;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import megalodonte.v2.ListState;
 import my_app.db.models.ConexaoBalancaModel;
 import my_app.db.services.ConexaoBalancaService;
@@ -19,7 +19,7 @@ import java.util.List;
 public class ConexaoBalancaViewModel {
     private static final Logger log = LoggerFactory.getLogger(ConexaoBalancaViewModel.class);
 
-    private final ScreenContext ctx;
+    private final ScreenContextInterface ctx;
     private final ConexaoBalancaService conexaoBalancaService;
 
     public static final List<String> tiposConexaoList = List.of("Serial", "TCP");
@@ -38,7 +38,7 @@ public class ConexaoBalancaViewModel {
 
     private ConexaoBalancaModel existente;
 
-    public ConexaoBalancaViewModel(ScreenContext ctx) {
+    public ConexaoBalancaViewModel(ScreenContextInterface ctx) {
         this.ctx = ctx;
         this.conexaoBalancaService = createOrReport(ConexaoBalancaService::new);
     }

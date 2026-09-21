@@ -1,6 +1,6 @@
 package my_app.screens.pesagemScreen;
 
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 
 /**
  * Pesagem manual — sem leitura da balança em tempo real: o operador digita a Tara e o peso
@@ -8,12 +8,12 @@ import megalodonte.router.v4.ScreenContext;
  */
 public class PesagemManualScreen extends PesagemFormScreen {
 
-    public PesagemManualScreen(ScreenContext ctx) {
+    public PesagemManualScreen(ScreenContextInterface ctx) {
         super(ctx);
     }
 
     @Override
-    protected PesagemFormViewModel criarViewModel(ScreenContext ctx) {
+    protected PesagemFormViewModel criarViewModel(ScreenContextInterface ctx) {
         return new PesagemManualViewModel(ctx);
     }
 

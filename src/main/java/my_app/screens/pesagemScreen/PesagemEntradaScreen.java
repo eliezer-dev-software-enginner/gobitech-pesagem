@@ -1,16 +1,16 @@
 package my_app.screens.pesagemScreen;
 
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 
 /** Pesagem de entrada — form completo com leitura da balança. */
 public class PesagemEntradaScreen extends PesagemFormScreen {
 
-    public PesagemEntradaScreen(ScreenContext ctx) {
+    public PesagemEntradaScreen(ScreenContextInterface ctx) {
         super(ctx);
     }
 
     @Override
-    protected PesagemFormViewModel criarViewModel(ScreenContext ctx) {
+    protected PesagemFormViewModel criarViewModel(ScreenContextInterface ctx) {
         return new PesagemEntradaViewModel(ctx);
     }
 }

@@ -8,7 +8,7 @@ import megalodonte.base.components.ScreenComponent;
 import megalodonte.base.state.State;
 import megalodonte.components.layout_components.Container;
 import megalodonte.props.ContainerProps;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import my_app.core.AppRoutes;
 import my_app.domain.components.Components;
 import my_app.screens.dashboardScreen.DashboardScreen;
@@ -25,7 +25,7 @@ public class HomeScreenViewModel {
 
     private static final Logger log = LoggerFactory.getLogger(HomeScreenViewModel.class);
 
-    private final ScreenContext screenContext;
+    private final ScreenContextInterface screenContext;
 
     public final State<AppRoutes.Screens> screenAtiva = State.of(AppRoutes.Screens.HOME);
     public final State<Boolean> sidebarMinimizada = State.of(false);
@@ -33,7 +33,7 @@ public class HomeScreenViewModel {
     public final Ref<Container> contentArea = new Ref<>();
     public final Ref<ScreenComponent> dashboardRef = new Ref<>();
 
-    public HomeScreenViewModel(ScreenContext screenContext) {
+    public HomeScreenViewModel(ScreenContextInterface screenContext) {
         this.screenContext = screenContext;
         contentArea.setCurrent(new Container(new ContainerProps().fillHeight().bgColor("#f3f4f6")));
         dashboardRef.setCurrent(new DashboardScreen(screenContext));
@@ -46,7 +46,7 @@ public class HomeScreenViewModel {
 
     public void spawnWindow(AppRoutes.Screens screen) {
         screenAtiva.set(screen);
-        screenContext.router().spawnWindow(screen.name());
+        screenContext.spawnWindow(screen.name());
     }
 
     public void logout() {

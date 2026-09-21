@@ -14,7 +14,7 @@ import megalodonte.components.Text;
 import megalodonte.components.layout_components.Column;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.TextProps;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import megalodonte.utils.ThrowingSupplier;
 import my_app.db.models.ClienteModel;
 import my_app.db.services.ClienteService;
@@ -43,7 +43,7 @@ public class DetailsClienteScreen implements ScreenComponent {
         return m == null ? null : m.getEndereco();
     }, model);
 
-    public DetailsClienteScreen(ScreenContext ctx) {
+    public DetailsClienteScreen(ScreenContextInterface ctx) {
         long id;
         try {
             id = Long.parseLong(ctx.getParams().get("id"));

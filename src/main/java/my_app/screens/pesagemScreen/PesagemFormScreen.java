@@ -10,7 +10,7 @@ import megalodonte.components.layout_components.FlowRow;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.FlowRowProps;
 import megalodonte.props.ImageProps;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import my_app.domain.components.Components;
 
 /**
@@ -22,16 +22,16 @@ import my_app.domain.components.Components;
  */
 public abstract class PesagemFormScreen implements ScreenComponent {
 
-    protected final ScreenContext screenContext;
+    protected final ScreenContextInterface screenContext;
     protected final PesagemFormViewModel vm;
 
-    protected PesagemFormScreen(ScreenContext ctx) {
+    protected PesagemFormScreen(ScreenContextInterface ctx) {
         this.screenContext = ctx;
         this.vm = criarViewModel(ctx);
     }
 
     /** Cada tipo instancia a própria ViewModel (Entrada/Saída/Avulsa/Manual). */
-    protected abstract PesagemFormViewModel criarViewModel(ScreenContext ctx);
+    protected abstract PesagemFormViewModel criarViewModel(ScreenContextInterface ctx);
 
     /** Se o tipo usa a leitura da balança em tempo real (Manual sobrescreve pra {@code false}). */
     protected boolean usarBalanca() {

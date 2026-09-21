@@ -5,7 +5,7 @@ import megalodonte.application.ErrorReporter;
 import megalodonte.base.UI;
 import megalodonte.base.async.Async;
 import megalodonte.base.state.State;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import megalodonte.utils.ThrowingSupplier;
 import my_app.core.events.EventBus;
 import my_app.core.events.PreferenciasEvent;
@@ -45,7 +45,7 @@ public class DashboardViewModel {
 
     private final Consumer<Object> eventListener = this::onEntityEvent;
 
-    public DashboardViewModel(ScreenContext ctx) {
+    public DashboardViewModel(ScreenContextInterface ctx) {
         this.produtoService = createOrReport(ProdutoService::new);
         this.clienteService = createOrReport(ClienteService::new);
         this.pesagemService = createOrReport(PesagemService::new);

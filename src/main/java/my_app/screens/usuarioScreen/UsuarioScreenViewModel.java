@@ -3,7 +3,7 @@ package my_app.screens.usuarioScreen;
 import megalodonte.base.state.State;
 import megalodonte.base.UI;
 import megalodonte.base.async.Async;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import my_app.core.AppRoutes;
 import my_app.db.models.UsuarioModel;
 import my_app.db.services.UsuarioService;
@@ -31,7 +31,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
     final State<String> telefone = new State<>("");
     final State<String> ehAdminSelected = new State<>(Data.simNaoList.getLast());
 
-    public UsuarioScreenViewModel(ScreenContext ctx) {
+    public UsuarioScreenViewModel(ScreenContextInterface ctx) {
         super(ctx);
         this.usuarioService = createOrReport(UsuarioService::new);
         screenNameSpawn = AppRoutes.Screens.ADD_OR_EDIT_USUARIO.name();

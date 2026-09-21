@@ -10,7 +10,7 @@ import megalodonte.components.layout_components.Column;
 import megalodonte.props.ColumnProps;
 import megalodonte.props.SimpleTableProps;
 import megalodonte.props.TextProps;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import my_app.core.AppRoutes;
 import my_app.db.models.UsuarioModel;
 import my_app.domain.ContratoTelaCrudV3;
@@ -25,9 +25,9 @@ import java.util.List;
 
 public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<UsuarioModel> {
     private final UsuarioScreenViewModel vm;
-    private final ScreenContext screenContext;
+    private final ScreenContextInterface screenContext;
 
-    public UsuarioScreen(ScreenContext ctx) {
+    public UsuarioScreen(ScreenContextInterface ctx) {
         this.screenContext = ctx;
         this.vm = new UsuarioScreenViewModel(ctx);
     }
@@ -70,7 +70,7 @@ public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<Usuari
                 .column("Data de criação", it -> DatePack.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build()
                 .onItemSelectChange(vm.selected::set)
-               .onItemDoubleClick(it -> screenContext.router().spawnWindow(AppRoutes.Screens.DETAILS_USUARIO.name() + "/" + it.getId()));
+               .onItemDoubleClick(it -> screenContext.spawnWindow(AppRoutes.Screens.DETAILS_USUARIO.name() + "/" + it.getId()));
 
         return simpleTable;
     }

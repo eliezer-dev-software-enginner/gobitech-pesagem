@@ -3,7 +3,7 @@ package my_app.screens.clienteScreen;
 import megalodonte.base.state.State;
 import megalodonte.base.UI;
 import megalodonte.base.async.Async;
-import megalodonte.router.v4.ScreenContext;
+import megalodonte.base.route.v2.ScreenContextInterface;
 import my_app.core.AppRoutes;
 import my_app.db.models.ClienteModel;
 import my_app.db.services.ClienteService;
@@ -30,7 +30,7 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
 
     final State<EnderecoState> enderecoState = new State<>(new EnderecoState());
 
-    public ClienteViewModel(ScreenContext ctx) {
+    public ClienteViewModel(ScreenContextInterface ctx) {
         super(ctx);
         this.clienteService = createOrReport(ClienteService::new);
         screenNameSpawn = AppRoutes.Screens.ADD_OR_EDIT_CLIENTE.name();
