@@ -51,6 +51,18 @@ menu "Conexão das câmeras" está **comentado** em `HomeScreen.java:74` **por d
 (pendência M3 da vistoria, "decidido: manter" — a câmera entra no fluxo só na Fase 2/uso real),
 deixando a tela inalcançável pela UI. Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTREGAS.md`.
 
+## Estado atual (2026-09-21)
+
+- **SimpleTable com todos os dados das telas (21/09)**: a pedido do usuário (mesmo ajuste já feito
+  no `plics-sw`), as `SimpleTable` ganharam todas as colunas dos modelos/visões de detalhe e as
+  larguras fixas (ID `60.0` de `ClienteScreen`/`UsuarioScreen`) foram removidas. `ClienteScreen`
+  agora mostra endereço completo (UF, CEP formatado, Cidade, Bairro, Rua, Número), Complemento e
+  Ativo; `ProdutoScreen` ganhou Ativo e Observações; `UsuarioScreen` ganhou Telefone (formatado) e
+  Ativo; `PesagemHistoricoScreen` ganhou Documento do motorista, Nota fiscal, Tara, Peso bruto e
+  Observações + `.horizontalScroll()` (que os CRUD já recebiam via `ContratoTelaCrudV3.listPage`);
+  `LicensaScreen` ganhou Situação (Válida/Expirada). `formatCep`/`formatPhone` com null-guard nos
+  novos campos. Suíte: **271 testes, 0 falhas**.
+
 ## Estado atual (2026-09-19)
 
 - **Descontos que só exibem % não descontam do peso (19/09)**: Avariados, Ardidos, Impurezas e

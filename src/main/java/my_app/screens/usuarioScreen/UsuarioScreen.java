@@ -19,6 +19,7 @@ import my_app.domain.components.Components;
 import my_app.db.models.EmpresaModel;
 import my_app.infra.ListaPdfExporter;
 import pack.utilities.DatePack;
+import pack.utilities.FormatterPack;
 
 import java.io.File;
 import java.util.List;
@@ -63,10 +64,12 @@ public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<Usuari
         simpleTable.fromData(vm.filteredList)
                 .header()
                 .columns()
-                .column("ID", UsuarioModel::getId, 60.0)
+                .column("ID", UsuarioModel::getId)
                 .column("Nome", UsuarioModel::getNome)
                 .column("Login", UsuarioModel::getLogin)
+                .column("Telefone", it -> it.getTelefone() != null ? FormatterPack.formatPhone(it.getTelefone()) : "")
                 .column("Admin", it -> Boolean.TRUE.equals(it.getAdmin()) ? "Sim" : "Não")
+                .column("Ativo", it -> Boolean.TRUE.equals(it.getAtivo()) ? "Sim" : "Não")
                 .column("Data de criação", it -> DatePack.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build()
                 .onItemSelectChange(vm.selected::set)

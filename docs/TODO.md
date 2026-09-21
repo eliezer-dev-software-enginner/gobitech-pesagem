@@ -1,5 +1,12 @@
 # TODO
 
+## Ajustes (21/09/2026)
+
+- [x] **SimpleTable com todos os dados**: telas de listagem mostram todas as colunas do
+  modelo/visão de detalhe; larguras fixas de `ClienteScreen`/`UsuarioScreen` (ID `60.0`)
+  removidas; `PesagemHistoricoScreen` com `.horizontalScroll()` (padrão já aplicado nos CRUD via
+  `ContratoTelaCrudV3.listPage`). Mesmo ajuste já feito no `plics-sw`. Suíte: **271 testes, 0 falhas**.
+
 ## Ajustes (19/09/2026)
 
 - [x] **Descontos que só exibem % não descontam do peso**: Avariados, Ardidos, Impurezas e

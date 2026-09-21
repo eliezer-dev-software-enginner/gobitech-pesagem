@@ -75,6 +75,7 @@ public class LicensaScreen implements ScreenComponent {
                 .column("Código", LicensaModel::getValor)
                 .column("Validade", it -> it.getExpiraEm() == null ? "Sem expiração"
                         : DatePack.localDateTimeToBrazilianDateTime(it.getExpiraEm()))
+                .column("Situação", it -> it.expirada() ? "Expirada" : "Válida")
                 .column("Gerada em", it -> DatePack.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build();
 
