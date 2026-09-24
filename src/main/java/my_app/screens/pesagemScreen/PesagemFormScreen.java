@@ -38,13 +38,13 @@ public abstract class PesagemFormScreen implements ScreenComponent {
         return true;
     }
 
-    /** Se o botão "Capturar" do peso bruto fica visível (Saída/Entrada/Avulsa sim; Manual não). */
+    /** Se o botão "Capturar" da saída fica visível. */
     protected boolean permitirCapturarBruto() {
         return true;
     }
 
     /**
-     * Se o campo de peso bruto aceita digitação. Quando {@code permitirCapturarBruto()} é
+     * Se o campo de saída aceita digitação. Quando {@code permitirCapturarBruto()} é
      * verdadeiro o campo fica somente-leitura (o valor só entra pelo botão "Capturar") —
      * este hook cobre os casos sem botão de captura onde o peso também não deve ser digitado.
      */
@@ -52,16 +52,15 @@ public abstract class PesagemFormScreen implements ScreenComponent {
         return true;
     }
 
-    /** Se o botão "Capturar" da tara fica visível (Avulsa e Manual não — tara digitada; Entrada e Saída sim). */
+    /** Se o botão "Capturar" da entrada fica visível. */
     protected boolean permitirCapturarTara() {
         return true;
     }
 
     /**
-     * Se o campo da tara aceita digitação. Quando {@code permitirCapturarTara()} é verdadeiro o
-     * campo fica somente-leitura (o valor só entra pelo botão "Capturar") — este hook cobre os
-     * casos sem botão de captura onde a tara também não deve ser digitada (nenhum dos 4 tipos
-     * hoje; mantido pra extensão futura).
+     * Se o campo de entrada aceita digitação. Quando {@code permitirCapturarTara()} é verdadeiro o
+     * campo fica somente-leitura (o valor só entra pelo botão "Capturar") — este hook também
+     * cobre casos sem botão de captura em que a entrada vem de uma pesagem vinculada.
      */
     protected boolean taraEditavel() {
         return true;
@@ -139,18 +138,18 @@ public abstract class PesagemFormScreen implements ScreenComponent {
 
     private Component componenteTara() {
         if (permitirCapturarTara()) {
-            return Components.InputWithButtonRowInteger("Tara (Kg)", "Ex: 8500", "Capturar",
+            return Components.InputWithButtonRowInteger("Entrada (Kg)", "Ex: 8500", "Capturar",
                     vm.pesoVeiculo, vm::capturarTara, true);
         }
-        return Components.InputColumnInteger("Tara (Kg)", vm.pesoVeiculo, "Ex: 8500", !taraEditavel());
+        return Components.InputColumnInteger("Entrada (Kg)", vm.pesoVeiculo, "Ex: 8500", !taraEditavel());
     }
 
     private Component componenteBruto() {
         if (permitirCapturarBruto()) {
-            return Components.InputWithButtonRowInteger("Peso bruto (Kg)", "Ex: 32000", "Capturar",
+            return Components.InputWithButtonRowInteger("Saída (Kg)", "Ex: 32000", "Capturar",
                     vm.pesoTotal, vm::capturarPesoBruto, true);
         }
-        return Components.InputColumnInteger("Peso bruto (Kg)", vm.pesoTotal, "Ex: 32000", !brutoEditavel());
+        return Components.InputColumnInteger("Saída (Kg)", vm.pesoTotal, "Ex: 32000", !brutoEditavel());
     }
 
     private Component secaoDescontos() {

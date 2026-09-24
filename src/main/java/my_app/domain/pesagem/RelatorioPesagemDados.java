@@ -9,68 +9,30 @@ public final class RelatorioPesagemDados {
 
     public record Resultado(List<List<String>> linhas, List<String> observacoes, BigDecimal totalLiquido) { }
 
-    public static Resultado montar(List<PesagemModel> snapshotFiltrado, List<PesagemModel> entradasVinculadas) {
-        // Uma linha por par Entrada+Saída (mesma placa/visita), igual ao relatório do André.
-        // Tara = peso veículo da entrada; bruto/líquido do registro consolidado (a saída, quando
-        // há par). Avulsas/manuais e saídas sem a entrada no snapshot entram como linha própria
-        // nas colunas do seu tipo — nada some do relatório.
-        var porId = new java.util.HashMap<Integer, PesagemModel>();
-        for (var p : entradasVinculadas) porId.put(p.getId(), p);
-        for (var p : snapshotFiltrado) porId.put(p.getId(), p);
-
-        var consumidas = new java.util.HashSet<Integer>();
+    public static Resultado montar(List<PesagemModel> snapshotFiltrado) {
+        // O PDF espelha a lista filtrada: cada pesagem visível gera uma linha, inclusive uma
+        // Entrada e a Saída vinculada. Agrupar o par ocultava um registro da exportação.
         var rows = new java.util.ArrayList<List<String>>();
         var observacoesLinha = new java.util.ArrayList<String>();
-
-        var saidas = snapshotFiltrado.stream()
-                .filter(p -> "saida".equals(p.getTipoPesagem()))
-                .sorted(java.util.Comparator.comparing(PesagemModel::getDataCriacao, java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())))
-                .toList();
-
-        for (var saida : saidas) {
-            var entradaId = saida.getEntradaId();
-            var entrada = entradaId != null ? porId.get(entradaId) : null;
-            if (entrada != null && "entrada".equals(entrada.getTipoPesagem()) && !consumidas.contains(entradaId)) {
-                consumidas.add(entradaId);
-                consumidas.add(saida.getId());
-                rows.add(linhaPar(entrada, saida));
-                observacoesLinha.add(saida.getObservacoes());
-            } else {
-                consumidas.add(saida.getId());
-                rows.add(linhaEventoUnico(saida));
-                observacoesLinha.add(saida.getObservacoes());
-            }
-        }
-
         for (var p : snapshotFiltrado) {
-            if (consumidas.contains(p.getId())) continue;
             rows.add(linhaEventoUnico(p));
             observacoesLinha.add(p.getObservacoes());
         }
 
-        var totalLiquido = rows.isEmpty() ? java.math.BigDecimal.ZERO
-                : rows.stream()
-                .map(r -> r.get(10))
-                .map(s -> s.isBlank() ? java.math.BigDecimal.ZERO : new java.math.BigDecimal(s))
+        // As duas linhas do par devem aparecer, mas o total líquido não pode contar a mesma
+        // operação duas vezes: quando a Saída está no filtro, ela representa o peso do par.
+        var entradasComSaidaNoFiltro = snapshotFiltrado.stream()
+                .filter(p -> "saida".equals(p.getTipoPesagem()))
+                .map(PesagemModel::getEntradaId)
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toSet());
+        var totalLiquido = snapshotFiltrado.stream()
+                .filter(p -> !"entrada".equals(p.getTipoPesagem()) || !entradasComSaidaNoFiltro.contains(p.getId()))
+                .map(PesagemModel::getPesoFinal)
+                .map(valor -> valor == null ? java.math.BigDecimal.ZERO : valor)
                 .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
 
         return new Resultado(rows, observacoesLinha, totalLiquido);
-    }
-
-    private static List<String> linhaPar(PesagemModel entrada, PesagemModel saida) {
-        return List.of(
-                String.valueOf(entrada.getId()),
-                pesoStr(entrada.getPesoVeiculo()),
-                dataHora(entrada.getDataCriacao(), false),
-                dataHora(entrada.getDataCriacao(), true),
-                dataHora(saida.getDataCriacao(), false),
-                dataHora(saida.getDataCriacao(), true),
-                entrada.getPlaca() != null ? entrada.getPlaca() : "",
-                entrada.getProduto() != null ? entrada.getProduto().getNome() : "---",
-                entrada.getCliente() != null ? entrada.getCliente().getLoja() : "",
-                pesoStr(saida.getPesoTotal()),
-                pesoStr(saida.getPesoFinal())
-        );
     }
 
     private static List<String> linhaEventoUnico(PesagemModel p) {

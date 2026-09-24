@@ -21,6 +21,13 @@ class PesagemCalculoTest {
     }
 
     @Test
+    void saidaMenorQueEntradaCalculaODiferencaAbsoluta() {
+        var liquido = PesagemCalculo.calcularPesoLiquido(
+                BigDecimal.valueOf(2000), BigDecimal.valueOf(4000), BigDecimal.ZERO);
+        assertPeso("2000.00", liquido);
+    }
+
+    @Test
     void comUmDescontoDeCincoPorCentoSubtraiCincoPorCentoDoLiquido() {
         // bruto - tara = 20000 ; 5% de 20000 = 1000 ; líquido final = 19000
         var liquido = PesagemCalculo.calcularPesoLiquido(

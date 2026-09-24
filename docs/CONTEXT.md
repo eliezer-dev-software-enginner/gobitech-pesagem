@@ -51,6 +51,24 @@ menu "Conexão das câmeras" está **comentado** em `HomeScreen.java:74` **por d
 (pendência M3 da vistoria, "decidido: manter" — a câmera entra no fluxo só na Fase 2/uso real),
 deixando a tela inalcançável pela UI. Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTREGAS.md`.
 
+## Estado atual (2026-09-24)
+
+- **Filtro por data não é sobrescrito (24/09)**: a carga inicial do histórico e a aplicação do
+  filtro rodam em segundo plano. Cada consulta agora recebe uma sequência; somente a mais recente
+  pode atualizar a tabela, impedindo que a carga completa termine depois e substitua um resultado
+  filtrado (inclusive `De` e `Até` iguais a hoje).
+
+- **Exportação do histórico espelha a UI (24/09)**: o relatório PDF deixou de agrupar uma
+  Entrada com sua Saída vinculada. Cada registro presente na lista filtrada gera uma linha no PDF;
+  assim, por exemplo, cinco resultados para a placa `RED9I24` passam a gerar cinco linhas.
+
+- **Campos de pesagem por etapa (24/09)**: os inputs do formulário passaram de **Tara** e
+  **Peso bruto** para **Entrada (Kg)** e **Saída (Kg)**, sem migration ou mudança nos dados
+  persistidos. Na tela de Entrada, só Entrada pode ser capturada; Saída fica somente leitura.
+  Na tela de Saída, Entrada vem da pesagem vinculada e fica somente leitura; só Saída pode
+  ser capturada. O líquido agora usa `|saída - entrada|`, aceitando tanto carregamento quanto
+  descarregamento (ex.: Entrada 4000, Saída 2000 = líquido 2000). Suíte: **268 testes, 0 falhas**.
+
 ## Estado atual (2026-09-21)
 
 - **SimpleTable com todos os dados das telas (21/09)**: a pedido do usuário (mesmo ajuste já feito

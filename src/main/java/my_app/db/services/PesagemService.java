@@ -181,11 +181,5 @@ public class PesagemService extends BaseService<PesagemModel> {
         if (model.getPesoVeiculo() == null) model.setPesoVeiculo(BigDecimal.ZERO);
         if (model.getPesoTotal() == null) model.setPesoTotal(BigDecimal.ZERO);
         if (model.getPesoFinal() == null) model.setPesoFinal(BigDecimal.ZERO);
-        // "Bruto < Tara" quebra o próprio fluxo "Só Tara" (C1): tara preenchida sem bruto vira
-        // bruto=0 e o usuário pode registrar Entrada só com o caminhão vazio. A regra só
-        // dispara quando os DOIS pesos preenchidos (mesma condição da ViewModel).
-        if (model.getPesoTotal().signum() > 0 && model.getPesoVeiculo().signum() > 0
-                && model.getPesoTotal().compareTo(model.getPesoVeiculo()) < 0)
-            throw new IllegalArgumentException("Peso bruto não pode ser menor que a Tara (peso líquido estaria negativo).");
     }
 }

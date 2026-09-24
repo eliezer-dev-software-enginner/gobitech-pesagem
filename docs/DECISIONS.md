@@ -1,5 +1,36 @@
 # Decisões Arquiteturais
 
+## 2026-09-24: Histórico usa somente o resultado da consulta mais recente
+
+**Decisão:** as consultas assíncronas da listagem de pesagens recebem um número sequencial. O
+callback só altera a tabela quando ainda representa a última consulta iniciada. Isso evita que a
+carga completa inicial, mais lenta, sobrescreva um filtro de período já concluído.
+
+---
+
+## 2026-09-24: Relatório exportado preserva cada registro filtrado
+
+**Decisão:** o PDF do histórico passa a ter exatamente uma linha para cada pesagem na lista
+filtrada pela UI. A consolidação de uma Entrada com a Saída vinculada foi removida porque ocultava
+um registro (caso confirmado no banco anexado: `RED9I24` tinha cinco registros e gerava quatro
+linhas). Filtros continuam determinando integralmente o conteúdo do PDF.
+
+---
+
+## 2026-09-24: Pesos nomeados por etapa da operação
+
+**Decisão:** os campos exibidos ao operador passam a se chamar **Entrada (Kg)**
+(`pesoVeiculo`, antes Tara) e **Saída (Kg)** (`pesoTotal`, antes Peso bruto). O schema permanece
+inalterado. O líquido passa a ser a diferença absoluta `|saída - entrada|`, permitindo tanto
+o carregamento quanto o descarregamento. A tela de Entrada permite captura somente de Entrada; a tela
+de Saída conserva a Entrada da pesagem vinculada como somente leitura e permite captura somente
+de Saída. Isso impede que uma etapa registre a leitura destinada à outra.
+
+**Testado por build:** `./gradlew test --offline` → **268 testes, 0 falhas**, incluindo Entrada
+4000 / Saída 2000 com líquido 2000.
+
+---
+
 ## 2026-09-19: Descontos — só-exibição não descontam; validação 100% segue com os 8
 
 **Contexto:** pedido do usuário — Avariados, Ardidos, Impurezas e Umidade são apenas

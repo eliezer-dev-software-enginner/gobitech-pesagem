@@ -17,6 +17,7 @@ import my_app.domain.components.Components;
 import my_app.db.services.PreferenciasService;
 import my_app.domain.pesagem.ImpressaoTicketService;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,7 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
     private final PesagemService pesagemService;
     private final ClienteService clienteService;
     private final AtomicBoolean imprimindo = new AtomicBoolean();
+    private final AtomicLong consultaSequencial = new AtomicLong();
     private volatile boolean destruido;
     @SuppressWarnings("rawtypes")
     private final java.util.function.Consumer<Object> eventListener = this::onEntityEvent;
@@ -99,10 +101,13 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
 
     @Override
     public void fetchListData() {
+        long consultaAtual = consultaSequencial.incrementAndGet();
         Async.Run(() -> {
             try {
                 var list = pesagemService.listarComRelacoes();
-                UI.runOnUi(() -> allDataList.set(list));
+                UI.runOnUi(() -> {
+                    if (consultaAtual == consultaSequencial.get()) allDataList.set(list);
+                });
             } catch (Exception e) {
                 log.error("Erro ao buscar pesagens", e);
                 UI.runOnUi(() -> Components.ShowAlertError("Não foi possível buscar as pesagens."));
@@ -111,6 +116,7 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
     }
 
     public void aplicarFiltro() {
+        long consultaAtual = consultaSequencial.incrementAndGet();
         Async.Run(() -> {
             try {
                 var cliente = filtroCliente.get();
@@ -122,7 +128,9 @@ public class PesagemHistoricoViewModel extends ViewModelScreenContract<PesagemMo
                         filtroMotorista.get().isBlank() ? null : filtroMotorista.get().trim(),
                         clienteId, null, filtroDataInicio.get(), filtroDataFim.get(), tipo
                 );
-                UI.runOnUi(() -> allDataList.set(list));
+                UI.runOnUi(() -> {
+                    if (consultaAtual == consultaSequencial.get()) allDataList.set(list);
+                });
             } catch (Exception e) {
                 log.error("Erro ao filtrar pesagens", e);
                 UI.runOnUi(() -> Components.ShowAlertError("Não foi possível aplicar o filtro das pesagens."));

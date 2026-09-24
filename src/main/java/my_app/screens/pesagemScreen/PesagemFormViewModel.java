@@ -339,13 +339,9 @@ public abstract class PesagemFormViewModel {
             Components.ShowAlertError("A soma dos descontos não pode ultrapassar 100%.");
             return;
         }
-        if (PesagemRegras.liquidoNegativo(pesoTotal.get(), pesoVeiculo.get(), somaDescontosQueDescontam())) {
-            Components.ShowAlertError("Peso bruto não pode ser menor que a Tara (peso líquido estaria negativo).");
-            return;
-        }
         if (PesagemRegras.nenhumPesoInformado(pesoVeiculo.get(), pesoTotal.get())) {
             Components.ShowAlertAdvice(
-                    "Nenhum peso foi informado (Tara e Peso bruto vazios). Deseja salvar mesmo assim?",
+                    "Nenhum peso foi informado (Entrada e Saída vazias). Deseja salvar mesmo assim?",
                     () -> executarSalvamento(imprimir));
             return;
         }

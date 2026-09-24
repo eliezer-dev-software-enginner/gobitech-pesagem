@@ -169,17 +169,7 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
 
     @Override
     public void exportPdf(File destino, EmpresaModel empresa, List<PesagemModel> snapshotFiltrado) throws Exception {
-        var idsEntrada = snapshotFiltrado.stream()
-                .filter(p -> "saida".equals(p.getTipoPesagem()))
-                .map(PesagemModel::getEntradaId).filter(java.util.Objects::nonNull)
-                .collect(java.util.stream.Collectors.toSet());
-        var idsNoFiltro = snapshotFiltrado.stream().map(PesagemModel::getId).toList();
-        idsEntrada.removeAll(idsNoFiltro);
-        List<PesagemModel> entradas;
-        try (var service = new my_app.db.services.PesagemService()) {
-            entradas = service.buscarComRelacoesPorIds(idsEntrada);
-        }
-        var dados = my_app.domain.pesagem.RelatorioPesagemDados.montar(snapshotFiltrado, entradas);
+        var dados = my_app.domain.pesagem.RelatorioPesagemDados.montar(snapshotFiltrado);
         var headers = List.of("Ticket", "Tara (Kg)", "Entrada", "Horário", "Saída", "Horário",
                 "Placa", "Produto", "Cliente", "Peso bruto", "Peso líquido");
         RelatorioPesagemPdfExporter.exportar(destino, empresa, "Relatório resumo de entradas e saídas",

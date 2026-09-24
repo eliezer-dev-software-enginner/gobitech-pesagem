@@ -15,15 +15,14 @@ public class PesagemCalculo {
     }
 
     /**
-     * peso_liquido = (bruto - tara) - descontos% — mesma fórmula do app original
-     * ({@code WeighingForm.sumFinalWheight}), só que reunindo todos os 8 tipos de desconto
-     * em vez de um único percentual.
+     * peso_líquido = |saída - entrada| - descontos%. O valor absoluto cobre tanto o caminhão
+     * que entra vazio e sai carregado quanto o que entra carregado e sai vazio.
      */
     public static BigDecimal calcularPesoLiquido(BigDecimal bruto, BigDecimal tara, BigDecimal percentualDesconto) {
         if (bruto == null || bruto.compareTo(BigDecimal.ZERO) == 0) {
             return BigDecimal.ZERO;
         }
-        var liquidoAntesDoDesconto = bruto.subtract(tara);
+        var liquidoAntesDoDesconto = bruto.subtract(tara).abs();
 
         var valorDesconto = liquidoAntesDoDesconto
                 .multiply(percentualDesconto)

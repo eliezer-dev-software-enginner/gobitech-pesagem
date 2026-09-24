@@ -6,12 +6,12 @@
 ## Regras de negócio observadas (premissas a confirmar com o time)
 
 - **Placa** é o único campo obrigatório em todas as telas (marcado com `*`).
-- **Peso líquido** é somente leitura, calculado automaticamente (assumido: `bruto - tara`).
-- Botão **Capturar** preenche Tara ou Peso bruto com o valor atual em "Peso da balança agora".
-- **Entrada** tem os campos Tara e Peso bruto, ambos capturáveis — sugere que o caminhão pode
-  chegar vazio (captura a Tara) ou cheio (captura o Peso bruto), deixando o outro peso pra
-  quando ele passar pela **Saída**.
-- **Saída** busca a pesagem de Entrada pela placa e deve trazer os dados já preenchidos.
+- **Peso líquido** é somente leitura, calculado automaticamente (`|saída - entrada|`).
+- Os campos se chamam **Entrada (Kg)** e **Saída (Kg)**. O botão **Capturar** preenche o
+  respectivo campo com o valor atual da balança.
+- Na tela **Entrada**, somente **Entrada (Kg)** pode ser capturada; **Saída (Kg)** é somente
+  leitura. Na tela **Saída**, a Entrada da pesagem vinculada é somente leitura e somente
+  **Saída (Kg)** pode ser capturada.
 - **Avulsa**: fluxo de pesagem única (não depende de um par Entrada/Saída).
 - **Manual**: sem botões de captura — todos os pesos são digitados. Tem 2 campos extras
   (Quebra umidade, Outros) que as outras telas não têm.
@@ -37,14 +37,12 @@
 
 | # | Cenário | Passos | Resultado esperado | Resultado           |
 |---|---|---|---|---------------------|
-| B1 | Capturar Tara | Clicar "Capturar" ao lado de Tara | Tara preenchida com o valor de "Peso da balança agora" | ok                  |
-| B2 | Capturar Peso bruto | Clicar "Capturar" ao lado de Peso bruto | Peso bruto preenchido com o valor da balança | ok                  |
-| B3 | Cálculo do líquido | Capturar Tara e Peso bruto (bruto > tara) | Peso líquido = bruto - tara, calculado automaticamente | ok                  |
-| B4 | Bruto igual à tara | Capturar mesmo valor nos dois campos | Peso líquido = 0 | ok                  |
-| B5 | Bruto menor que tara | Capturar bruto < tara (ex: por erro de operação) | Definir e testar: aceita negativo? bloqueia? zera? mostra alerta? | deve mostrar alerta |
-| B6 | Balança instável entre capturas | Capturar Tara, aguardar o valor da balança mudar, capturar Peso bruto | Cada captura usa o valor no momento exato do clique, não o valor antigo | ok                  |
-| B7 | Sobrescrever valor capturado | Capturar um peso e depois editar manualmente o número | Peso líquido recalcula com o novo valor digitado | ok                  |
-| B8 | Digitar sem usar "Capturar" | Digitar Tara/Peso bruto direto no campo (sem clicar no botão) | Aceita normalmente e calcula o líquido | ok                  |
+| B1 | Capturar Entrada | Na tela Entrada, clicar "Capturar" ao lado de Entrada | Entrada preenchida com o valor da balança | |
+| B2 | Bloquear Saída na Entrada | Na tela Entrada, conferir Saída | Campo sem botão e somente leitura | |
+| B3 | Capturar Saída | Na tela Saída com entrada vinculada, clicar "Capturar" ao lado de Saída | Saída preenchida com o valor da balança | |
+| B4 | Bloquear Entrada na Saída | Na tela Saída com entrada vinculada, conferir Entrada | Valor trazido da entrada, sem botão e somente leitura | |
+| B5 | Cálculo ao carregar | Registrar Entrada e depois capturar Saída maior | Peso líquido = saída - entrada, calculado automaticamente | |
+| B6 | Cálculo ao descarregar | Informar Entrada 4000 e Saída 2000 | Salva e calcula peso líquido 2000 | |
 
 ---
 
@@ -52,19 +50,19 @@
 
 | # | Cenário | Passos | Resultado esperado | Resultado                     |
 |---|---|---|---|-------------------------------|
-| C1 | Registrar entrada vazia | Na tela Entrada: preencher Placa, capturar só a Tara, deixar Peso bruto vazio, salvar | Salva com sucesso; líquido fica 0/vazio | ok (bug corrigido: líquido ficava negativo) |
-| C2 | Buscar na saída | Ir em Pesagem de saída, digitar a mesma placa | Sistema localiza a entrada e traz Tara, motorista, cliente, produto e nota fiscal já preenchidos | ok                            |
-| C3 | Concluir a saída | Capturar o Peso bruto na tela de Saída, salvar | Peso líquido calculado (bruto - tara) e registro fechado | ok                            |
+| C1 | Registrar Entrada | Na tela Entrada: preencher Placa, capturar Entrada, salvar | Salva com sucesso; Saída permanece vazia | |
+| C2 | Buscar na Saída | Ir em Pesagem de Saída, digitar a mesma placa | Sistema localiza a entrada e traz Entrada, motorista, cliente, produto e nota fiscal já preenchidos | |
+| C3 | Concluir a Saída | Capturar Saída na tela de Saída, salvar | Peso líquido calculado pela diferença absoluta e registro fechado | |
 
 ---
 
-## D. Fluxo: caminhão chega **cheio**, descarrega, sai **vazio**
+## D. Isolamento entre as telas de Entrada e Saída
 
 | # | Cenário | Passos | Resultado esperado | Resultado                          |
 |---|---|---|---|------------------------------------|
-| D1 | Registrar entrada cheia | Na tela Entrada: preencher Placa, capturar só o Peso bruto, deixar Tara vazia, salvar | Salva com sucesso | OK                                 |
-| D2 | Buscar na saída | Ir em Pesagem de saída, digitar a mesma placa | Sistema traz o Peso bruto já registrado na entrada | ok (bug corrigido: não trazia o peso bruto) |
-| D3 | Concluir a saída | Capturar a Tara na tela de Saída, salvar | Peso líquido calculado e registro fechado | OK                                 |
+| D1 | Entrada não captura Saída | Abrir a tela Entrada | Apenas Entrada tem botão Capturar | |
+| D2 | Saída não recaptura Entrada | Buscar uma placa com Entrada na tela Saída | Entrada fica somente leitura, sem botão Capturar | |
+| D3 | Saída captura apenas Saída | Com a mesma placa, capturar o peso atual | Apenas Saída é alterada | |
 
 ---
 
@@ -84,7 +82,7 @@
 
 | # | Cenário | Passos | Resultado esperado | Resultado                 |
 |---|---|---|---|---------------------------|
-| F1 | Fluxo completo numa tela só | Capturar Tara e Peso bruto na mesma tela | Líquido calculado normalmente | OK                        |
+| F1 | Fluxo completo numa tela só | Informar Entrada e capturar Saída | Líquido calculado normalmente | OK                        |
 | F2 | Salvar só com Placa | Placa preenchida, nenhum peso capturado, salvar | Pede confirmação ("Nenhum peso foi informado... Deseja salvar mesmo assim?"). Sim → salva; Não → cancela | ok (fix aplicado: mostra aviso de confirmação) |
 
 ---
@@ -93,10 +91,10 @@
 
 | # | Cenário | Passos | Resultado esperado | Resultado                                                                                                                          |
 |---|---|---|---|------------------------------------------------------------------------------------------------------------------------------------|
-| G1 | Digitar pesos manualmente | Digitar Tara e Peso bruto sem usar botão de captura (tela não tem esse botão) | Líquido calcula normalmente | OK                                                                                                                                 |
-| G2 | Texto em campo numérico | Digitar letras no campo Tara/Peso bruto | Rejeita ou limpa caracteres não numéricos | OK                                                                                                                                 |
+| G1 | Digitar pesos manualmente | Digitar Entrada e Saída sem usar botão de captura (tela não tem esse botão) | Líquido calcula normalmente | OK                                                                                                                                 |
+| G2 | Texto em campo numérico | Digitar letras no campo Entrada/Saída | Rejeita ou limpa caracteres não numéricos | OK                                                                                                                                 |
 | G3 | Valor decimal | Digitar `8500,5` ou `8500.5` | Verificar aceitação de vírgula/ponto e formatação resultante | ok (bug mantido ao colar: `8500.5` vira `85.005`) é uma aplicação de balança, ou o valor vai ser digitado ou vai ser  capturado :) |
-| G4 | Bruto menor que tara | Digitar bruto < tara manualmente | Bloqueia salvamento com alerta "Peso bruto não pode ser menor que a Tara" | ok (fix aplicado: bloqueia)                                                                                                        |
+| G4 | Saída menor que Entrada | Digitar Saída < Entrada manualmente | Salva e calcula a diferença absoluta | |
 | G5 | Campos exclusivos da manual | Preencher "Quebra umidade" e "Outros" | Verificar se entram no cálculo final de desconto/líquido | ok — entram no cálculo                                                                                                             |
 | G6 | Só placa, nenhum peso | Preencher só Placa, salvar | Verificar se permite registro manual "pendente" sem nenhum peso | OK - Exibe o alerta se deseja continuar                                                                                            |
 

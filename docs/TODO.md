@@ -1,5 +1,19 @@
 # TODO
 
+## Ajustes (24/09/2026)
+
+- [x] **Filtro de data do histórico**: impedida a corrida entre a carga inicial assíncrona e o
+  filtro aplicado pelo operador; só a resposta mais recente altera a lista.
+
+- [x] **PDF do histórico completo**: removido o agrupamento de Entrada+Saída na exportação.
+  Cada item exibido pelo filtro gera uma linha no relatório, eliminando a divergência entre o
+  total da UI e o PDF.
+
+- [x] **Pesagem por etapa**: rótulos dos inputs alterados para **Entrada (Kg)** e **Saída
+  (Kg)**. A tela de Entrada captura exclusivamente Entrada; a tela de Saída mostra a Entrada
+  vinculada somente para leitura e captura exclusivamente Saída. O líquido é a diferença
+  absoluta entre as leituras, logo a Saída menor que a Entrada também salva. Sem alteração de schema.
+
 ## Ajustes (21/09/2026)
 
 - [x] **SimpleTable com todos os dados**: telas de listagem mostram todas as colunas do

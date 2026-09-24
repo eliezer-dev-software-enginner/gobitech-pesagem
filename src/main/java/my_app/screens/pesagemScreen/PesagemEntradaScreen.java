@@ -13,4 +13,14 @@ public class PesagemEntradaScreen extends PesagemFormScreen {
     protected PesagemFormViewModel criarViewModel(ScreenContextInterface ctx) {
         return new PesagemEntradaViewModel(ctx);
     }
+
+    @Override
+    protected boolean permitirCapturarBruto() {
+        return false;
+    }
+
+    @Override
+    protected boolean brutoEditavel() {
+        return false;
+    }
 }

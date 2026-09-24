@@ -10,8 +10,8 @@ import java.util.List;
 
 /**
  * Regras de validação e preenchimento do formulário de pesagem (soma dos descontos ≤ 100%,
- * bruto < tara → líquido negativo, nenhum peso informado, preenchimento a partir da Entrada na
- * Saída e slot/nome das fotos), isoladas da ViewModel pra poderem ser testadas sem depender da
+ * nenhum peso informado, preenchimento a partir da Entrada na Saída e slot/nome das fotos),
+ * isoladas da ViewModel pra poderem ser testadas sem depender da
  * thread do JavaFX — a ViewModel dispara {@code Async.Run}/{@code UI.runOnUi} no construtor (ver
  * {@link PesagemCalculo}). Os campos de peso chegam como {@code String} (é assim que os States da
  * tela guardam); String nula/vazia/malformada vale ZERO, mesmo comportamento do
@@ -48,19 +48,7 @@ public final class PesagemRegras {
     // ---- pesos ----
 
     /**
-     * true quando bruto e tara estão preenchidos e o peso líquido calculado
-     * (bruto − tara − descontos) ficaria negativo. Com algum peso vazio não há o que avaliar
-     * (fluxo "só Tara"/pesagem manual sem bruto continua permitido).
-     */
-    public static boolean liquidoNegativo(String bruto, String tara, BigDecimal percentualDesconto) {
-        if (vazio(bruto) || vazio(tara)) return false;
-        var liquido = PesagemCalculo.calcularPesoLiquido(
-                parseDecimal(bruto), parseDecimal(tara), percentualDesconto == null ? BigDecimal.ZERO : percentualDesconto);
-        return liquido != null && liquido.compareTo(BigDecimal.ZERO) < 0;
-    }
-
-    /**
-     * true quando nenhum peso foi informado (Tara e Peso bruto vazios) — caso em que a tela
+     * true quando nenhum peso foi informado (Entrada e Saída vazias) — caso em que a tela
      * pede confirmação antes de salvar.
      */
     public static boolean nenhumPesoInformado(String tara, String bruto) {

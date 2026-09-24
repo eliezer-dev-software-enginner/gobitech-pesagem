@@ -62,32 +62,6 @@ class PesagemRegrasTest {
         assertFalse(PesagemRegras.descontosUltrapassam100(null));
     }
 
-    // ---- líquido negativo (G4) ----
-
-    @Test
-    void liquidoNegativoQuandoBrutoMenorQueTara() {
-        assertTrue(PesagemRegras.liquidoNegativo("8500", "9000", BigDecimal.ZERO));
-    }
-
-    @Test
-    void liquidoNegativoQuandoDescontoZeraOUltrapassaOLiquido() {
-        // bruto-tara = 1000 ; 150% de desconto → líquido negativo
-        assertTrue(PesagemRegras.liquidoNegativo("11000", "10000", new BigDecimal("150")));
-    }
-
-    @Test
-    void liquidoPositivoQuandoBrutoMaiorQueTara() {
-        assertFalse(PesagemRegras.liquidoNegativo("32000", "8500", BigDecimal.ZERO));
-    }
-
-    @Test
-    void liquidoComUmPesoVazioNaoENegativo() {
-        // fluxo "só Tara" / manual sem bruto continua permitido
-        assertFalse(PesagemRegras.liquidoNegativo("", "8500", BigDecimal.ZERO));
-        assertFalse(PesagemRegras.liquidoNegativo("32000", "", BigDecimal.ZERO));
-        assertFalse(PesagemRegras.liquidoNegativo(null, "8500", BigDecimal.ZERO));
-    }
-
     // ---- nenhum peso informado (F2/G6) ----
 
     @Test

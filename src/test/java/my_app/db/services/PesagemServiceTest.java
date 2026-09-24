@@ -104,15 +104,15 @@ class PesagemServiceTest extends BaseServiceTest {
     }
 
     @Test
-    void deveLancarExcecaoQuandoBrutoMenorQueTara() {
+    void aceitaSaidaMenorQueEntrada() throws Exception {
         var p = pesagemValida();
         p.setPesoVeiculo(new java.math.BigDecimal("10000"));
         p.setPesoTotal(new java.math.BigDecimal("8000"));
-        assertThrows(IllegalArgumentException.class, () -> pesagemService.salvar(p));
+        assertNotNull(pesagemService.salvar(p).getId());
     }
 
     @Test
-    void aceitaBrutoIgualOuMaiorQueTara() throws Exception {
+    void aceitaSaidaIgualOuMaiorQueEntrada() throws Exception {
         var p = pesagemValida();
         p.setPesoVeiculo(new java.math.BigDecimal("8500"));
         p.setPesoTotal(new java.math.BigDecimal("32000"));
@@ -133,13 +133,13 @@ class PesagemServiceTest extends BaseServiceTest {
     }
 
     @Test
-    void atualizarTambemValidaBrutoMenorQueTara() throws Exception {
+    void atualizarTambemAceitaSaidaMenorQueEntrada() throws Exception {
         var p = pesagemValida();
         var salvo = pesagemService.salvar(p); // sem pesos
 
         salvo.setPesoVeiculo(new java.math.BigDecimal("10000"));
         salvo.setPesoTotal(new java.math.BigDecimal("8000"));
-        assertThrows(IllegalArgumentException.class, () -> pesagemService.atualizar(salvo));
+        pesagemService.atualizar(salvo);
     }
 
     @Test

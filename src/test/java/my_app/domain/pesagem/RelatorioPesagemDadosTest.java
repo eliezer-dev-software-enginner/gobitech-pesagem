@@ -21,45 +21,43 @@ class RelatorioPesagemDadosTest {
     }
 
     @Test
-    void parTemDatasDistintasETotalContadoUmaVez() {
+    void parGeraUmaLinhaParaCadaRegistroVisivel() {
         var entrada = pesagem(1, "entrada", 14, 8);
         var saida = pesagem(2, "saida", 15, 17);
         saida.setEntradaId(1);
-        var resultado = RelatorioPesagemDados.montar(List.of(entrada, saida), List.of());
-        assertEquals(1, resultado.linhas().size());
-        assertEquals(List.of("14/09/2026", "08:30:00", "15/09/2026", "17:30:00"), resultado.linhas().getFirst().subList(2, 6));
+        var resultado = RelatorioPesagemDados.montar(List.of(entrada, saida));
+        assertEquals(2, resultado.linhas().size());
+        assertEquals(List.of("14/09/2026", "08:30:00", "", ""), resultado.linhas().getFirst().subList(2, 6));
+        assertEquals(List.of("", "", "15/09/2026", "17:30:00"), resultado.linhas().get(1).subList(2, 6));
         assertEquals(new BigDecimal("23500"), resultado.totalLiquido());
     }
 
     @Test
-    void filtroSoSaidaMantemDadosDaEntradaForaDoPeriodoSemAdicionarLinhaExtra() {
-        var entrada = pesagem(1, "entrada", 14, 8);
-        var saida = pesagem(2, "saida", 15, 17);
-        saida.setEntradaId(1);
-        var resultado = RelatorioPesagemDados.montar(List.of(saida), List.of(entrada));
+    void filtroSoSaidaExportaApenasASaidaVisivel() {
+        var resultado = RelatorioPesagemDados.montar(List.of(pesagem(2, "saida", 15, 17)));
         assertEquals(1, resultado.linhas().size());
-        assertEquals(List.of("14/09/2026", "08:30:00", "15/09/2026", "17:30:00"), resultado.linhas().getFirst().subList(2, 6));
+        assertEquals(List.of("", "", "15/09/2026", "17:30:00"), resultado.linhas().getFirst().subList(2, 6));
     }
 
     @Test
     void saidaSemVinculoPreencheColunaSaida() {
-        var resultado = RelatorioPesagemDados.montar(List.of(pesagem(1, "saida", 15, 17)), List.of());
+        var resultado = RelatorioPesagemDados.montar(List.of(pesagem(1, "saida", 15, 17)));
         assertEquals(List.of("", "", "15/09/2026", "17:30:00"), resultado.linhas().getFirst().subList(2, 6));
     }
 
     @Test
     void avulsaEManualTemDataNasDuasColunasEEntradaNaoInventaSaida() {
         for (String tipo : List.of("avulsa", "manual")) {
-            var resultado = RelatorioPesagemDados.montar(List.of(pesagem(1, tipo, 15, 17)), List.of());
+            var resultado = RelatorioPesagemDados.montar(List.of(pesagem(1, tipo, 15, 17)));
             assertEquals(List.of("15/09/2026", "17:30:00", "15/09/2026", "17:30:00"), resultado.linhas().getFirst().subList(2, 6));
         }
-        var resultado = RelatorioPesagemDados.montar(List.of(pesagem(1, "entrada", 15, 17)), List.of());
+        var resultado = RelatorioPesagemDados.montar(List.of(pesagem(1, "entrada", 15, 17)));
         assertEquals(List.of("15/09/2026", "17:30:00", "", ""), resultado.linhas().getFirst().subList(2, 6));
     }
 
     @Test
     void listaVaziaTemTotalZero() {
-        var resultado = RelatorioPesagemDados.montar(List.of(), List.of());
+        var resultado = RelatorioPesagemDados.montar(List.of());
         assertTrue(resultado.linhas().isEmpty());
         assertEquals(BigDecimal.ZERO, resultado.totalLiquido());
     }
