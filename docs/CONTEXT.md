@@ -32,6 +32,18 @@ ver `DECISIONS.md` pras decisões específicas de cada troca.
 - Camada de dados: `Model` (Persism, anotado com `@Table`/`@Column`) + `Repository`
   (`BaseRepository<M>`) + `Service` (`BaseService<M>`) em `my_app/db/`
 
+## Configuração runtime e empacotamento
+
+- `.env` fornece `GOBITECH_ADMIN_LOGIN` e `GOBITECH_ADMIN_PASSWORD` no desenvolvimento; o arquivo
+  real é local e ignorado, enquanto `.env.example` documenta as chaves. No CI, GitHub Secrets
+  fornecem as mesmas variáveis diretamente.
+- Gradle e `scripts/config.py` codificam os valores em Base64 e os injetam como propriedades
+  `-D` do launcher. `AdminRuntimeConfig` as lê em runtime; nenhum `.env` entra no pacote.
+- `AdminPadraoInitializer` aplica as credenciais ao admin rastreado pela migration `V25`, depois
+  do Flyway e antes da rota inicial.
+- `scripts/config.py` separa `temp/input`, `temp/javafx` e `temp/runtime`. O `--input` do
+  `jpackage` nunca recebe o SDK nem o runtime, evitando a duplicação que existia nos pacotes.
+
 ## Estrutura de entidades (Fase 1)
 | Entidade | Tabela | Tela |
 |---|---|---|
@@ -52,6 +64,20 @@ menu "Conexão das câmeras" está **comentado** em `HomeScreen.java:74` **por d
 deixando a tela inalcançável pela UI. Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTREGAS.md`.
 
 ## Estado atual (2026-09-29)
+
+- **Salvar e imprimir no DEV_MODE gera PDF (29/09)**: após salvar a pesagem, o botão gera o
+  ticket A4 na Área de Trabalho com nome `ticket-pesagem-{id}-{timestamp}.pdf`, permitindo
+  inspeção visual sem impressora. Fora do modo de desenvolvimento, a impressão configurada
+  permanece inalterada.
+
+- **Início não abre outra janela (29/09)**: o clique em `Início` na sidebar somente reativa o
+  dashboard da janela principal. As demais opções operacionais continuam usando janelas
+  separadas.
+
+- **Colunas das tabelas aproveitam a largura disponível (29/09)**: a `SimpleTable` do
+  `megalodonte-components` mede cabeçalhos em negrito e células com a fonte real do tema. Com
+  `.horizontalScroll()`, as larguras mínimas são preservadas e qualquer espaço excedente é
+  distribuído proporcionalmente; o scroll permanece quando o conteúdo realmente não couber.
 
 - **Logomarca nas exportações cadastrais (29/09)**: `ListaPdfExporter`, usado por Produtos,
   Clientes e Usuários, agora carrega a logomarca da Empresa tanto de arquivo/URI quanto de

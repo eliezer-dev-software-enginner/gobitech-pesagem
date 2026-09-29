@@ -27,12 +27,13 @@ for tool in ("flatpak", "flatpak-builder"):
     if shutil.which(tool) is None:
         raise EnvironmentError(f"'{tool}' não encontrado no PATH. Instale antes de rodar este script.")
 
+validate_runtime_credentials()
 temp_dir = prepare_temp()
 
 print("[1/5] 📦 Gerando fat JAR...")
 run_gradle("clean", "shadowJar")
 jar_file = find_jar()
-shutil.copy(jar_file, temp_dir / "app.jar")
+shutil.copy(jar_file, temp_dir / "input" / "app.jar")
 
 print("[2/5] 📚 Copiando JavaFX modules...")
 copy_javafx(temp_dir)

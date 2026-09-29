@@ -3,12 +3,13 @@
 # no runtime como -Dgobitech.appVersion (Main.APP_VERSION lê em runtime).
 from config import *
 
+validate_runtime_credentials()
 temp_dir = prepare_temp()
 
 print("[1/5] Gerando fat JAR...")
 run_gradle("clean", "shadowJar")
 jar_file = find_jar()
-shutil.copy(jar_file, temp_dir / "app.jar")
+shutil.copy(jar_file, temp_dir / "input" / "app.jar")
 
 print("[2/5] Copiando JavaFX modules...")
 copy_javafx(temp_dir)

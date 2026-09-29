@@ -18,6 +18,7 @@ import megalodonte.router.v5.Router;
 import my_app.core.InitialRouteResolver;
 import my_app.core.Themes;
 import my_app.db.DB;
+import my_app.db.bootstrap.AdminPadraoInitializer;
 import my_app.domain.components.Components;
 import my_app.core.AppRoutes;
 import my_app.domain.telegram.TelegramNotifierFactory;
@@ -136,6 +137,7 @@ public class Main {
                     .load();
             flyway.repair();
             flyway.migrate();
+            AdminPadraoInitializer.apply(DB.production().url());
             log.info("Migrations do banco aplicadas com sucesso");
 
             String rotaInicial = InitialRouteResolver.resolve();

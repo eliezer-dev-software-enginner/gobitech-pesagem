@@ -1,4 +1,6 @@
 import java.util.Properties
+import java.nio.charset.StandardCharsets
+import java.util.Base64
 
 
 plugins {
@@ -111,11 +113,35 @@ tasks.named<JavaExec>("run") {
         "$javafxModulesHome/linux-25.0.1/lib"
     }
 
+    val dotenv = file(".env").takeIf { it.isFile }?.readLines()
+        ?.map { it.trim() }
+        ?.filter { it.isNotEmpty() && !it.startsWith("#") && it.contains("=") }
+        ?.associate { line ->
+            val normalized = line.removePrefix("export ").trim()
+            val key = normalized.substringBefore("=").trim()
+            var value = normalized.substringAfter("=").trim()
+            if (value.length >= 2 && ((value.startsWith('"') && value.endsWith('"'))
+                        || (value.startsWith('\'') && value.endsWith('\'')))) {
+                value = value.substring(1, value.length - 1)
+            }
+            key to value
+        }.orEmpty()
+
+    fun runtimeCredential(key: String): String = System.getenv(key)
+        ?.takeIf { it.isNotBlank() }
+        ?: dotenv[key]?.takeIf { it.isNotBlank() }
+        ?: throw GradleException("$key não definido no ambiente nem no arquivo .env")
+
+    fun encoded(value: String): String = Base64.getEncoder()
+        .encodeToString(value.toByteArray(StandardCharsets.UTF_8))
+
     val jvmArgsList = mutableListOf(
         "--module-path", fxPath,
         "--add-modules", "javafx.controls,javafx.graphics",
         "--enable-native-access=ALL-UNNAMED",
-        "-Dgobitech.appVersion=$fullVersion"
+        "-Dgobitech.appVersion=$fullVersion",
+        "-Dgobitech.adminLoginBase64=${encoded(runtimeCredential("GOBITECH_ADMIN_LOGIN"))}",
+        "-Dgobitech.adminPasswordBase64=${encoded(runtimeCredential("GOBITECH_ADMIN_PASSWORD"))}"
     )
 
     // Prism verbose é debug do JavaFX — só liga quando o próprio DEV_MODE foi
@@ -127,7 +153,7 @@ tasks.named<JavaExec>("run") {
     jvmArgs = jvmArgsList
 
     environment("DEV_MODE", "true")
-    environment("DEV_ROUTE", "HOME")
+    environment("DEV_ROUTE", "AUTH")
 }
 application {
     mainClass.set(props.getProperty("appMainClass"))

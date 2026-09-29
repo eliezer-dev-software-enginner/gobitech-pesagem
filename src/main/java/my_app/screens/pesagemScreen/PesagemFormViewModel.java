@@ -6,6 +6,7 @@ import megalodonte.base.async.Async;
 import megalodonte.base.state.State;
 import megalodonte.base.route.v2.ScreenContextInterface;
 import megalodonte.v2.ListState;
+import my_app.Main;
 import my_app.core.events.ClienteEvent;
 import my_app.core.events.EventBus;
 import my_app.core.events.PesagemEvent;
@@ -29,6 +30,7 @@ import my_app.infra.balanca.BalancaService;
 import my_app.infra.balanca.PesagemCalculo;
 import my_app.infra.camera.CameraSnapshotClient;
 import my_app.infra.camera.FotoPesagemStorage;
+import my_app.infra.TicketDevStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -378,16 +380,29 @@ public abstract class PesagemFormViewModel {
     private void imprimirPesagemSalva(int id) {
         try (var preferencias = new PreferenciasService();
              var pesagens = new PesagemService();
-             var empresas = new EmpresaService()) {
-            new ImpressaoTicketService(preferencias, pesagens, empresas).imprimir(id);
+            var empresas = new EmpresaService()) {
+            var impressao = new ImpressaoTicketService(preferencias, pesagens, empresas);
+            if (Main.devMode) {
+                var destino = impressao.exportarPdf(id, TicketDevStorage.novoDestino(id));
+                UI.runOnUi(() -> {
+                    if (!destruido) Components.ShowPopup(ctx,
+                            "PDF do ticket salvo na Área de Trabalho: " + destino.getFileName());
+                });
+                return;
+            }
+
+            impressao.imprimir(id);
             UI.runOnUi(() -> {
                 if (!destruido) Components.ShowPopup(ctx, "Ticket enviado para a impressora padrão");
             });
         } catch (Exception e) {
-            log.error("Pesagem salva, mas impressão falhou: id={}", id, e);
+            log.error("Pesagem salva, mas impressão/pré-visualização falhou: id={}", id, e);
             UI.runOnUi(() -> {
-                if (!destruido) Components.ShowAlertError("A pesagem nº " + id
-                        + " foi salva, mas não foi possível imprimir. Verifique a impressora e reimprima pelo histórico.");
+                if (destruido) return;
+                String mensagem = Main.devMode
+                        ? "A pesagem nº " + id + " foi salva, mas não foi possível gerar o PDF na Área de Trabalho."
+                        : "A pesagem nº " + id + " foi salva, mas não foi possível imprimir. Verifique a impressora e reimprima pelo histórico.";
+                Components.ShowAlertError(mensagem);
             });
         }
     }

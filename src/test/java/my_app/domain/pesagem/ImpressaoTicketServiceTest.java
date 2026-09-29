@@ -7,8 +7,12 @@ import my_app.db.services.EmpresaService;
 import my_app.db.services.PesagemService;
 import my_app.db.services.PreferenciasService;
 import my_app.domain.SessaoUsuario;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -118,5 +122,23 @@ class ImpressaoTicketServiceTest extends BaseServiceTest {
 
         assertDoesNotThrow(() -> impressao.imprimir(pesagem.getId()));
         assertEquals(List.of("laser"), destinos);
+    }
+
+    @Test
+    void exportaTicketA4EmPdfSemAcionarImpressora(@TempDir Path tempDir) throws Exception {
+        var pesagem = novaPesagem("manual");
+        var destino = tempDir.resolve("ticket-dev.pdf");
+
+        assertEquals(destino, impressao.exportarPdf(pesagem.getId(), destino));
+        assertTrue(java.nio.file.Files.isRegularFile(destino));
+        assertTrue(java.nio.file.Files.size(destino) > 0);
+        assertTrue(destinos.isEmpty(), "A pré-visualização PDF não deve acionar impressora");
+
+        try (var documento = PDDocument.load(destino.toFile())) {
+            assertEquals(1, documento.getNumberOfPages());
+            var texto = new PDFTextStripper().getText(documento);
+            assertTrue(texto.contains("Ticket de Pesagem"));
+            assertTrue(texto.contains("ABC1D23"));
+        }
     }
 }

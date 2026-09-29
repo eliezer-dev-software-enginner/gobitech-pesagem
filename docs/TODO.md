@@ -2,6 +2,24 @@
 
 ## Ajustes (29/09/2026)
 
+- [x] **Empacotamento sem duplicação**: scripts de MSI, DEB e Flatpak agora isolam o `--input`
+  do `jpackage` (somente o JAR) das áreas de JavaFX e runtime do `jlink`, seguindo a
+  correção validada no `plics-sw`.
+
+- [x] **Credenciais iniciais externas**: o build lê
+  `GOBITECH_ADMIN_LOGIN`/`GOBITECH_ADMIN_PASSWORD` do ambiente ou `.env` local e as injeta no
+  launcher como propriedades `-D`; o `.env` não entra no pacote. Migration `V25`, decodificação
+  e inicializador cobertos por testes.
+
+- [x] **Pré-visualização em desenvolvimento**: `Salvar e imprimir` gera o ticket A4 em PDF na
+  Área de Trabalho quando `DEV_MODE=true`; produção continua enviando à impressora configurada.
+
+- [x] **Navegação Início**: clicar em `Início` apenas seleciona o dashboard existente e não
+  cria outra janela `HOME`.
+
+- [x] **Largura das colunas**: `SimpleTable.horizontalScroll()` agora mede corretamente
+  cabeçalhos/conteúdo e distribui o espaço excedente, eliminando `...` quando há largura livre.
+
 - [x] **Logomarca nas exportações cadastrais**: PDFs de Produtos, Clientes e Usuários agora
   carregam a imagem do Cadastro da Empresa também quando ela é um recurso interno `assets/...`;
   linha divisória posicionada abaixo de todos os dados, sem sobrepor o telefone.

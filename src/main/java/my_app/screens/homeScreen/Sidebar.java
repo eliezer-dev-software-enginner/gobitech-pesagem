@@ -164,7 +164,7 @@ public class Sidebar {
                 .paddingDown(ThemeManager.theme().padding().sm())
                 )
                 .icon(iconeComputado)
-                .onClick(() -> viewModel.spawnWindow(screen));
+                .onClick(() -> viewModel.navigateFromSidebar(screen));
         alinharEsquerda(botao);
         return botao;
     }

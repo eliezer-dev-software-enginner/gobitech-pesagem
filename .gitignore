@@ -62,6 +62,8 @@ build.gradle-funcionando_gera_fatjar.kts-draft
 # Arquivos de configuração com dados sensíveis
 app.properties
 *.properties
+.env
+!.env.example
 # gradle.properties não tem segredo nenhum (nome/versão/vendor do app) — é lido em build.gradle.kts
 # E em scripts/config.py (empacotamento). Sem essa exceção, um checkout novo do zero não tinha o
 # arquivo, e tanto o build quanto o workflow de release quebravam de cara.

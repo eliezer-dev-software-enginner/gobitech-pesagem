@@ -6,8 +6,12 @@ import my_app.db.services.EmpresaService;
 import my_app.db.services.PesagemService;
 import my_app.db.services.PreferenciasService;
 import my_app.infra.TicketLaserExporter;
+import my_app.infra.TicketPdfExporter;
 import my_app.infra.TicketThermalExporter;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.SQLException;
 
 public class ImpressaoTicketService {
@@ -49,5 +53,18 @@ public class ImpressaoTicketService {
         if (!enviada) {
             throw new IllegalArgumentException("Não foi possível enviar o ticket. Verifique a impressora padrão do sistema e o tipo escolhido em Configurações.");
         }
+    }
+
+    /** Gera o mesmo ticket A4 da impressão laser em um caminho escolhido pelo chamador. */
+    public Path exportarPdf(int pesagemId, Path destino) throws SQLException, IOException {
+        var pesagem = pesagens.buscarComRelacoes(pesagemId);
+        if (pesagem == null) throw new IllegalArgumentException("Pesagem não encontrada.");
+        var entrada = pesagens.buscarEntradaVinculada(pesagem);
+        var empresa = empresas.buscarUnico();
+
+        var parent = destino.toAbsolutePath().getParent();
+        if (parent != null) Files.createDirectories(parent);
+        new TicketPdfExporter().gerar(destino.toFile(), empresa, pesagem, entrada);
+        return destino;
     }
 }

@@ -44,8 +44,9 @@ public class HomeScreenViewModel {
         HBox.setHgrow(contentArea.current().getJavaFxNode(), Priority.ALWAYS);
     }
 
-    public void spawnWindow(AppRoutes.Screens screen) {
+    public void navigateFromSidebar(AppRoutes.Screens screen) {
         screenAtiva.set(screen);
+        if (screen == AppRoutes.Screens.HOME) return;
         screenContext.spawnWindow(screen.name());
     }
 

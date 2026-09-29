@@ -1,9 +1,13 @@
 from pathlib import Path
+import base64
 import subprocess
 import shutil
 import os
 
 ROOT = Path(__file__).resolve().parent.parent
+RESTRICTED_NATIVE_LIBS = {"jfxwebkit.dll"}
+ADMIN_LOGIN_KEY = "GOBITECH_ADMIN_LOGIN"
+ADMIN_PASSWORD_KEY = "GOBITECH_ADMIN_PASSWORD"
 
 
 def _read_gradle_properties():
@@ -15,6 +19,50 @@ def _read_gradle_properties():
                 k, _, v = line.partition("=")
                 props[k.strip()] = v.strip()
     return props
+
+
+def _read_dotenv():
+    values = {}
+    env_file = ROOT / ".env"
+    if not env_file.is_file():
+        return values
+    for number, original in enumerate(env_file.read_text(encoding="utf-8-sig").splitlines(), 1):
+        line = original.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[7:].strip()
+        key, separator, value = line.partition("=")
+        if not separator or not key.strip():
+            raise ValueError(f"Linha inválida no .env ({number})")
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
+            value = value[1:-1]
+        values[key.strip()] = value
+    return values
+
+
+def _runtime_credential(key: str):
+    # No GitHub Actions os valores vêm diretamente de Secrets como variáveis de
+    # ambiente. Localmente, o .env é o fallback e nunca entra no pacote.
+    value = os.environ.get(key) or _read_dotenv().get(key)
+    if not value or not value.strip():
+        raise EnvironmentError(
+            f"{key} não definido. Configure a variável de ambiente ou o arquivo .env."
+        )
+    if "\n" in value or "\r" in value:
+        raise ValueError(f"{key} não pode conter quebra de linha")
+    return value
+
+
+def _base64_java_option(property_name: str, value: str):
+    encoded = base64.b64encode(value.encode("utf-8")).decode("ascii")
+    return f"-D{property_name}={encoded}"
+
+
+def validate_runtime_credentials():
+    _runtime_credential(ADMIN_LOGIN_KEY)
+    _runtime_credential(ADMIN_PASSWORD_KEY)
 
 
 _gradle_props = _read_gradle_properties()
@@ -78,23 +126,28 @@ def find_jar():
 def prepare_temp():
     temp_dir = ROOT / "temp"
     shutil.rmtree(temp_dir, ignore_errors=True)
-    temp_dir.mkdir(exist_ok=True)
+    # O jpackage copia tudo que estiver em --input para app/. Por isso o JAR e
+    # o .env ficam isolados dos módulos JavaFX e da imagem gerada pelo jlink.
+    (temp_dir / "input").mkdir(parents=True)
+    (temp_dir / "javafx").mkdir(parents=True)
     return temp_dir
 
 
 def copy_javafx(temp_dir: Path):
     jfx = javafx_dir()
-    shutil.copytree(jfx / "lib", temp_dir / "lib")
+    javafx_temp = temp_dir / "javafx"
+    shutil.copytree(jfx / "lib", javafx_temp / "lib")
     bin_dir = jfx / "bin"
     if bin_dir.exists():
-        shutil.copytree(bin_dir, temp_dir / "bin")
+        shutil.copytree(bin_dir, javafx_temp / "bin")
 
 
 def run_jlink(temp_dir: Path):
     jdk_jmods = Path(_java_home()) / "jmods"
     sep = ";" if os.name == "nt" else ":"
-    module_path = f"{temp_dir / 'lib'}{sep}{jdk_jmods}"
-    app_jar = temp_dir / "app.jar"
+    javafx_lib = temp_dir / "javafx" / "lib"
+    module_path = f"{javafx_lib}{sep}{jdk_jmods}"
+    app_jar = temp_dir / "input" / "app.jar"
     java_bin = Path(_java_home()) / "bin"
     jdeps_cmd = str(java_bin / "jdeps")
     base_modules = {
@@ -104,7 +157,7 @@ def run_jlink(temp_dir: Path):
     try:
         jdeps = subprocess.run(
             [jdeps_cmd, "--print-module-deps", "--ignore-missing-deps",
-             "--module-path", str(temp_dir / "lib"),
+             "--module-path", str(javafx_lib),
              str(app_jar)],
             capture_output=True, text=True, cwd=ROOT, check=True
         )
@@ -133,24 +186,40 @@ def run_jlink(temp_dir: Path):
 def copy_natives(temp_dir: Path):
     ext = ".dll" if os.name == "nt" else ".so"
     target = "bin" if os.name == "nt" else "lib"
-    source = temp_dir / "bin" if (temp_dir / "bin").exists() else temp_dir / "lib"
+    javafx_temp = temp_dir / "javafx"
+    source = javafx_temp / "bin" if (javafx_temp / "bin").exists() else javafx_temp / "lib"
     for native in source.glob(f"*{ext}"):
+        if native.name.lower() in RESTRICTED_NATIVE_LIBS:
+            print(f"Ignorando native restrito: {native.name}")
+            continue
         dest = temp_dir / "runtime" / target / native.name
-        dest.parent.mkdir(exist_ok=True)
+        dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(native, dest)
 
 
 def run_jpackage(temp_dir: Path, pkg_type: str, extra_args: list = None):
-    shutil.rmtree(ROOT / "dist", ignore_errors=True)
+    dist_dir = ROOT / "dist"
+    if dist_dir.exists():
+        shutil.rmtree(dist_dir)
     jpackage_cmd = str(Path(_java_home()) / "bin" / "jpackage")
     cmd = [
         jpackage_cmd,
-        "--input", str(temp_dir),
+        # Somente arquivos da aplicação. JavaFX e runtime ficam fora daqui para
+        # não serem duplicados em app/ dentro do pacote final.
+        "--input", str(temp_dir / "input"),
         "--name", APP_NAME,
         "--app-version", APP_VERSION,
         "--vendor", VENDOR,
         # Main.APP_VERSION lê essa property em runtime — nada fica hardcoded no Main.java.
         "--java-options", f"-Dgobitech.appVersion={APP_VERSION}",
+        # Credenciais são lidas do ambiente/.env durante o build e embutidas no
+        # launcher como propriedades da JVM. Base64 evita problemas de escape no cfg.
+        "--java-options", _base64_java_option(
+            "gobitech.adminLoginBase64", _runtime_credential(ADMIN_LOGIN_KEY)
+        ),
+        "--java-options", _base64_java_option(
+            "gobitech.adminPasswordBase64", _runtime_credential(ADMIN_PASSWORD_KEY)
+        ),
         # jSerialComm em Java 24+ exige liberar acesso a código nativo
             # explicitamente — sem isso, a JVM barra o carregamento da lib nativa
             # de portas seriais em runtime.
@@ -171,7 +240,7 @@ def smoke_test(temp_dir):
     java_exe = temp_dir / "runtime" / "bin" / "java"
     proc = subprocess.Popen(
         [str(java_exe), "-Djava.library.path={}".format(temp_dir / "runtime" / "lib"),
-         "-cp", str(temp_dir / "app.jar"), MAIN_CLASS],
+         "-cp", str(temp_dir / "input" / "app.jar"), MAIN_CLASS],
         cwd=ROOT
     )
     try:

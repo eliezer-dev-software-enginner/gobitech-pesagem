@@ -54,6 +54,7 @@ camada de dados: `Model` (Persism) + `Repository` (`BaseRepository`) + `Service`
   `windows-25.0.1/` e `linux-25.0.1/` — obrigatória para o `./gradlew run`.
 - Variáveis opcionais: `DEV_MODE=true` (liga `-Dprism.verbose` no run), `GITHUB_TOKEN`
   (workflow de release).
+- Arquivo `.env` criado a partir de `.env.example`, com as credenciais iniciais do admin.
 
 ## Execução
 
@@ -62,7 +63,8 @@ camada de dados: `Model` (Persism) + `Repository` (`BaseRepository`) + `Service`
 ```
 
 O banco fica em `%APPDATA%\gobitech\erp.db` (Windows) ou `~/.gobitech/erp.db` (Linux).
-Na primeira execução o Flyway cria o schema e o usuário admin padrão (`V10`).
+Na primeira execução o Flyway cria o schema e o usuário admin padrão; antes de abrir a tela de
+login, as credenciais são substituídas pelos valores do `.env`.
 
 ## Testes
 
@@ -71,6 +73,21 @@ Na primeira execução o Flyway cria o schema e o usuário admin padrão (`V10`)
 ```
 
 ## Empacotamento
+
+Antes de executar ou empacotar, copie `.env.example` para `.env` e defina:
+
+```dotenv
+GOBITECH_ADMIN_LOGIN=admin@exemplo.com
+GOBITECH_ADMIN_PASSWORD=uma-senha-segura
+```
+
+O `.env` real não é versionado. Em desenvolvimento o Gradle o lê e injeta as credenciais com
+`-Dgobitech.adminLoginBase64`/`-Dgobitech.adminPasswordBase64`. No empacotamento,
+`scripts/config.py` faz a mesma injeção nas opções Java do launcher; o arquivo `.env` não entra
+no pacote.
+No workflow de release, configure os secrets `GOBITECH_ADMIN_LOGIN` e
+`GOBITECH_ADMIN_PASSWORD`; eles são entregues diretamente ao script como variáveis de ambiente,
+sem criar um `.env` no runner.
 
 A versão vive em `gradle.properties` (`appVersion` + `appPatch`). Incremente com:
 
@@ -89,6 +106,11 @@ python scripts/create-deb.py   # Linux (.deb)
 
 Flatpak: existe a opção experimental `scripts/create-flatpak.py` (build local de teste
 via flatpak-builder) — o app não usa mais auto-update nem `Main.isFlatpak`.
+
+Os scripts mantêm três áreas separadas em `temp/`: `input/` recebe somente o JAR,
+`javafx/` serve de fonte para os módulos/nativos, e `runtime/` recebe a imagem do
+`jlink`. Isso impede que runtime e dependências sejam duplicados dentro de `app/` pelo
+`jpackage`.
 
 ## Desenvolvimento
 

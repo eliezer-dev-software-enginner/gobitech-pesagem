@@ -1,5 +1,50 @@
 # Decisões Arquiteturais
 
+## 2026-09-29: Admin padrão vem do `.env` e pacote não duplica o runtime
+
+**Decisão:** o build lê login e senha do administrador pelas chaves `GOBITECH_ADMIN_LOGIN` e
+`GOBITECH_ADMIN_PASSWORD` (variáveis de ambiente ou `.env` local) e as grava nas opções Java do
+launcher como propriedades `-D` em Base64. O `.env` não é empacotado. A aplicação decodifica
+essas propriedades em runtime. A migration `V10` não foi alterada,
+pois isso invalidaria seu checksum em instalações existentes. A `V25` identifica somente o
+admin legado ainda gerenciado pelo seed, e `AdminPadraoInitializer` reaplica o `.env` após as
+migrations e antes da autenticação. Outros administradores e seeds já personalizados não são
+sobrescritos. O arquivo real é ignorado pelo Git; `.env.example` documenta o contrato.
+
+**Empacotamento:** seguindo a correção do `plics-sw`, `jpackage --input` aponta exclusivamente
+para `temp/input` (somente o JAR). Os módulos do SDK ficam em `temp/javafx` e a imagem do `jlink`
+em `temp/runtime`. MSI, DEB e Flatpak usam a mesma separação; assim JavaFX, dependências e o
+runtime não são copiados novamente para a pasta `app/` do artefato final. `jfxwebkit.dll`
+também não é copiada, pois o aplicativo não usa WebView e essa DLL causa problema na validação
+do MSI para a Microsoft Store.
+
+---
+
+## 2026-09-29: Salvar e imprimir exporta PDF no modo de desenvolvimento
+
+**Decisão:** quando `Main.devMode` estiver ativo, `Salvar e imprimir` não acessa impressora
+térmica nem laser. O ticket A4 é gerado na Área de Trabalho com ID e timestamp no nome. Em
+produção, o tipo configurado em Preferências continua determinando a impressora utilizada.
+
+---
+
+## 2026-09-29: Início representa a janela principal existente
+
+**Decisão:** a navegação da sidebar trata `HOME` como o dashboard já renderizado na janela
+principal e não chama `spawnWindow`. Os demais destinos da sidebar mantêm o comportamento de
+abrir uma janela operacional separada.
+
+---
+
+## 2026-09-29: SimpleTable preenche espaço sem truncar cabeçalhos desnecessariamente
+
+**Decisão:** o modo `.horizontalScroll()` usa como largura mínima de cada coluna o maior valor
+entre cabeçalho em negrito e conteúdo visível, ambos medidos com o tamanho de fonte do tema.
+Quando a soma é menor que a área da tabela, a sobra é distribuída proporcionalmente. Quando é
+maior, os mínimos são mantidos e a rolagem horizontal continua disponível.
+
+---
+
 ## 2026-09-29: Exportações cadastrais usam a logomarca da Empresa
 
 **Decisão:** todos os PDFs gerados por `ListaPdfExporter` exibem no cabeçalho a logomarca do
