@@ -20,6 +20,7 @@ import my_app.db.models.PesagemModel;
 import my_app.domain.ContratoTelaCrudV3;
 import my_app.domain.ViewModelScreenContract;
 import my_app.domain.components.Components;
+import my_app.domain.Autorizacao;
 import my_app.infra.RelatorioPesagemPdfExporter;
 import pack.utilities.DatePack;
 import org.kordamp.ikonli.entypo.Entypo;
@@ -80,11 +81,11 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
                         .c_child(Components.FormTitle("Filtrar pesagens"))
                         .c_child(new FlowRow(new FlowRowProps().spacingOf(10))
                                 .children(
-                                        Components.InputColumn("Placa", vm.filtroPlaca, "Ex: ABC1D23"),
+                                        Components.InputPlaca("Placa", vm.filtroPlaca, "Ex: ABC1234 ou ABC1D23"),
                                         Components.InputColumn("Motorista", vm.filtroMotorista, "Ex: João"),
                                         Components.SelectColumn("Tipo", PesagemHistoricoViewModel.tiposPesagemOpcoes, vm.filtroTipo, it -> it),
                                         Components.SelectColumn("Cliente", vm.clientesFiltroState, vm.filtroCliente,
-                                                c -> c.getId() == null ? "Todos" : c.getLoja(), true),
+                                                c -> c.getId() == null ? "Todos" : c.getRazaoSocial(), true),
                                         Components.DatePickerColumn(vm.filtroDataInicio, "Data início"),
                                         Components.DatePickerColumn(vm.filtroDataFim, "Data fim")
                                 )
@@ -104,7 +105,7 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
                 .column("Motorista", PesagemModel::getMotoristaNome)
                 .column("Documento", PesagemModel::getMotoristaDocumento)
                 .column("Tipo", PesagemModel::getTipoPesagem)
-                .column("Cliente", it -> it.getCliente() != null ? it.getCliente().getLoja() : "-")
+                .column("Cliente", it -> it.getCliente() != null ? it.getCliente().getRazaoSocial() : "-")
                 .column("Produto", it -> it.getProduto() != null ? it.getProduto().getNome() : "-")
                 .column("Nota fiscal", PesagemModel::getNotaFiscal)
                 .column("Tara (Kg)", it -> pesoStr(it.getPesoVeiculo()))
@@ -151,20 +152,20 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
     }
 
     private Row acoesLista() {
-        return new Row(new RowProps().spacingOf(10).hugWidth()).children(
-                Components.actionButton("Imprimir", "white", "#16a34a", Entypo.PRINT,  ()-> {
+        var acoes = new Row(new RowProps().spacingOf(10).hugWidth())
+                .r_child(Components.actionButton("Imprimir", "white", "#16a34a", Entypo.PRINT,  ()-> {
                    var m = vm.selected.get();
                    if(m == null){
                        Components.ShowAlertError("Selecione o item primeiro");
                        return;
                    }
                    vm.imprimirTicket(m);
-                }),
-                //botaoAcao("Exportar relatório", "black", "#CDD7D6", Entypo.DOWNLOAD, this::handleClickBaixarLista),
-                //botaoAcao("Exportar relatório", "black", "#CDD7D6", Entypo.DOWNLOAD, this::handleClickBaixarLista),
-                Components.actionButton("Exportar relatório", "black", "#CDD7D6", Entypo.DOWNLOAD, this::handleClickBaixarLista),
-                Components.actionButton("Excluir", "white", "#E55934", Entypo.TRASH, this::handleClickMenuDelete)
-        );
+                }))
+                .r_child(Components.actionButton("Exportar relatório", "black", "#CDD7D6", Entypo.DOWNLOAD, this::handleClickBaixarLista));
+        if (Autorizacao.podeAdministrar()) {
+            acoes.r_child(Components.actionButton("Excluir", "white", "#E55934", Entypo.TRASH, this::handleClickMenuDelete));
+        }
+        return acoes;
     }
 
     @Override

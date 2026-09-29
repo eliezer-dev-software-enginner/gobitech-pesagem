@@ -3,6 +3,7 @@ package my_app.db.services;
 import my_app.db.DB;
 import my_app.db.models.ConexaoCameraModel;
 import my_app.db.repositories.ConexaoCameraRepository;
+import my_app.domain.Autorizacao;
 import net.sf.persism.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,7 @@ public class ConexaoCameraService extends BaseService<ConexaoCameraModel> {
      * porta também foi — o resto (usuário/senha/canal) fica por conta de quem configurou.
      */
     public ConexaoCameraModel salvarOuAtualizar(ConexaoCameraModel model) throws SQLException {
+        Autorizacao.exigirAdmin("alterar a conexão das câmeras");
         validarCampos(model);
         var existente = buscarUnico();
         if (existente == null) {
@@ -51,6 +53,24 @@ public class ConexaoCameraService extends BaseService<ConexaoCameraModel> {
                 descreverCamera(model.getFrenteIp(), model.getFrentePorta()),
                 descreverCamera(model.getCostasIp(), model.getCostasPorta()));
         return model;
+    }
+
+    @Override
+    public ConexaoCameraModel salvar(ConexaoCameraModel model) throws SQLException {
+        Autorizacao.exigirAdmin("alterar a conexão das câmeras");
+        return super.salvar(model);
+    }
+
+    @Override
+    public void atualizar(ConexaoCameraModel model) throws SQLException {
+        Autorizacao.exigirAdmin("alterar a conexão das câmeras");
+        super.atualizar(model);
+    }
+
+    @Override
+    public void excluirById(long id) throws SQLException {
+        Autorizacao.exigirAdmin("excluir a conexão das câmeras");
+        super.excluirById(id);
     }
 
     private String descreverCamera(String ip, Integer porta) {

@@ -87,7 +87,7 @@ public class AddOrEditUsuarioScreen implements ScreenComponent {
                                         Components.InputColumn(Components.obrigatorio("Login"), viewModel.login, "Ex: maria"),
                                         Components.InputColumnAuth(Components.obrigatorio("Senha"), viewModel.senha, "Digite a senha"),
                                         Components.InputColumnPhone("Telefone", viewModel.telefone),
-                                        Components.SelectColumn("Administrador?", Data.simNaoList, viewModel.ehAdminSelected, it -> it)
+                                        Components.SelectColumn("Perfil", Data.perfisUsuarioList, viewModel.perfilSelected, it -> it)
                                 )
                         )
                         .c_child(new SpacerVertical(10))

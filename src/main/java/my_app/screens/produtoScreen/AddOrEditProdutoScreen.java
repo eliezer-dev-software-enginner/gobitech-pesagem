@@ -84,8 +84,7 @@ public class AddOrEditProdutoScreen implements ScreenComponent {
                         .c_child(new FlowRow(new FlowRowProps().spacingOf(10))
                                 .children(
                                         Components.InputColumn(Components.obrigatorio("Nome do produto"), viewModel.nome, "Ex: Soja"),
-                                        Components.SelectColumn("Unidade", Data.unidadesDeMedidaList, viewModel.unidadeSelected, it -> it),
-                                        Components.InputColumnDecimal("Desconto padrão (%)", viewModel.desconto, "0")
+                                        Components.SelectColumn("Unidade", Data.unidadesDeMedidaList, viewModel.unidadeSelected, it -> it)
                                 )
                         )
                         .c_child(new SpacerVertical(10))

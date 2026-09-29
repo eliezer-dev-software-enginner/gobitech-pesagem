@@ -34,4 +34,12 @@ public class UsuarioRepository extends BaseRepository<UsuarioModel> {
                 sql("SELECT * FROM usuarios WHERE ativo = 1 ORDER BY nome")
         );
     }
+
+    public long contarAdministradoresAtivos() throws SQLException {
+        var resultado = session().query(
+                Integer.class,
+                sql("SELECT COUNT(*) FROM usuarios WHERE ativo = 1 AND admin = 1")
+        );
+        return resultado.isEmpty() ? 0 : resultado.getFirst().longValue();
+    }
 }

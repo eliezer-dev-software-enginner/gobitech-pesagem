@@ -1,6 +1,8 @@
 package my_app.db.services;
 
 import my_app.db.models.LicensaModel;
+import my_app.db.models.UsuarioModel;
+import my_app.domain.SessaoUsuario;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -90,5 +92,17 @@ class LicensaServiceTest extends BaseServiceTest {
     @Test
     void naoDeveValidarLicensaInexistente() throws Exception {
         assertFalse(licensaService.validar("não existe"));
+    }
+
+    @Test
+    void operadorPodeValidarMasNaoGerarNemListarLicencas() throws Exception {
+        var licensa = licensaService.gerarNova(null);
+        var operador = new UsuarioModel();
+        operador.setAdmin(false);
+        SessaoUsuario.login(operador);
+
+        assertTrue(licensaService.validar(licensa.getValor()));
+        assertThrows(IllegalArgumentException.class, () -> licensaService.gerarNova(null));
+        assertThrows(IllegalArgumentException.class, () -> licensaService.listar());
     }
 }

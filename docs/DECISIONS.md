@@ -1,5 +1,101 @@
 # Decisões Arquiteturais
 
+## 2026-09-29: Exportações cadastrais usam a logomarca da Empresa
+
+**Decisão:** todos os PDFs gerados por `ListaPdfExporter` exibem no cabeçalho a logomarca do
+Cadastro da Empresa. O carregamento aceita arquivo local, URI `file:` e recurso empacotado,
+mantendo o mesmo comportamento do ticket A4 e sem usar a imagem das Preferências. O fim do
+cabeçalho é calculado pelo elemento que desce mais entre a imagem e os dados textuais; a linha
+divisória recebe margem adicional e nunca atravessa o telefone.
+
+---
+
+## 2026-09-29: Dois perfis de acesso — Admin e Operador
+
+**Decisão:** `usuarios.admin` continua sendo a fonte de verdade (`true` = Admin, `false` =
+Operador), evitando um segundo booleano e combinações inválidas. Na UI, o antigo select
+Sim/Não virou `Perfil` com `Operador` e `Admin`; novos usuários começam como Operador.
+
+O Operador pode criar/editar clientes e produtos, registrar qualquer modalidade de pesagem,
+consultar/exportar históricos e imprimir tickets. Somente Admin pode excluir clientes, produtos
+ou pesagens; gerenciar usuários; alterar Empresa, Configurações ou conexões; gerar licenças e
+consultar logs. A autorização é aplicada em quatro camadas: visibilidade do menu, proteção das
+rotas, visibilidade das ações e validação nos serviços. Leituras técnicas necessárias ao trabalho
+do operador (empresa no ticket, configuração da impressora, conexão da balança e validação de
+licença) continuam permitidas, mas suas alterações são bloqueadas.
+
+Menus inteiramente administrativos usam `MenuBar.menuIf`; assim, o Operador não vê um título de
+menu vazio. O grupo `Logs` é adicionado somente quando `SessaoUsuario.isAdmin()` for verdadeiro.
+
+Para evitar perda de acesso, um administrador não pode se inativar/rebaixar nem remover o último
+administrador ativo.
+
+---
+
+## 2026-09-29: Produto não possui desconto padrão e usa unidade Kg
+
+**Decisão:** o cadastro de produto mantém somente nome, unidade, observações e situação. A opção
+`Quilos` foi substituída por `Kg`; a migration `V24` também converte os registros existentes.
+`ProdutoModel.desconto` e a coluna correspondente foram removidos, assim como o preenchimento
+automático de `Outros` ao selecionar um produto. Os descontos continuam pertencendo à pesagem.
+Esta decisão substitui a implementação de desconto padrão de produto registrada em 18/08.
+
+---
+
+## 2026-09-29: Cliente usa somente Razão social
+
+**Decisão:** `ClienteModel.loja` foi removido e `razao_social` passou a ser o único nome do
+cliente em cadastro, pesquisa, tabelas, seletores, tickets e relatórios. A migration `V23`
+reconstrói `clientes`, preservando todos os campos restantes e removendo a coluna `loja`, que
+possuía uma restrição `UNIQUE` e não podia ser descartada diretamente pelo SQLite.
+
+---
+
+## 2026-09-29: Ticket não exibe campo UF sem fonte de dados
+
+**Decisão:** o rótulo `UF` foi removido de todas as vias do ticket A4 porque nenhum dado o
+alimentava. O bloco Cliente/Pesos também subiu uma linha, eliminando o espaço excedente após
+Produto sem alterar as assinaturas nem a tabela de descontos.
+
+---
+
+## 2026-09-29: Ticket usa diferença absoluta nos dois sentidos da pesagem
+
+**Decisão:** `TicketPesagemDados.liquidoAntesDescontos()` usa `|saída - entrada|`. Essa mesma
+base alimenta os quilos de cada desconto e o total descontado, cobrindo tanto carregamento quanto
+descarregamento. A regra fica compartilhada pelas impressões A4 e térmica.
+
+Pesagens ainda abertas, do tipo `entrada`, mantêm líquido e descontos zerados até existir a
+segunda leitura. **Testado por build:** `./gradlew test --offline` → **273 testes, 0 falhas**;
+o A4 do cenário Entrada 20000 / Saída 8020 também foi renderizado e conferido visualmente.
+
+---
+
+## 2026-09-29: Componente e validação de placa brasileira
+
+**Decisão:** os campos de placa usam `Components.InputPlaca`, com sete caracteres alfanuméricos
+em maiúsculas. A camada de serviço valida os dois formatos aceitos: comum (`LLLNNNN`) e Mercosul
+(`LLLNLNN`), garantindo a regra também para gravações feitas fora da tela.
+
+**Testado por build:** `./gradlew test --offline` → **273 testes, 0 falhas**, incluindo os dois
+formatos, normalização de minúsculas e rejeição de formatos inválidos.
+
+---
+
+## 2026-09-29: Logomarca da empresa no cabeçalho do ticket A4
+
+**Decisão:** a impressão laser/A4 usa exclusivamente `EmpresaModel.logomarca`, do Cadastro da
+empresa, no canto direito do cabeçalho de cada uma das duas vias. Não usa
+`PreferenciasModel.imagemHorizontalLogoTipo`, que pertence ao dashboard. A imagem preserva a
+proporção dentro de 130 x 58 pontos. O carregamento aceita arquivo local, URI `file:` e recurso
+empacotado. Sem imagem ou em caso de arquivo inválido, o ticket continua sendo gerado sem
+logomarca e registra aviso no log.
+
+**Testado por build:** `./gradlew test --offline` → **273 testes, 0 falhas**; PDF A4 renderizado
+com a imagem nas duas vias e sem sobreposição no cabeçalho.
+
+---
+
 ## 2026-09-24: Histórico usa somente o resultado da consulta mais recente
 
 **Decisão:** as consultas assíncronas da listagem de pesagens recebem um número sequencial. O
@@ -833,7 +929,7 @@ aplicação ganhasse um `*` visual no rótulo.
 **Decisão (`*` nos obrigatórios):**
 - Novo helper `Components.obrigatorio(String)` que devolve `label + " *"`, aplicado nos rótulos
   dos campos obrigatórios em cada tela (Pesagem: Placa/Nome do motorista/Cliente; Login:
-  E-mail/Senha; Cliente: Loja/Razão social; Produto: Nome; Usuário: Nome/Login/Senha; Empresa:
+  E-mail/Senha; Cliente: Razão social; Produto: Nome; Usuário: Nome/Login/Senha; Empresa:
   Nome; Conexão da balança: Tipo + campos do tipo selecionado). **Produto** no formulário de
   pesagem **não** recebe `*` (consistente com a decisão acima). Câmeras e licença ficam sem `*`
   (nenhum campo de texto obrigatório nelas).
@@ -1805,7 +1901,10 @@ afeta qualquer tela que edite um item já carregado na lista. Ver `DECISIONS.md`
 
 ---
 
-## 2026-08-18: Campo `desconto` do produto (previsto no DER original, nunca implementado)
+## 2026-08-18: Campo `desconto` do produto — decisão superada em 2026-09-29
+
+> Histórico: esta funcionalidade foi removida pela migration `V24`; descontos voltaram a
+> pertencer exclusivamente à pesagem. Ver a decisão de 2026-09-29 no topo deste arquivo.
 
 **Contexto:** conferindo o Anexo II (Diagrama Entidade Relacionamento) da documentação original
 da DGB Tecnologia, a entidade `products` sempre teve um campo `discount float(10,2)` — nunca

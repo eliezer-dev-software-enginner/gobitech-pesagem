@@ -1,6 +1,8 @@
 package my_app.db.services;
 
 import my_app.db.models.ClienteModel;
+import my_app.db.models.UsuarioModel;
+import my_app.domain.SessaoUsuario;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -16,19 +18,11 @@ class ClienteServiceTest extends BaseServiceTest {
 
     private ClienteModel clienteValido() {
         var c = new ClienteModel();
-        c.setLoja("Fazenda Santa Rita");
         c.setRazaoSocial("Santa Rita Agropecuária Ltda");
         c.setCpfCnpj("");
         c.setTelefone("");
         c.setCep("");
         return c;
-    }
-
-    @Test
-    void deveLancarExcecaoQuandoLojaVazia() {
-        var c = clienteValido();
-        c.setLoja("");
-        assertThrows(IllegalArgumentException.class, () -> clienteService.salvar(c));
     }
 
     @Test
@@ -78,29 +72,21 @@ class ClienteServiceTest extends BaseServiceTest {
     @Test
     void deveAtualizarCliente() throws Exception {
         var c = clienteService.salvar(clienteValido());
-        c.setLoja("Fazenda Atualizada");
+        c.setRazaoSocial("Fazenda Atualizada");
         clienteService.atualizar(c);
         var buscado = clienteService.buscarById(c.getId());
-        assertEquals("Fazenda Atualizada", buscado.getLoja());
-    }
-
-    @Test
-    void deveLancarExcecaoQuandoLojaDuplicada() throws Exception {
-        clienteService.salvar(clienteValido());
-
-        var c2 = clienteValido();
-        assertThrows(IllegalArgumentException.class, () -> clienteService.salvar(c2));
+        assertEquals("Fazenda Atualizada", buscado.getRazaoSocial());
     }
 
     @Test
     void deveLancarExcecaoQuandoCpfCnpjDuplicado() throws Exception {
         var c1 = clienteValido();
-        c1.setLoja("Loja 1");
+        c1.setRazaoSocial("Cliente 1");
         c1.setCpfCnpj("529.982.247-25");
         clienteService.salvar(c1);
 
         var c2 = clienteValido();
-        c2.setLoja("Loja 2");
+        c2.setRazaoSocial("Cliente 2");
         c2.setCpfCnpj("529.982.247-25");
         assertThrows(IllegalArgumentException.class, () -> clienteService.salvar(c2));
     }
@@ -108,23 +94,35 @@ class ClienteServiceTest extends BaseServiceTest {
     @Test
     void devePermitirSalvarClienteComCpfCnpjUnico() throws Exception {
         var c1 = clienteValido();
-        c1.setLoja("Loja 1");
+        c1.setRazaoSocial("Cliente 1");
         c1.setCpfCnpj("75789180000131");
         clienteService.salvar(c1);
 
         var c2 = clienteValido();
-        c2.setLoja("Loja 2");
+        c2.setRazaoSocial("Cliente 2");
         c2.setCpfCnpj("55938445000109");
         assertDoesNotThrow(() -> clienteService.salvar(c2));
     }
 
     @Test
-    void devePermitirAtualizarClienteMantendoCpfCnpjELoja() throws Exception {
+    void devePermitirAtualizarClienteMantendoCpfCnpj() throws Exception {
         var c = clienteValido();
         c.setCpfCnpj("58.469.407/0001-42");
         var salvo = clienteService.salvar(c);
 
         salvo.setRazaoSocial("Razão Social Editada");
         assertDoesNotThrow(() -> clienteService.atualizar(salvo));
+    }
+
+    @Test
+    void operadorPodeCadastrarEEditarMasNaoExcluirCliente() throws Exception {
+        var operador = new UsuarioModel();
+        operador.setAdmin(false);
+        SessaoUsuario.login(operador);
+
+        var salvo = clienteService.salvar(clienteValido());
+        salvo.setRazaoSocial("Razão editada pelo operador");
+        assertDoesNotThrow(() -> clienteService.atualizar(salvo));
+        assertThrows(IllegalArgumentException.class, () -> clienteService.excluirById(salvo.getId()));
     }
 }

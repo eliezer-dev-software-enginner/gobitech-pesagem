@@ -37,7 +37,7 @@ class TicketThermalExporterTest {
         pesagem.setProduto(produto);
 
         var cliente = new ClienteModel();
-        cliente.setLoja("CHÃOS EIRELI");
+        cliente.setRazaoSocial("CHÃOS EIRELI");
         pesagem.setCliente(cliente);
 
         return pesagem;

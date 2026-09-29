@@ -6,6 +6,7 @@ import java.util.List;
 
 public class Data {
     public static final List<String> simNaoList = List.of("Sim", "Não");
+    public static final List<String> perfisUsuarioList = List.of("Operador", "Admin");
     public static final List<String> ufList = List.of(
             "AC-Acre", "AL-Alagoas", "AP-Amapá", "AM-Amazonas", "BA-Bahia", "CE-Ceará", "DF-Distrito Federal", "ES-Espírito Santo",
             "GO-Goiás", "MA-Maranhão", "MT-Mato Grosso", "MS-Mato Grosso do Sul", "MG-Minas Gerais", "PA-Pará", "PB-Paraíba", "PR-Paraná",
@@ -19,7 +20,7 @@ public class Data {
     // faz sentido pro domínio de pesagem de caminhão (produtos a granel), diferente da
     // lista genérica de varejo (UN/CX/PCT/DZ/...) que veio do plics-sw.
     public static final List<String> unidadesDeMedidaList = List.of(
-            "Quilos", "Toneladas", "Gramas"
+            "Kg", "Toneladas", "Gramas"
     );
     public static final List<String> tiposPessoaList = List.of("Física", "Jurídica");
 

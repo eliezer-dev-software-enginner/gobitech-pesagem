@@ -82,12 +82,7 @@ public class AuthScreenViewModel {
     }
 
     private void marcarPrimeiroAcessoConcluido() throws Exception {
-        var prefs = preferenciasService.listar();
-        if (prefs.isEmpty()) return;
-        var pref = prefs.getFirst();
-        if (!pref.isFirstAccess()) return;
-        pref.setPrimeiroAcesso(0);
-        preferenciasService.atualizar(pref);
+        preferenciasService.concluirPrimeiroAcesso();
     }
 
     public void onDestroy() throws Exception {

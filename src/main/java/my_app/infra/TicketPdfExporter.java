@@ -9,12 +9,21 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pack.utilities.FormatterPack;
 
+import javax.imageio.ImageIO;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -23,6 +32,7 @@ import java.util.Locale;
 
 /** Ticket A4 de duas vias, conforme a referência impressa do André. */
 public class TicketPdfExporter {
+    private static final Logger log = LoggerFactory.getLogger(TicketPdfExporter.class);
     private static final PDFont NORMAL = PDType1Font.HELVETICA;
     private static final PDFont NEGRITO = PDType1Font.HELVETICA_BOLD;
     private static final float MARGEM = 24;
@@ -34,10 +44,12 @@ public class TicketPdfExporter {
         try (var doc = new PDDocument()) {
             var pagina = new PDPage(PDRectangle.A4);
             doc.addPage(pagina);
+            var logomarca = carregarLogomarca(doc, empresa);
             try (var cs = new PDPageContentStream(doc, pagina)) {
                 float alturaVia = (PDRectangle.A4.getHeight() - MARGEM * 2) / 2;
                 for (int via = 0; via < 2; via++) {
-                    desenharVia(cs, PDRectangle.A4.getHeight() - MARGEM - via * alturaVia, empresa, pesagem, entrada);
+                    desenharVia(cs, PDRectangle.A4.getHeight() - MARGEM - via * alturaVia,
+                            empresa, pesagem, entrada, logomarca);
                 }
             }
             doc.save(destino);
@@ -45,17 +57,23 @@ public class TicketPdfExporter {
     }
 
     private void desenharVia(PDPageContentStream cs, float topo, EmpresaModel e,
-                             PesagemModel p, PesagemModel entrada) throws IOException {
-        texto(cs, valor(e == null ? null : e.getNome(), "Gobitech"), MARGEM, topo, 12, true, DIREITA - MARGEM);
+                             PesagemModel p, PesagemModel entrada, PDImageXObject logomarca) throws IOException {
+        float direitaTextoCabecalho = desenharLogomarca(cs, logomarca, topo);
+        texto(cs, valor(e == null ? null : e.getNome(), "Gobitech"), MARGEM, topo, 12, true,
+                direitaTextoCabecalho - MARGEM);
         String cnpj = e == null ? "" : nulo(e.getCpfCnpj());
         String telefone = e == null ? "" : nulo(e.getTelefone());
         texto(cs, "Cnpj: " + (cnpj.isBlank() ? "" : FormatterPack.formatCnpj(cnpj)), MARGEM, topo - 14, 10, false, 190);
-        texto(cs, "Insc.est: " + (e == null ? "" : nulo(e.getInscricaoEstadual())), 222, topo - 14, 10, false, DIREITA - 222);
-        texto(cs, "End: " + (e == null ? "" : endereco(e)), MARGEM, topo - 27, 10, false, DIREITA - MARGEM);
-        texto(cs, "Bairro: " + (e == null ? "" : nulo(e.getBairro())), MARGEM, topo - 40, 10, false, DIREITA - MARGEM);
-        texto(cs, "Cidade: " + (e == null ? "" : cidade(e)), MARGEM, topo - 53, 10, false, DIREITA - MARGEM);
+        texto(cs, "Insc.est: " + (e == null ? "" : nulo(e.getInscricaoEstadual())), 222, topo - 14, 10, false,
+                direitaTextoCabecalho - 222);
+        texto(cs, "End: " + (e == null ? "" : endereco(e)), MARGEM, topo - 27, 10, false,
+                direitaTextoCabecalho - MARGEM);
+        texto(cs, "Bairro: " + (e == null ? "" : nulo(e.getBairro())), MARGEM, topo - 40, 10, false,
+                direitaTextoCabecalho - MARGEM);
+        texto(cs, "Cidade: " + (e == null ? "" : cidade(e)), MARGEM, topo - 53, 10, false,
+                direitaTextoCabecalho - MARGEM);
         texto(cs, "Fone: " + (telefone.isBlank() ? "" : FormatterPack.formatPhone(telefone.replaceAll("[^0-9]", ""))),
-                MARGEM, topo - 66, 10, false, DIREITA - MARGEM);
+                MARGEM, topo - 66, 10, false, direitaTextoCabecalho - MARGEM);
         linha(cs, MARGEM, DIREITA, topo - 71);
         String titulo = "Ticket de Pesagem";
         float larguraTitulo = largura(titulo, NEGRITO, 12);
@@ -65,26 +83,65 @@ public class TicketPdfExporter {
         texto(cs, "Nº: " + (p.getId() == null ? "" : p.getId()), 456, topo - 86, 12, true, DIREITA - 456);
 
         campo(cs, "Placa:", nulo(p.getPlaca()), topo - 104, true);
-        texto(cs, "Uf:", 190, topo - 104, 11, false, 30);
         dataHora(cs, "Data Entrada:", "Hora entrada:", TicketPesagemDados.dataEntrada(p, entrada), topo - 118);
         dataHora(cs, "Data saida:", "Hora saida:", TicketPesagemDados.dataSaida(p), topo - 132);
         campo(cs, "Operador:", p.getUsuario() == null ? "---" : valor(p.getUsuario().getNome(), "---"), topo - 146, false);
         campo(cs, "Motorista:", valor(p.getMotoristaNome(), "---"), topo - 160, false);
         campo(cs, "Produto:", p.getProduto() == null ? "---" : valor(p.getProduto().getNome(), "---"), topo - 174, false);
-        campo(cs, "Cliente:", p.getCliente() == null ? "" : nulo(p.getCliente().getLoja()), topo - 202, false);
-        peso(cs, "Peso entrada:", TicketPesagemDados.pesoEntrada(p, entrada), topo - 216);
-        peso(cs, "Peso saida:", TicketPesagemDados.pesoSaida(p), topo - 230);
-        peso(cs, "Peso liquido inicial:", TicketPesagemDados.liquidoAntesDescontos(p), topo - 244);
-        peso(cs, "Peso liquido final:", p.getPesoFinal(), topo - 258);
+        campo(cs, "Cliente:", p.getCliente() == null ? "" : nulo(p.getCliente().getRazaoSocial()), topo - 188, false);
+        peso(cs, "Peso entrada:", TicketPesagemDados.pesoEntrada(p, entrada), topo - 202);
+        peso(cs, "Peso saida:", TicketPesagemDados.pesoSaida(p), topo - 216);
+        peso(cs, "Peso liquido inicial:", TicketPesagemDados.liquidoAntesDescontos(p), topo - 230);
+        peso(cs, "Peso liquido final:", p.getPesoFinal(), topo - 244);
         descontos(cs, p, topo - 160);
-        texto(cs, "Observação:", MARGEM, topo - 274, 11, false, 150);
-        observacoes(cs, p.getObservacoes(), topo - 286);
+        texto(cs, "Observação:", MARGEM, topo - 260, 11, false, 150);
+        observacoes(cs, p.getObservacoes(), topo - 272);
 
         linha(cs, 72, 208, topo - 336);
         linha(cs, 388, 524, topo - 336);
         centralizado(cs, "Operador", 140, topo - 350, 11);
         centralizado(cs, "Motorista", 456, topo - 350, 11);
         linha(cs, MARGEM, DIREITA, topo - 360);
+    }
+
+    private float desenharLogomarca(PDPageContentStream cs, PDImageXObject logomarca, float topo) throws IOException {
+        if (logomarca == null) return DIREITA;
+        float maxLargura = 130;
+        float maxAltura = 58;
+        float escala = Math.min(maxLargura / logomarca.getWidth(), maxAltura / logomarca.getHeight());
+        float largura = logomarca.getWidth() * escala;
+        float altura = logomarca.getHeight() * escala;
+        float x = DIREITA - largura;
+        cs.drawImage(logomarca, x, topo - altura, largura, altura);
+        return x - 10;
+    }
+
+    private PDImageXObject carregarLogomarca(PDDocument doc, EmpresaModel empresa) {
+        String origem = empresa == null ? null : empresa.getLogomarca();
+        if (origem == null || origem.isBlank()) return null;
+        try (var entrada = abrirLogomarca(origem)) {
+            var imagem = ImageIO.read(entrada);
+            if (imagem == null) throw new IOException("Formato de imagem não reconhecido");
+            var bytes = new ByteArrayOutputStream();
+            ImageIO.write(imagem, "png", bytes);
+            return PDImageXObject.createFromByteArray(doc, bytes.toByteArray(), "logomarca-empresa");
+        } catch (Exception ex) {
+            log.warn("Logomarca da empresa ignorada no ticket A4: {}", origem, ex);
+            return null;
+        }
+    }
+
+    private InputStream abrirLogomarca(String origem) throws IOException {
+        if (origem.startsWith("file:")) {
+            return Files.newInputStream(Path.of(URI.create(origem)));
+        }
+        var arquivo = Path.of(origem);
+        if (Files.isRegularFile(arquivo)) return Files.newInputStream(arquivo);
+
+        String recurso = origem.replace('\\', '/').replaceFirst("^/", "");
+        var entrada = Thread.currentThread().getContextClassLoader().getResourceAsStream(recurso);
+        if (entrada == null) throw new IOException("Arquivo de logomarca não encontrado");
+        return entrada;
     }
 
     private void descontos(PDPageContentStream cs, PesagemModel p, float y) throws IOException {

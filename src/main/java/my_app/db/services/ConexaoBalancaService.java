@@ -3,6 +3,7 @@ package my_app.db.services;
 import my_app.db.DB;
 import my_app.db.models.ConexaoBalancaModel;
 import my_app.db.repositories.ConexaoBalancaRepository;
+import my_app.domain.Autorizacao;
 import net.sf.persism.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,7 @@ public class ConexaoBalancaService extends BaseService<ConexaoBalancaModel> {
     }
 
     public ConexaoBalancaModel salvarOuAtualizar(ConexaoBalancaModel model) throws SQLException {
+        Autorizacao.exigirAdmin("alterar a conexão da balança");
         validarCampos(model);
         var existente = buscarUnico();
         if (existente == null) {
@@ -42,6 +44,24 @@ public class ConexaoBalancaService extends BaseService<ConexaoBalancaModel> {
         log.info("Conexão da balança atualizada: tipo={} porta/ip={}", model.getTipoConexao(),
                 "Serial".equalsIgnoreCase(model.getTipoConexao()) ? model.getPortaCom() : model.getIpAddress() + ":" + model.getIpPort());
         return model;
+    }
+
+    @Override
+    public ConexaoBalancaModel salvar(ConexaoBalancaModel model) throws SQLException {
+        Autorizacao.exigirAdmin("alterar a conexão da balança");
+        return super.salvar(model);
+    }
+
+    @Override
+    public void atualizar(ConexaoBalancaModel model) throws SQLException {
+        Autorizacao.exigirAdmin("alterar a conexão da balança");
+        super.atualizar(model);
+    }
+
+    @Override
+    public void excluirById(long id) throws SQLException {
+        Autorizacao.exigirAdmin("excluir a conexão da balança");
+        super.excluirById(id);
     }
 
     private void validarCampos(ConexaoBalancaModel model) {

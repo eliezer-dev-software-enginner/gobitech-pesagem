@@ -14,8 +14,6 @@ import java.time.LocalDateTime;
 @Table("clientes")
 public class ClienteModel extends Identifier {
 
-    private String loja;
-
     @Column(name = "razao_social")
     private String razaoSocial;
 

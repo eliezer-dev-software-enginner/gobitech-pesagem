@@ -4,6 +4,7 @@ import my_app.db.DB;
 import my_app.db.models.ClienteModel;
 import my_app.db.repositories.ClienteRepository;
 import my_app.utils.Validacoes;
+import my_app.domain.Autorizacao;
 import net.sf.persism.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +35,7 @@ public class ClienteService extends BaseService<ClienteModel> {
         if (model.getAtivo() == null) model.setAtivo(true);
         model.setDataCriacao(LocalDateTime.now());
         var salvo = repository.salvar(model);
-        log.info("Cliente salvo: id={} loja={}", salvo.getId(), salvo.getLoja());
+        log.info("Cliente salvo: id={} razaoSocial={}", salvo.getId(), salvo.getRazaoSocial());
         return salvo;
     }
 
@@ -42,20 +43,12 @@ public class ClienteService extends BaseService<ClienteModel> {
     public void atualizar(ClienteModel model) throws SQLException {
         validarCampos(model);
         repository.atualizar(model);
-        log.info("Cliente atualizado: id={} loja={}", model.getId(), model.getLoja());
+        log.info("Cliente atualizado: id={} razaoSocial={}", model.getId(), model.getRazaoSocial());
     }
 
     private void validarCampos(ClienteModel model) throws SQLException {
-        if (model.getLoja() == null || model.getLoja().isBlank()) {
-            throw new IllegalArgumentException("Loja é obrigatória");
-        }
         if (model.getRazaoSocial() == null || model.getRazaoSocial().isBlank()) {
             throw new IllegalArgumentException("Razão social é obrigatória");
-        }
-
-        var existenteLoja = clienteRepository.buscarPorLoja(model.getLoja());
-        if (existenteLoja != null && !mesmoId(existenteLoja.getId(), model.getId())) {
-            throw new IllegalArgumentException("Já existe um cliente cadastrado com essa loja");
         }
 
         if (model.getCpfCnpj() != null && !model.getCpfCnpj().isBlank()) {
@@ -71,5 +64,11 @@ public class ClienteService extends BaseService<ClienteModel> {
     }
     private boolean mesmoId(Number a, Number b) {
         return a != null && b != null && a.longValue() == b.longValue();
+    }
+
+    @Override
+    public void excluirById(long id) throws SQLException {
+        Autorizacao.exigirAdmin("excluir clientes");
+        super.excluirById(id);
     }
 }

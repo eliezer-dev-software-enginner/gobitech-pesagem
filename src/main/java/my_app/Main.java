@@ -18,7 +18,6 @@ import megalodonte.router.v5.Router;
 import my_app.core.InitialRouteResolver;
 import my_app.core.Themes;
 import my_app.db.DB;
-import my_app.db.services.PreferenciasService;
 import my_app.domain.components.Components;
 import my_app.core.AppRoutes;
 import my_app.domain.telegram.TelegramNotifierFactory;

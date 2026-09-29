@@ -14,6 +14,10 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 public class ListaPdfExporter {
@@ -82,7 +86,11 @@ public class ListaPdfExporter {
                         textY = escreverLinha(cs, fonteTexto, 9, textX, textY, contato);
                     }
 
-                    y = logoHeight > 0 ? y - logoHeight - 10 : textY - 10;
+                    // O bloco pode ser mais alto que a logomarca quando há nome, documento,
+                    // endereço e contato. Usa o elemento que terminou mais abaixo para a linha
+                    // nunca atravessar o telefone ou qualquer outro dado da empresa.
+                    float baseDaLogo = logoHeight > 0 ? y - logoHeight : y;
+                    y = Math.min(baseDaLogo, textY) - 10;
 
                     // linha separadora
                     cs.setStrokingColor(200, 200, 200);
@@ -181,14 +189,31 @@ public class ListaPdfExporter {
     }
 
     private static BufferedImage carregarImagem(String path) {
-        try {
-            if (path.startsWith("file:")) {
-                return ImageIO.read(new File(java.net.URI.create(path)));
-            }
-            return ImageIO.read(new File(path));
+        try (var entrada = abrirImagem(path)) {
+            return ImageIO.read(entrada);
         } catch (Exception e) {
             return null;
         }
+    }
+
+    /**
+     * A logomarca da empresa pode ser uma imagem escolhida pelo usuário ou um recurso
+     * empacotado com a aplicação, como {@code assets/app_banner_square.png}.
+     */
+    private static InputStream abrirImagem(String origem) throws IOException {
+        if (origem.startsWith("file:")) {
+            return Files.newInputStream(Path.of(URI.create(origem)));
+        }
+
+        var arquivo = Path.of(origem);
+        if (Files.isRegularFile(arquivo)) {
+            return Files.newInputStream(arquivo);
+        }
+
+        String recurso = origem.replace('\\', '/').replaceFirst("^/", "");
+        var entrada = Thread.currentThread().getContextClassLoader().getResourceAsStream(recurso);
+        if (entrada == null) throw new IOException("Arquivo de logomarca não encontrado: " + origem);
+        return entrada;
     }
 
     private static byte[] imgBytes(String path) throws IOException {

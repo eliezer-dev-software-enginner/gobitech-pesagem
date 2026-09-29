@@ -2,10 +2,14 @@ package my_app.db.repositories;
 
 import my_app.db.models.ClienteModel;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
+import java.sql.DriverManager;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,10 +27,9 @@ class ClienteRepositoryTest extends BaseRepositoryTest {
         repository = new ClienteRepository(session);
     }
 
-    private ClienteModel novoCliente(String loja) {
+    private ClienteModel novoCliente(String razaoSocial) {
         var cliente = new ClienteModel();
-        cliente.setLoja(loja);
-        cliente.setRazaoSocial("Razão Social " + loja);
+        cliente.setRazaoSocial(razaoSocial);
         cliente.setCpfCnpj("123.456.789-00");
         cliente.setTelefone("(31) 99999-0000");
         cliente.setCep("30140-071");
@@ -48,7 +51,7 @@ class ClienteRepositoryTest extends BaseRepositoryTest {
 
         assertNotNull(salvo);
         assertNotNull(salvo.getId());
-        assertEquals("Fazenda Santa Rita", salvo.getLoja());
+        assertEquals("Fazenda Santa Rita", salvo.getRazaoSocial());
         assertEquals("123.456.789-00", salvo.getCpfCnpj());
     }
 
@@ -62,7 +65,7 @@ class ClienteRepositoryTest extends BaseRepositoryTest {
         assertFalse(lista.isEmpty());
 
         boolean encontrou = lista.stream()
-                .anyMatch(it -> it.getLoja().equals("Sítio Boa Vista"));
+                .anyMatch(it -> it.getRazaoSocial().equals("Sítio Boa Vista"));
 
         assertTrue(encontrou);
     }
@@ -71,7 +74,7 @@ class ClienteRepositoryTest extends BaseRepositoryTest {
     void atualizar() throws SQLException {
         ClienteModel salvo = repository.salvar(novoCliente("Original"));
 
-        salvo.setLoja("Atualizado");
+        salvo.setRazaoSocial("Atualizado");
         salvo.setTelefone("(31) 98888-0000");
 
         repository.atualizar(salvo);
@@ -79,7 +82,7 @@ class ClienteRepositoryTest extends BaseRepositoryTest {
         ClienteModel atualizado = repository.buscarById(salvo.getId());
 
         assertNotNull(atualizado);
-        assertEquals("Atualizado", atualizado.getLoja());
+        assertEquals("Atualizado", atualizado.getRazaoSocial());
         assertEquals("(31) 98888-0000", atualizado.getTelefone());
     }
 
@@ -100,17 +103,7 @@ class ClienteRepositoryTest extends BaseRepositoryTest {
 
         assertNotNull(encontrado);
         assertEquals(salvo.getId(), encontrado.getId());
-        assertEquals("Busca", encontrado.getLoja());
-    }
-
-    @Test
-    void buscarPorLoja() throws SQLException {
-        repository.salvar(novoCliente("Loja Única"));
-
-        ClienteModel encontrado = repository.buscarPorLoja("Loja Única");
-
-        assertNotNull(encontrado);
-        assertEquals("Loja Única", encontrado.getLoja());
+        assertEquals("Busca", encontrado.getRazaoSocial());
     }
 
     @Test
@@ -120,7 +113,7 @@ class ClienteRepositoryTest extends BaseRepositoryTest {
         ClienteModel encontrado = repository.buscarPorCpfCnpj("123.456.789-00");
 
         assertNotNull(encontrado);
-        assertEquals("Cliente CPF", encontrado.getLoja());
+        assertEquals("Cliente CPF", encontrado.getRazaoSocial());
     }
 
     @Test
@@ -140,15 +133,49 @@ class ClienteRepositoryTest extends BaseRepositoryTest {
         var encontrados = repository.buscarPorIds(List.of(a.getId(), b.getId()));
 
         assertEquals(2, encontrados.size());
-        var lojas = encontrados.stream().map(ClienteModel::getLoja).toList();
-        assertTrue(lojas.contains("A"));
-        assertTrue(lojas.contains("B"));
-        assertFalse(lojas.contains("C"));
+        var razoesSociais = encontrados.stream().map(ClienteModel::getRazaoSocial).toList();
+        assertTrue(razoesSociais.contains("A"));
+        assertTrue(razoesSociais.contains("B"));
+        assertFalse(razoesSociais.contains("C"));
     }
 
     @Test
     void buscarPorIdsVazioRetornaListaVazia() throws SQLException {
         assertTrue(repository.buscarPorIds(List.of()).isEmpty());
         assertTrue(repository.buscarPorIds(null).isEmpty());
+    }
+
+    @Test
+    void migracaoV23RemoveLojaEPreservaRazaoSocial(@TempDir Path tempDir) throws Exception {
+        String url = "jdbc:sqlite:" + tempDir.resolve("clientes-v22.db");
+        Flyway.configure().dataSource(url, "", "")
+                .locations("classpath:flyway_migrations").target("22").load().migrate();
+        try (var connection = DriverManager.getConnection(url);
+             var statement = connection.prepareStatement("""
+                     INSERT INTO clientes
+                     (loja, razao_social, ativo, dataCriacao)
+                     VALUES (?, ?, 1, CURRENT_TIMESTAMP)
+                     """)) {
+            statement.setString(1, "Nome antigo da loja");
+            statement.setString(2, "Razão Social Preservada Ltda");
+            statement.executeUpdate();
+        }
+
+        Flyway.configure().dataSource(url, "", "")
+                .locations("classpath:flyway_migrations").load().migrate();
+
+        try (var connection = DriverManager.getConnection(url);
+             var columns = connection.createStatement().executeQuery("PRAGMA table_info(clientes)")) {
+            var nomes = new java.util.HashSet<String>();
+            while (columns.next()) nomes.add(columns.getString("name"));
+            assertFalse(nomes.contains("loja"));
+            assertTrue(nomes.contains("razao_social"));
+        }
+        try (var connection = DriverManager.getConnection(url);
+             var dados = connection.createStatement()
+                     .executeQuery("SELECT razao_social FROM clientes")) {
+            assertTrue(dados.next());
+            assertEquals("Razão Social Preservada Ltda", dados.getString("razao_social"));
+        }
     }
 }

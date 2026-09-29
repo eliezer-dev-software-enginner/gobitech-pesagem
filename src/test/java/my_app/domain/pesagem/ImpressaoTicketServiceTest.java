@@ -6,6 +6,7 @@ import my_app.db.services.BaseServiceTest;
 import my_app.db.services.EmpresaService;
 import my_app.db.services.PesagemService;
 import my_app.db.services.PreferenciasService;
+import my_app.domain.SessaoUsuario;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -71,7 +72,9 @@ class ImpressaoTicketServiceTest extends BaseServiceTest {
     void enviaEmpresaEEntradaVinculadaComDadosRecarregados() throws Exception {
         var empresa = new EmpresaModel();
         empresa.setNome("Balança de teste");
+        empresa.setLogomarca("logo-da-empresa.png");
         empresas.salvarOuAtualizar(empresa);
+        preferencias.salvarConfiguracoes(TipoImpressao.TERMICA, "logo-das-preferencias.png");
         var entrada = novaPesagem("entrada");
         var saida = novaPesagem("saida");
         saida.setEntradaId(entrada.getId());
@@ -85,6 +88,8 @@ class ImpressaoTicketServiceTest extends BaseServiceTest {
         assertEquals("Motorista atualizado", impresso.getMotoristaNome());
         assertEquals(entrada.getId(), entradaImpressa.getId());
         assertEquals("Balança de teste", empresaImpressa.getNome());
+        assertEquals("logo-da-empresa.png", empresaImpressa.getLogomarca(),
+                "O ticket deve receber a logomarca do cadastro da empresa, não a imagem das preferências");
     }
 
     @Test
@@ -102,5 +107,16 @@ class ImpressaoTicketServiceTest extends BaseServiceTest {
                 (e, p, entrada) -> registrar("laser", e, p, entrada));
         assertThrows(IllegalArgumentException.class, () -> comFalha.imprimir(pesagem.getId()));
         assertTrue(destinos.isEmpty());
+    }
+
+    @Test
+    void operadorPodeImprimirTicket() throws Exception {
+        var pesagem = novaPesagem("manual");
+        var operador = new my_app.db.models.UsuarioModel();
+        operador.setAdmin(false);
+        SessaoUsuario.login(operador);
+
+        assertDoesNotThrow(() -> impressao.imprimir(pesagem.getId()));
+        assertEquals(List.of("laser"), destinos);
     }
 }

@@ -4,6 +4,8 @@ import net.sf.persism.Session;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import my_app.db.models.UsuarioModel;
+import my_app.domain.SessaoUsuario;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -26,6 +28,13 @@ public abstract class BaseServiceTest {
 
     @BeforeEach
     void setUp() throws Exception {
+        var admin = new UsuarioModel();
+        admin.setId(-1);
+        admin.setNome("Administrador dos testes");
+        admin.setAdmin(true);
+        admin.setAtivo(true);
+        SessaoUsuario.login(admin);
+
         // Banco em memória por classe de teste — sem compartilhar o mesmo "testdb"
         // com os testes de repositório (evita vazamento de dados/estado entre classes).
         String testUrl = "jdbc:sqlite:file:testdb-" + getClass().getSimpleName() + "?mode=memory&cache=shared";
@@ -43,6 +52,7 @@ public abstract class BaseServiceTest {
 
     @AfterEach
     void tearDown() throws Exception {
+        SessaoUsuario.logout();
         if (session != null) session.close();
         if (rawConnection != null && !rawConnection.isClosed()) rawConnection.close();
     }

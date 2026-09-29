@@ -63,6 +63,29 @@ class TicketPesagemDadosTest {
     }
 
     @Test
+    void descarregamentoUsaDiferencaAbsolutaNosDescontos() {
+        var p = pesagem("saida", 20000, 8020);
+        var d = new DescontoModel();
+        d.setAvariados(new BigDecimal("10"));
+        d.setArdidos(new BigDecimal("10"));
+        d.setQuebraArdidos(new BigDecimal("5"));
+        d.setImpurezas(new BigDecimal("10"));
+        d.setQuebraImpurezas(new BigDecimal("5"));
+        d.setUmidade(new BigDecimal("10"));
+        d.setQuebraUmidade(new BigDecimal("5"));
+        d.setOutros(new BigDecimal("10"));
+        p.setDesconto(d);
+
+        var linhas = TicketPesagemDados.descontos(p);
+        assertEquals(0, new BigDecimal("11980").compareTo(TicketPesagemDados.liquidoAntesDescontos(p)));
+        assertEquals(0, new BigDecimal("599").compareTo(linhas.get(2).quilos()));
+        assertEquals(0, new BigDecimal("599").compareTo(linhas.get(4).quilos()));
+        assertEquals(0, new BigDecimal("599").compareTo(linhas.get(6).quilos()));
+        assertEquals(0, new BigDecimal("1198").compareTo(linhas.get(7).quilos()));
+        assertEquals(0, new BigDecimal("2995").compareTo(TicketPesagemDados.totalDescontado(p)));
+    }
+
+    @Test
     void descontosSoloExibicaoNaoDescontamDoTotal() {
         var p = pesagem("manual", 8500, 32000);
         var d = new DescontoModel();

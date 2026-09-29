@@ -4,6 +4,7 @@ import my_app.db.models.ClienteModel;
 import my_app.db.models.PesagemModel;
 import my_app.db.models.ProdutoModel;
 import my_app.db.models.UsuarioModel;
+import my_app.domain.SessaoUsuario;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -33,7 +34,6 @@ class PesagemServiceTest extends BaseServiceTest {
     @BeforeEach
     void criarClienteEProduto() throws Exception {
         var cliente = new ClienteModel();
-        cliente.setLoja("Fazenda Teste");
         cliente.setRazaoSocial("Fazenda Teste Ltda");
         clienteId = clienteService.salvar(cliente).getId();
 
@@ -77,6 +77,34 @@ class PesagemServiceTest extends BaseServiceTest {
         var p = pesagemValida();
         p.setPlaca("");
         assertThrows(IllegalArgumentException.class, () -> pesagemService.salvar(p));
+    }
+
+    @Test
+    void aceitaPlacaComumEMercosul() throws Exception {
+        var comum = pesagemValida();
+        comum.setPlaca("ABC1234");
+        assertEquals("ABC1234", pesagemService.salvar(comum).getPlaca());
+
+        var mercosul = pesagemValida();
+        mercosul.setPlaca("ABC1D23");
+        assertEquals("ABC1D23", pesagemService.salvar(mercosul).getPlaca());
+    }
+
+    @Test
+    void normalizaPlacaParaMaiusculas() throws Exception {
+        var p = pesagemValida();
+        p.setPlaca("abc1d23");
+        assertEquals("ABC1D23", pesagemService.salvar(p).getPlaca());
+    }
+
+    @Test
+    void rejeitaPlacaForaDosFormatosBrasileiros() {
+        for (String placa : java.util.List.of("AB12345", "ABCD123", "ABC12D3", "ABC-1234", "ABC12345")) {
+            var p = pesagemValida();
+            p.setPlaca(placa);
+            var erro = assertThrows(IllegalArgumentException.class, () -> pesagemService.salvar(p));
+            assertTrue(erro.getMessage().contains("Placa inválida"));
+        }
     }
 
     @Test
@@ -207,7 +235,7 @@ class PesagemServiceTest extends BaseServiceTest {
         var comRelacoes = pesagemService.buscarComRelacoes(salvo.getId());
 
         assertNotNull(comRelacoes.getCliente());
-        assertEquals("Fazenda Teste", comRelacoes.getCliente().getLoja());
+        assertEquals("Fazenda Teste Ltda", comRelacoes.getCliente().getRazaoSocial());
         assertNotNull(comRelacoes.getProduto());
         assertEquals("Soja", comRelacoes.getProduto().getNome());
     }
@@ -400,7 +428,6 @@ class PesagemServiceTest extends BaseServiceTest {
     @Test
     void listarComRelacoesAnexaClientesDistintosEmLote() throws Exception {
         var segundoCliente = new ClienteModel();
-        segundoCliente.setLoja("Usina B");
         segundoCliente.setRazaoSocial("Usina B Ltda");
         var segundoClienteId = clienteService.salvar(segundoCliente).getId();
 
@@ -415,7 +442,18 @@ class PesagemServiceTest extends BaseServiceTest {
         assertEquals(2, lista.size());
         var comClienteA = lista.stream().filter(it -> "ABC1D23".equals(it.getPlaca())).findFirst().orElseThrow();
         var comClienteB = lista.stream().filter(it -> "XYZ9X99".equals(it.getPlaca())).findFirst().orElseThrow();
-        assertEquals("Fazenda Teste", comClienteA.getCliente().getLoja());
-        assertEquals("Usina B", comClienteB.getCliente().getLoja());
+        assertEquals("Fazenda Teste Ltda", comClienteA.getCliente().getRazaoSocial());
+        assertEquals("Usina B Ltda", comClienteB.getCliente().getRazaoSocial());
+    }
+
+    @Test
+    void operadorPodeCadastrarMasNaoExcluirPesagem() throws Exception {
+        var operador = new UsuarioModel();
+        operador.setAdmin(false);
+        SessaoUsuario.login(operador);
+
+        var salva = pesagemService.salvar(pesagemValida());
+        assertNotNull(salva.getId());
+        assertThrows(IllegalArgumentException.class, () -> pesagemService.excluirById(salva.getId()));
     }
 }

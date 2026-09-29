@@ -2,6 +2,8 @@ package my_app.db.services;
 
 import my_app.db.models.PreferenciasModel;
 import my_app.domain.pesagem.TipoImpressao;
+import my_app.db.models.UsuarioModel;
+import my_app.domain.SessaoUsuario;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -82,5 +84,31 @@ class PreferenciasServiceTest extends BaseServiceTest {
         model.setTipoImpressao("invalido");
         assertThrows(IllegalArgumentException.class, () -> preferenciasService.atualizar(model));
         assertEquals(TipoImpressao.TERMICA, preferenciasService.buscarTipoImpressao());
+    }
+
+    @Test
+    void operadorPodeConsultarMasNaoAlterarConfiguracoes() throws Exception {
+        preferenciasService.salvarTipoImpressao(TipoImpressao.LASER);
+        var operador = new UsuarioModel();
+        operador.setAdmin(false);
+        SessaoUsuario.login(operador);
+
+        assertEquals(TipoImpressao.LASER, preferenciasService.buscarTipoImpressao());
+        assertThrows(IllegalArgumentException.class,
+                () -> preferenciasService.salvarTipoImpressao(TipoImpressao.TERMICA));
+    }
+
+    @Test
+    void operadorPodeConcluirPrimeiroAcessoSemAlterarOutrasConfiguracoes() throws Exception {
+        var preferencias = modelBase();
+        preferencias.setTipoImpressao(TipoImpressao.LASER.valor());
+        preferenciasService.salvar(preferencias);
+        var operador = new UsuarioModel();
+        operador.setAdmin(false);
+        SessaoUsuario.login(operador);
+
+        assertDoesNotThrow(() -> preferenciasService.concluirPrimeiroAcesso());
+        assertFalse(preferenciasService.getPreferencias().isFirstAccess());
+        assertEquals(TipoImpressao.LASER, preferenciasService.buscarTipoImpressao());
     }
 }

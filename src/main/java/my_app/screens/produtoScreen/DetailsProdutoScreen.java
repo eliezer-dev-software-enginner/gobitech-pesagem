@@ -33,7 +33,6 @@ public class DetailsProdutoScreen implements ScreenComponent {
     private final ComputedState<String> id = campo(ProdutoModel::getId);
     private final ComputedState<String> nome = campo(ProdutoModel::getNome);
     private final ComputedState<String> unidade = campo(ProdutoModel::getUnidade);
-    private final ComputedState<String> desconto = campo(p -> p.getDesconto() == null ? "0" : p.getDesconto().toPlainString());
     private final ComputedState<String> dataCriacao = campo(p -> DatePack.localDateTimeToBrazilianDateTime(p.getDataCriacao()));
     private final ComputedState<String> observacoes = campo(ProdutoModel::getObservacoes);
 
@@ -70,7 +69,6 @@ public class DetailsProdutoScreen implements ScreenComponent {
                                 .c_child(Components.TextWithDetailsState("ID: ", id))
                                 .c_child(Components.TextWithDetailsState("Nome: ", nome))
                                 .c_child(Components.TextWithDetailsState("Unidade: ", unidade))
-                                .c_child(Components.TextWithDetailsState("Desconto padrão (%): ", desconto))
                                 .c_child(Components.TextWithDetailsState("Data de criação: ", dataCriacao))
                                 .c_child(Components.TextWithDetailsState("Observações: ", observacoes, true))
                 )

@@ -32,7 +32,6 @@ public class DetailsClienteScreen implements ScreenComponent {
     private final State<ClienteModel> model = State.of(null);
 
     private final ComputedState<String> id = campo(ClienteModel::getId);
-    private final ComputedState<String> loja = campo(ClienteModel::getLoja);
     private final ComputedState<String> razaoSocial = campo(ClienteModel::getRazaoSocial);
     private final ComputedState<String> cpfCnpj = campo(c -> FormatterPack.formatCpfCnpj(c.getCpfCnpj()));
     private final ComputedState<String> telefone = campo(c -> FormatterPack.formatPhone(c.getTelefone()));
@@ -74,7 +73,6 @@ public class DetailsClienteScreen implements ScreenComponent {
                                 .c_child(new Text("Detalhes do cliente", new TextProps().fontSize(ThemeManager.theme().typography().subtitle())))
                                 .c_child(new SpacerVertical(20))
                                 .c_child(Components.TextWithDetailsState("ID: ", id))
-                                .c_child(Components.TextWithDetailsState("Loja: ", loja))
                                 .c_child(Components.TextWithDetailsState("Razão social: ", razaoSocial))
                                 .c_child(Components.TextWithDetailsState("CPF/CNPJ: ", cpfCnpj))
                                 .c_child(Components.TextWithDetailsState("Telefone: ", telefone))

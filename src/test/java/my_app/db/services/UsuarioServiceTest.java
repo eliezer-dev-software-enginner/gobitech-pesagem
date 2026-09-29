@@ -1,6 +1,8 @@
 package my_app.db.services;
 
 import my_app.db.models.UsuarioModel;
+import my_app.domain.Data;
+import my_app.domain.SessaoUsuario;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -112,5 +114,41 @@ class UsuarioServiceTest extends BaseServiceTest {
         var buscado = usuarioService.buscarById(salvo.getId());
         assertEquals("maria", buscado.getLogin());
         assertEquals("1234", buscado.getSenha());
+    }
+
+    @Test
+    void perfisDisponiveisSaoOperadorEAdminComOperadorPorPadrao() {
+        assertEquals(java.util.List.of("Operador", "Admin"), Data.perfisUsuarioList);
+    }
+
+    @Test
+    void operadorNaoPodeGerenciarUsuarios() {
+        var operador = new UsuarioModel();
+        operador.setAdmin(false);
+        SessaoUsuario.login(operador);
+        assertThrows(IllegalArgumentException.class, () -> usuarioService.salvar(usuarioValido()));
+        assertThrows(IllegalArgumentException.class, () -> usuarioService.listarAtivos());
+    }
+
+    @Test
+    void administradorNaoPodeInativarNemRebaixarProprioUsuario() throws Exception {
+        var admin = usuarioValido();
+        admin.setAdmin(true);
+        var salvo = usuarioService.salvar(admin);
+        SessaoUsuario.login(salvo);
+
+        assertThrows(IllegalArgumentException.class, () -> usuarioService.inativar(salvo.getId()));
+        salvo.setAdmin(false);
+        assertThrows(IllegalArgumentException.class, () -> usuarioService.atualizar(salvo));
+    }
+
+    @Test
+    void naoPodeRebaixarUltimoAdministradorAtivo() throws Exception {
+        var admin = usuarioValido();
+        admin.setAdmin(true);
+        var salvo = usuarioService.salvar(admin);
+        salvo.setAdmin(false);
+
+        assertThrows(IllegalArgumentException.class, () -> usuarioService.atualizar(salvo));
     }
 }

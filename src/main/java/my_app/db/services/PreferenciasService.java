@@ -4,6 +4,7 @@ import my_app.db.DB;
 import my_app.db.models.PreferenciasModel;
 import my_app.db.repositories.PreferenciasRepository;
 import my_app.domain.pesagem.TipoImpressao;
+import my_app.domain.Autorizacao;
 import net.sf.persism.Session;
 
 import java.sql.SQLException;
@@ -31,6 +32,14 @@ public class PreferenciasService extends BaseService<PreferenciasModel> {
     public TipoImpressao buscarTipoImpressao() throws SQLException {
         var preferencias = getPreferencias();
         return preferencias == null ? TipoImpressao.LASER : TipoImpressao.doValor(preferencias.getTipoImpressao());
+    }
+
+    /** Atualização operacional feita no primeiro login, sem liberar as demais configurações. */
+    public void concluirPrimeiroAcesso() throws SQLException {
+        var preferencias = getPreferencias();
+        if (preferencias == null || !preferencias.isFirstAccess()) return;
+        preferencias.setPrimeiroAcesso(0);
+        repository.atualizar(preferencias);
     }
 
     /**
@@ -64,13 +73,21 @@ public class PreferenciasService extends BaseService<PreferenciasModel> {
 
     @Override
     public PreferenciasModel salvar(PreferenciasModel model) throws SQLException {
+        Autorizacao.exigirAdmin("alterar as configurações");
         TipoImpressao.doValor(model.getTipoImpressao());
         return super.salvar(model);
     }
 
     @Override
     public void atualizar(PreferenciasModel model) throws SQLException {
+        Autorizacao.exigirAdmin("alterar as configurações");
         TipoImpressao.doValor(model.getTipoImpressao());
         super.atualizar(model);
+    }
+
+    @Override
+    public void excluirById(long id) throws SQLException {
+        Autorizacao.exigirAdmin("excluir as configurações");
+        super.excluirById(id);
     }
 }

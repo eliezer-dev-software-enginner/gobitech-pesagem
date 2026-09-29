@@ -139,13 +139,15 @@ public interface ContratoTelaCrudV3<T extends Identifier> {
     }
 
     private Row actionButtonsRow(){
-        return new Row(new RowProps().spacingOf(10).hugWidth()).children(
-                actionButton("Exportar","black","#CDD7D6", Entypo.DOWNLOAD, this::handleClickBaixarLista),
-                actionButton("Editar","black","#ADA8BE", Entypo.EDIT, this::handleClickMenuEdit),
-                actionButton("Excluir","white","#E55934", Entypo.TRASH, this::handleClickMenuDelete),
-                new SpacerVertical(30),
-                actionButton("Criar novo","black",null, Entypo.ADD_TO_LIST, this::handleClickNew)
-        );
+        var acoes = new Row(new RowProps().spacingOf(10).hugWidth())
+                .r_child(actionButton("Exportar","black","#CDD7D6", Entypo.DOWNLOAD, this::handleClickBaixarLista))
+                .r_child(actionButton("Editar","black","#ADA8BE", Entypo.EDIT, this::handleClickMenuEdit));
+        if (Autorizacao.podeAdministrar()) {
+            acoes.r_child(actionButton("Excluir","white","#E55934", Entypo.TRASH, this::handleClickMenuDelete));
+        }
+        return acoes
+                .r_child(new SpacerVertical(30))
+                .r_child(actionButton("Criar novo","black",null, Entypo.ADD_TO_LIST, this::handleClickNew));
     }
 
     private Button actionButton(String title, String color, String bgColor, Ikon ikon, RunnableThrowing onclick){

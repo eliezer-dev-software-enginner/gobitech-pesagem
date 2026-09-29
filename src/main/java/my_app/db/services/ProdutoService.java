@@ -3,11 +3,11 @@ package my_app.db.services;
 import my_app.db.DB;
 import my_app.db.models.ProdutoModel;
 import my_app.db.repositories.ProdutoRepository;
+import my_app.domain.Autorizacao;
 import net.sf.persism.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 
@@ -31,7 +31,6 @@ public class ProdutoService extends BaseService<ProdutoModel> {
         validar(model);
         model.setNome(model.getNome().trim());
         if (model.getAtivo() == null) model.setAtivo(true);
-        if (model.getDesconto() == null) model.setDesconto(BigDecimal.ZERO);
         model.setDataCriacao(LocalDateTime.now());
         var salvo = repository.salvar(model);
         log.info("Produto salvo: id={} nome={}", salvo.getId(), salvo.getNome());
@@ -42,7 +41,6 @@ public class ProdutoService extends BaseService<ProdutoModel> {
     public void atualizar(ProdutoModel model) throws SQLException {
         validar(model);
         model.setNome(model.getNome().trim());
-        if (model.getDesconto() == null) model.setDesconto(BigDecimal.ZERO);
         repository.atualizar(model);
         log.info("Produto atualizado: id={} nome={}", model.getId(), model.getNome());
     }
@@ -58,5 +56,11 @@ public class ProdutoService extends BaseService<ProdutoModel> {
 
     public ProdutoModel buscarPorNome(String nome) throws SQLException {
         return produtoRepository.buscarPorNome(nome);
+    }
+
+    @Override
+    public void excluirById(long id) throws SQLException {
+        Autorizacao.exigirAdmin("excluir produtos");
+        super.excluirById(id);
     }
 }

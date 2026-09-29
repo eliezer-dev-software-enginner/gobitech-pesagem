@@ -3,12 +3,15 @@ package my_app.db.repositories;
 import my_app.db.models.ProdutoModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -112,5 +115,37 @@ class ProdutoRepositoryTest extends BaseRepositoryTest {
     @Test
     void buscarPorNomeInexistente() throws SQLException {
         assertNull(repository.buscarPorNome("Não existe"));
+    }
+
+    @Test
+    void migracaoV24RemoveDescontoEConverteQuilosParaKg(@TempDir Path tempDir) throws Exception {
+        String url = "jdbc:sqlite:" + tempDir.resolve("produtos-v23.db");
+        Flyway.configure().dataSource(url, "", "")
+                .locations("classpath:flyway_migrations").target("23").load().migrate();
+        try (var connection = DriverManager.getConnection(url);
+             var statement = connection.prepareStatement("""
+                     INSERT INTO produtos
+                     (nome, unidade, observacoes, ativo, dataCriacao, desconto)
+                     VALUES (?, 'Quilos', '', 1, CURRENT_TIMESTAMP, 7.5)
+                     """)) {
+            statement.setString(1, "Milho legado");
+            statement.executeUpdate();
+        }
+
+        Flyway.configure().dataSource(url, "", "")
+                .locations("classpath:flyway_migrations").load().migrate();
+
+        try (var connection = DriverManager.getConnection(url);
+             var columns = connection.createStatement().executeQuery("PRAGMA table_info(produtos)")) {
+            var nomes = new java.util.HashSet<String>();
+            while (columns.next()) nomes.add(columns.getString("name"));
+            assertFalse(nomes.contains("desconto"));
+        }
+        try (var connection = DriverManager.getConnection(url);
+             var dados = connection.createStatement()
+                     .executeQuery("SELECT unidade FROM produtos WHERE nome = 'Milho legado'")) {
+            assertTrue(dados.next());
+            assertEquals("Kg", dados.getString("unidade"));
+        }
     }
 }

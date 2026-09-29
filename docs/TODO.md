@@ -1,5 +1,36 @@
 # TODO
 
+## Ajustes (29/09/2026)
+
+- [x] **Logomarca nas exportações cadastrais**: PDFs de Produtos, Clientes e Usuários agora
+  carregam a imagem do Cadastro da Empresa também quando ela é um recurso interno `assets/...`;
+  linha divisória posicionada abaixo de todos os dados, sem sobrepor o telefone.
+
+- [x] **Perfis Admin/Operador**: select de usuário alterado para Perfil, Operador como padrão,
+  menus e rotas administrativas protegidos, exclusões ocultas/bloqueadas para Operador e
+  validações repetidas nos serviços. Protegidos também o próprio e o último Admin ativo; menu
+  completo de Logs ocultado com `MenuBar.menuIf`.
+
+- [x] **Cadastro de produto simplificado**: unidade `Quilos` alterada para `Kg`; campo, coluna,
+  detalhes e exportação de desconto padrão removidos. Migration `V24` atualiza dados existentes.
+
+- [x] **Cliente somente com Razão social**: removido `Loja` da tela, modelo, banco, seletores,
+  tickets e relatórios. Migration `V23` preserva `razao_social` e os demais dados existentes.
+
+- [x] **Layout do ticket A4**: removido o campo `UF` sem fonte de dados e fechada a linha em
+  branco excedente entre Produto e Cliente nas duas vias.
+
+- [x] **Descontos no descarregamento**: líquido inicial, quilos por desconto e total descontado
+  agora usam a diferença absoluta entre Entrada e Saída também no ticket A4/térmico. Pesagem
+  somente de Entrada permanece sem descontos. Suíte completa: **273 testes, 0 falhas**.
+
+- [x] **Componente de placa**: limite de sete caracteres, somente letras/números em maiúsculas e
+  validação dos formatos brasileiro comum (`ABC1234`) e Mercosul (`ABC1D23`).
+
+- [x] **Logomarca na impressão A4**: o ticket laser exibe exclusivamente a logomarca do Cadastro
+  da empresa no canto direito das duas vias, sem usar a imagem horizontal das Preferências, com
+  proporção preservada e fallback sem imagem.
+
 ## Ajustes (24/09/2026)
 
 - [x] **Filtro de data do histórico**: impedida a corrida entre a carga inicial assíncrona e o
@@ -511,7 +542,7 @@ test`: **BUILD SUCCESSFUL**
       (migration `V16`, recria a tabela preservando dados e FKs) — teste ajustado
       (`produtoEhOpcional` em vez de `deveLancarExcecaoQuandoProdutoNaoInformado`)
 - [x] `*` aplicado aos campos obrigatórios em todas as telas — novo helper
-      `Components.obrigatorio(label)` (`label *`): - Pesagem: Placa*, Nome do motorista*, Cliente* (Produto segue sem `*` — agora opcional) - Login: E-mail*, Senha* - Cliente: Loja*, Razão social* - Produto: Nome do produto* - Usuário: Nome*, Login*, Senha* - Empresa: Nome* - Conexão da balança: Tipo de conexão* + (Porta COM*, Baud rate* / Endereço IP*, Porta*
+      `Components.obrigatorio(label)` (`label *`): - Pesagem: Placa*, Nome do motorista*, Cliente* (Produto segue sem `*` — agora opcional) - Login: E-mail*, Senha* - Cliente: Razão social* - Produto: Nome do produto* - Usuário: Nome*, Login*, Senha* - Empresa: Nome* - Conexão da balança: Tipo de conexão* + (Porta COM*, Baud rate* / Endereço IP*, Porta*
       conforme o tipo selecionado)
 - [x] `./gradlew test --rerun-tasks`: **BUILD SUCCESSFUL** (sem regressão)
 
@@ -637,11 +668,12 @@ capturarFotosAutomaticamente`, só ao criar, não ao editar), não na hora de im
       `mavenLocal`
 - [x] `./gradlew test`: **167 testes, BUILD SUCCESSFUL**
 
-## Concluído (desconto do produto + fix de edição não refletindo — 2026-08-18)
+## Histórico: desconto do produto removido em 2026-09-29 + fix de edição — 2026-08-18
 
-- [x] `ProdutoModel.desconto` (novo campo, previsto no DER original) — migration `V12`,
-      formulário de Produto, tabela, modal de detalhes
-- [x] `PesagemViewModel`: seleção de produto carrega o desconto padrão dele no campo "Outros"
+- [x] Histórico: `ProdutoModel.desconto` foi criado pela migration `V12`, mas removido pela
+      `V24` junto do formulário, tabela e detalhes por não ser usado no cadastro de produtos.
+- [x] Histórico: o preenchimento de "Outros" ao selecionar produto também foi removido; os
+      descontos permanecem exclusivos da pesagem.
 - [x] Bug real corrigido no framework (`megalodonte-reactivity`): `ListState.set()` comparava
       listas por conteúdo em vez de identidade, cancelando notificação quando `updateIf()` mutava
       e devolvia a mesma referência — edição de Cliente/Produto/Usuário/Pesagem não refletia na

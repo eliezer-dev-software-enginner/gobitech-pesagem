@@ -29,7 +29,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
     final State<String> senha = new State<>("");
     final State<String> nome = new State<>("");
     final State<String> telefone = new State<>("");
-    final State<String> ehAdminSelected = new State<>(Data.simNaoList.getLast());
+    final State<String> perfilSelected = new State<>(Data.perfisUsuarioList.getFirst());
 
     public UsuarioScreenViewModel(ScreenContextInterface ctx) {
         super(ctx);
@@ -62,7 +62,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
         senha.set(data.getSenha());
         nome.set(data.getNome());
         telefone.set(data.getTelefone() == null ? "" : data.getTelefone());
-        ehAdminSelected.set(Boolean.TRUE.equals(data.getAdmin()) ? Data.simNaoList.getFirst() : Data.simNaoList.getLast());
+        perfilSelected.set(Boolean.TRUE.equals(data.getAdmin()) ? "Admin" : "Operador");
     }
 
     @Override
@@ -75,7 +75,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
         model.setSenha(senha.get().trim());
         model.setNome(nome.get().trim());
         model.setTelefone(telefone.get().trim());
-        model.setAdmin(ehAdminSelected.get().equals(Data.simNaoList.getFirst()));
+        model.setAdmin("Admin".equals(perfilSelected.get()));
 
         return model;
     }
@@ -155,7 +155,7 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
         senha.set("");
         nome.set("");
         telefone.set("");
-        ehAdminSelected.set(Data.simNaoList.getLast());
+        perfilSelected.set(Data.perfisUsuarioList.getFirst());
     }
 
     @Override

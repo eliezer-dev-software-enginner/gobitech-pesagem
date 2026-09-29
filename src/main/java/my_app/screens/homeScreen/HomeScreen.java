@@ -67,15 +67,15 @@ public class HomeScreen implements ScreenComponent {
                                 .bgColor(Sidebar.BG)
                                 .menu(new Menu("Gerencial")
                                         .textColor(Sidebar.TEXT_COLOR)
-                                        .item("Empresa", () -> ctx.spawnWindow(AppRoutes.Screens.EMPRESA.name(), e -> {}))
-                                        .item("Configurações", () -> ctx.spawnWindow(AppRoutes.Screens.CONFIGURACOES.name(), e -> {}))
-                                        .item("Conexão da balança", () -> ctx.spawnWindow(AppRoutes.Screens.CONEXAO_BALANCA.name(), e -> {}))
+                                        .itemIf(isAdmin, "Empresa", () -> ctx.spawnWindow(AppRoutes.Screens.EMPRESA.name(), e -> {}))
+                                        .itemIf(isAdmin, "Configurações", () -> ctx.spawnWindow(AppRoutes.Screens.CONFIGURACOES.name(), e -> {}))
+                                        .itemIf(isAdmin, "Conexão da balança", () -> ctx.spawnWindow(AppRoutes.Screens.CONEXAO_BALANCA.name(), e -> {}))
                                         .item("Produtos", () -> ctx.spawnWindow(AppRoutes.Screens.PRODUTOS.name(), e -> {}))
                                         .item("Clientes", () -> ctx.spawnWindow(AppRoutes.Screens.CLIENTES.name(), e -> {}))
                                         .itemIf(isAdmin, "Usuários do sistema", () -> ctx.spawnWindow(AppRoutes.Screens.USUARIOS.name(), e -> {}))
                                         .itemIf(isAdmin, "Gerar licença", () -> ctx.spawnWindow(AppRoutes.Screens.LICENSA.name(), e -> {})))
-                                .menu(new Menu("Logs")
+                                .menuIf(isAdmin, new Menu("Logs")
                                         .textColor(Sidebar.TEXT_COLOR)
-                                        .itemIf(isAdmin, "Ver logs da aplicação", () -> ctx.spawnWindow(AppRoutes.Screens.LOGS.name(), e -> {})));
+                                        .item("Ver logs da aplicação", () -> ctx.spawnWindow(AppRoutes.Screens.LOGS.name(), e -> {})));
     }
 }

@@ -93,7 +93,7 @@ class PesagemRegrasTest {
     private ClienteModel cliente(int id) {
         var c = new ClienteModel();
         c.setId(id);
-        c.setLoja("Loja " + id);
+        c.setRazaoSocial("Razão social " + id);
         return c;
     }
 
@@ -114,7 +114,7 @@ class PesagemRegrasTest {
         assertEquals("NF-100", dados.notaFiscal());
         assertEquals("8500", dados.pesoVeiculo());
         assertEquals("32001", dados.pesoTotal());
-        assertEquals("Loja 1", dados.cliente().getLoja());
+        assertEquals("Razão social 1", dados.cliente().getRazaoSocial());
         assertEquals("Produto 2", dados.produto().getNome());
     }
 

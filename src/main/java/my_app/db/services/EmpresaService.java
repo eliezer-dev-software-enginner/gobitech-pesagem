@@ -3,6 +3,7 @@ package my_app.db.services;
 import my_app.db.DB;
 import my_app.db.models.EmpresaModel;
 import my_app.db.repositories.EmpresaRepository;
+import my_app.domain.Autorizacao;
 import my_app.utils.Validacoes;
 import net.sf.persism.Session;
 import org.slf4j.Logger;
@@ -24,7 +25,14 @@ public class EmpresaService extends BaseService<EmpresaModel> {
     }
 
     @Override
+    public EmpresaModel salvar(EmpresaModel model) throws SQLException {
+        Autorizacao.exigirAdmin("alterar os dados da empresa");
+        return super.salvar(model);
+    }
+
+    @Override
     public void atualizar(EmpresaModel model) throws SQLException {
+        Autorizacao.exigirAdmin("alterar os dados da empresa");
         validarCampos(model);
         repository.atualizar(model);
         log.info("Empresa atualizada: id={} nome={}", model.getId(), model.getNome());
@@ -36,6 +44,7 @@ public class EmpresaService extends BaseService<EmpresaModel> {
     }
 
     public EmpresaModel salvarOuAtualizar(EmpresaModel model) throws SQLException {
+        Autorizacao.exigirAdmin("alterar os dados da empresa");
         validarCampos(model);
         var existente = buscarUnico();
         if (existente == null) {
@@ -49,6 +58,12 @@ public class EmpresaService extends BaseService<EmpresaModel> {
         repository.atualizar(model);
         log.info("Empresa atualizada: id={} nome={}", model.getId(), model.getNome());
         return model;
+    }
+
+    @Override
+    public void excluirById(long id) throws SQLException {
+        Autorizacao.exigirAdmin("excluir os dados da empresa");
+        super.excluirById(id);
     }
 
     private void validarCampos(EmpresaModel model) {

@@ -37,7 +37,8 @@ public final class TicketPesagemDados {
     }
 
     public static BigDecimal liquidoAntesDescontos(PesagemModel pesagem) {
-        return nz(pesagem.getPesoTotal()).subtract(nz(pesagem.getPesoVeiculo())).max(BigDecimal.ZERO);
+        if ("entrada".equals(pesagem.getTipoPesagem())) return BigDecimal.ZERO;
+        return nz(pesagem.getPesoTotal()).subtract(nz(pesagem.getPesoVeiculo())).abs();
     }
 
     public static List<Desconto> descontos(PesagemModel pesagem) {

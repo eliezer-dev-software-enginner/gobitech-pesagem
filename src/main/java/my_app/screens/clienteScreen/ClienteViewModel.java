@@ -22,7 +22,6 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
     @SuppressWarnings("rawtypes")
     private final java.util.function.Consumer<Object> eventListener = this::onEntityEvent;
 
-    final State<String> loja = new State<>("");
     final State<String> razaoSocial = new State<>("");
     final State<String> cnpjCpf = new State<>("");
     final State<String> telefone = new State<>("");
@@ -48,8 +47,7 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
 
     @Override
     protected boolean matchesSearch(ClienteModel model, String query) {
-        return contains(model.getLoja(), query)
-                || contains(model.getRazaoSocial(), query)
+        return contains(model.getRazaoSocial(), query)
                 || contains(model.getCpfCnpj(), query)
                 || contains(model.getTelefone(), query);
     }
@@ -62,7 +60,6 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
     public void populateFieldsFromModel() {
         final var data = selected.get();
         if (data == null) return;
-        loja.set(data.getLoja());
         razaoSocial.set(data.getRazaoSocial());
         cnpjCpf.set(data.getCpfCnpj() == null ? "" : data.getCpfCnpj());
         telefone.set(data.getTelefone() == null ? "" : data.getTelefone());
@@ -76,7 +73,6 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
                 ? selected.get()
                 : new ClienteModel();
 
-        model.setLoja(loja.get().trim());
         model.setRazaoSocial(razaoSocial.get().trim());
         model.setCpfCnpj(cnpjCpf.get().trim());
         model.setTelefone(telefone.get().trim());
@@ -111,7 +107,7 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
         final var model = selected.get();
         if (model == null) return;
 
-        Components.ShowAlertAdvice("Deseja excluir cliente " + model.getLoja(), () -> Async.Run(() -> {
+        Components.ShowAlertAdvice("Deseja excluir cliente " + model.getRazaoSocial(), () -> Async.Run(() -> {
             try {
                 clienteService.excluirById(model.getId());
                 UI.runOnUi(() -> {
@@ -169,7 +165,6 @@ public class ClienteViewModel extends ViewModelScreenContract<ClienteModel> {
 
     @Override
     public void clearForm() {
-        loja.set("");
         razaoSocial.set("");
         cnpjCpf.set("");
         telefone.set("");

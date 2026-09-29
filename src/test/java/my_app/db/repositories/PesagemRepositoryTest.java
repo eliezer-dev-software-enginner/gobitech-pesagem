@@ -37,7 +37,6 @@ class PesagemRepositoryTest extends BaseRepositoryTest {
     @BeforeEach
     void criarClienteEProduto() throws SQLException {
         var cliente = new ClienteModel();
-        cliente.setLoja("Fazenda Teste");
         cliente.setRazaoSocial("Fazenda Teste Ltda");
         cliente.setAtivo(true);
         cliente.setDataCriacao(LocalDateTime.now());
@@ -142,7 +141,6 @@ class PesagemRepositoryTest extends BaseRepositoryTest {
         repository.salvar(novaPesagem("AAA1111"));
 
         var outroCliente = new ClienteModel();
-        outroCliente.setLoja("Outra Fazenda");
         outroCliente.setRazaoSocial("Outra Fazenda Ltda");
         outroCliente.setAtivo(true);
         outroCliente.setDataCriacao(LocalDateTime.now());

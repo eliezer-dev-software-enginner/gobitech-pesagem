@@ -28,8 +28,10 @@
 | A3 | Placa só com espaços | Digitar `"   "` no campo Placa, tentar salvar | Tratado como vazio — bloqueia | OK                              |
 | A4 | Placa formato antigo | Digitar `ABC1234` | Aceita | OK                              |
 | A5 | Placa formato Mercosul | Digitar `ABC1D23` | Aceita | ok                              |
-| A6 | Placa minúscula | Digitar `abc1d23` | Verificar se normaliza pra maiúsculo ou salva como está (definir comportamento esperado com o time) | ok deve normalizar pra maisculo |
-| A7 | Placa com símbolos | Digitar `ABC-1D23` ou `ABC1D23!` | Verificar se rejeita, limpa automaticamente, ou aceita literal | ok - aceita                     |
+| A6 | Placa minúscula | Digitar `abc1d23` | Normaliza para `ABC1D23` | |
+| A7 | Placa com símbolos | Digitar `ABC-1D23` ou `ABC1D23!` | Remove símbolos e limita o campo a 7 caracteres | |
+| A8 | Placa comum inválida | Digitar valor fora de `ABC1234` | Bloqueia ao salvar com mensagem de placa inválida | |
+| A9 | Placa Mercosul inválida | Digitar valor fora de `ABC1D23` | Bloqueia ao salvar com mensagem de placa inválida | |
 
 ---
 
@@ -43,6 +45,7 @@
 | B4 | Bloquear Entrada na Saída | Na tela Saída com entrada vinculada, conferir Entrada | Valor trazido da entrada, sem botão e somente leitura | |
 | B5 | Cálculo ao carregar | Registrar Entrada e depois capturar Saída maior | Peso líquido = saída - entrada, calculado automaticamente | |
 | B6 | Cálculo ao descarregar | Informar Entrada 4000 e Saída 2000 | Salva e calcula peso líquido 2000 | |
+| B7 | Descontos ao descarregar | Entrada 20000, Saída 8020; quebras 5%/5%/5% e Outros 10% | Líquido inicial 11980; descontos 599/599/599/1198; total 2995; líquido final 8985 | |
 
 ---
 
@@ -120,6 +123,8 @@
 | I1 | Sem selecionar nenhum | Salvar com Cliente e Produto vazios | Permite, já que só Placa é obrigatória | ok        |
 | I2 | Trocar seleção | Selecionar um Cliente, depois trocar por outro | Produto não deve resetar de forma inesperada (a menos que seja dependente do cliente — confirmar) | ok        |
 | I3 | Lista vazia | Testar com nenhum Cliente/Produto cadastrado no sistema | Dropdown mostra estado vazio sem travar a tela |           |
+| I4 | Nome do cliente | Cadastrar cliente preenchendo Razão social e abrir os dropdowns/tickets | Não existe campo Loja; Razão social identifica o cliente em todos os pontos | |
+| I5 | Cadastro de produto | Cadastrar/editar produto e abrir sua listagem | Unidade disponível como `Kg`; não existe campo nem coluna de desconto no produto | |
 
 ---
 
@@ -149,6 +154,21 @@
 | # | Cenário | Passos | Resultado esperado | Resultado |
 |---|---|---|---|---|
 | L1 | Pesos sem casas decimais no PDF | Cadastrar pesagens e exportar relatório em PDF | Pesos aparecem como número inteiro, sem sobreposição de colunas (regressão do bug já corrigido) | |
+
+---
+
+## M. Perfis Admin e Operador
+
+| # | Cenário | Passos | Resultado esperado | Resultado |
+|---|---|---|---|---|
+| M1 | Perfil no cadastro | Abrir cadastro de usuário | Select mostra `Operador` e `Admin`, com Operador por padrão | |
+| M2 | Trabalho diário | Entrar como Operador e cadastrar/editar cliente, produto e pesagem | Ações permitidas normalmente | |
+| M3 | Ticket e relatório | Como Operador, imprimir ticket e exportar histórico | Ações permitidas | |
+| M4 | Exclusões | Como Operador, abrir listas e detalhes | Botões de excluir não aparecem; chamada direta também é recusada | |
+| M5 | Telas administrativas | Como Operador, tentar abrir Empresa, Configurações, conexões, Usuários, Licenças e Logs | Itens não aparecem no menu e rotas diretas são bloqueadas | |
+| M6 | Admin | Repetir operações administrativas como Admin | Todas ficam disponíveis | |
+| M7 | Próprio administrador | Tentar inativar ou rebaixar o usuário Admin atualmente logado | Operação recusada | |
+| M8 | Último administrador | Com apenas um Admin ativo, tentar rebaixá-lo/inativá-lo | Operação recusada | |
 
 ---
 

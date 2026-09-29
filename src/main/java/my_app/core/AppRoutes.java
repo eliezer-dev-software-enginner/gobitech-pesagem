@@ -23,6 +23,7 @@ import my_app.screens.produtoScreen.ProdutoScreen;
 import my_app.screens.usuarioScreen.AddOrEditUsuarioScreen;
 import my_app.screens.usuarioScreen.DetailsUsuarioScreen;
 import my_app.screens.usuarioScreen.UsuarioScreen;
+import my_app.domain.AcessoAdminScreen;
 
 import java.util.Set;
 
@@ -72,19 +73,19 @@ public class AppRoutes {
                 new Route(Screens.PRODUTOS.name(), ProdutoScreen::new, new RouteProps(MAX_WIDTH, MEDIUM_HEIGHT, "Cadastro de produtos", true)),
                 new Route(Screens.ADD_OR_EDIT_PRODUTO.name()+"/${id}/${type}", AddOrEditProdutoScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Gerenciar produto", true)),
                 new Route(Screens.ADD_OR_EDIT_CLIENTE.name()+"/${id}/${type}", AddOrEditClienteScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Gerenciar cliente", true)),
-                new Route(Screens.ADD_OR_EDIT_USUARIO.name()+"/${id}/${type}", AddOrEditUsuarioScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Gerenciar usuário", true)),
+                new Route(Screens.ADD_OR_EDIT_USUARIO.name()+"/${id}/${type}", ctx -> AcessoAdminScreen.proteger(ctx, AddOrEditUsuarioScreen::new), new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Gerenciar usuário", true)),
                 new Route(Screens.DETAILS_PRODUTO.name()+"/${id}", DetailsProdutoScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Detalhes do produto", true)),
                 new Route(Screens.DETAILS_CLIENTE.name()+"/${id}", DetailsClienteScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Detalhes do cliente", true)),
-                new Route(Screens.DETAILS_USUARIO.name()+"/${id}", DetailsUsuarioScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Detalhes do usuário", true)),
+                new Route(Screens.DETAILS_USUARIO.name()+"/${id}", ctx -> AcessoAdminScreen.proteger(ctx, DetailsUsuarioScreen::new), new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Detalhes do usuário", true)),
                 new Route(Screens.DETAILS_PESAGEM.name()+"/${id}", DetailsPesagemScreen::new, new RouteProps(MAX_WIDTH, MEDIUM_HEIGHT, "Detalhes da pesagem", true)),
-                new Route(Screens.USUARIOS.name(), UsuarioScreen::new, new RouteProps(MAX_WIDTH, MAX_HEIGHT, "Gerenciamento de usuários", true)),
-                new Route(Screens.EMPRESA.name(), CadastroEmpresaScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Informações da empresa", false)),
+                new Route(Screens.USUARIOS.name(), ctx -> AcessoAdminScreen.proteger(ctx, UsuarioScreen::new), new RouteProps(MAX_WIDTH, MAX_HEIGHT, "Gerenciamento de usuários", true)),
+                new Route(Screens.EMPRESA.name(), ctx -> AcessoAdminScreen.proteger(ctx, CadastroEmpresaScreen::new), new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Informações da empresa", false)),
                 new Route(Screens.CLIENTES.name(), ClienteScreen::new, new RouteProps(MAX_WIDTH, MEDIUM_HEIGHT, "Gerenciamento de clientes", true)),
-                new Route(Screens.CONEXAO_BALANCA.name(), ConexaoBalancaScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Conexão com a balança", false)),
-                new Route(Screens.CONEXAO_CAMERA.name(), ConexaoCameraScreen::new, new RouteProps(MAX_WIDTH, MEDIUM_HEIGHT, "Conexão das câmeras", false)),
-                new Route(Screens.CONFIGURACOES.name(), ConfiguracoesScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Configurações", false)),
-                new Route(Screens.LICENSA.name(), LicensaScreen::new, new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Gerar licença", false)),
-                new Route(Screens.LOGS.name(), LogsScreen::new, new RouteProps(MAX_WIDTH, MAX_HEIGHT, "Logs da aplicação", true)),
+                new Route(Screens.CONEXAO_BALANCA.name(), ctx -> AcessoAdminScreen.proteger(ctx, ConexaoBalancaScreen::new), new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Conexão com a balança", false)),
+                new Route(Screens.CONEXAO_CAMERA.name(), ctx -> AcessoAdminScreen.proteger(ctx, ConexaoCameraScreen::new), new RouteProps(MAX_WIDTH, MEDIUM_HEIGHT, "Conexão das câmeras", false)),
+                new Route(Screens.CONFIGURACOES.name(), ctx -> AcessoAdminScreen.proteger(ctx, ConfiguracoesScreen::new), new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Configurações", false)),
+                new Route(Screens.LICENSA.name(), ctx -> AcessoAdminScreen.proteger(ctx, LicensaScreen::new), new RouteProps(MEDIUM_WIDTH, MEDIUM_HEIGHT, "Gerar licença", false)),
+                new Route(Screens.LOGS.name(), ctx -> AcessoAdminScreen.proteger(ctx, LogsScreen::new), new RouteProps(MAX_WIDTH, MAX_HEIGHT, "Logs da aplicação", true)),
                 new Route(Screens.PESAGEM_ENTRADA.name(), PesagemEntradaScreen::new, new RouteProps(MIN_WIDTH, MAX_HEIGHT, "Pesagem de entrada", true)),
                 new Route(Screens.PESAGEM_SAIDA.name(), PesagemSaidaScreen::new, new RouteProps(MIN_WIDTH, MAX_HEIGHT, "Pesagem de saída", true)),
                 new Route(Screens.PESAGEM_AVULSA.name(), PesagemAvulsaScreen::new, new RouteProps(MIN_WIDTH, MAX_HEIGHT, "Pesagem avulsa", true)),

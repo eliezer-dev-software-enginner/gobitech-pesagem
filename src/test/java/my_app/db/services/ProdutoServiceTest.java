@@ -1,6 +1,9 @@
 package my_app.db.services;
 
 import my_app.db.models.ProdutoModel;
+import my_app.domain.Data;
+import my_app.db.models.UsuarioModel;
+import my_app.domain.SessaoUsuario;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -27,6 +30,12 @@ class ProdutoServiceTest extends BaseServiceTest {
         var p = produtoValido();
         p.setNome("");
         assertThrows(IllegalArgumentException.class, () -> produtoService.salvar(p));
+    }
+
+    @Test
+    void unidadePadraoUsaAbreviacaoKg() {
+        assertEquals("Kg", Data.unidadesDeMedidaList.getFirst());
+        assertFalse(Data.unidadesDeMedidaList.contains("Quilos"));
     }
 
     @Test
@@ -73,5 +82,17 @@ class ProdutoServiceTest extends BaseServiceTest {
         var salvo = produtoService.salvar(produtoValido());
         salvo.setObservacoes("Observação editada");
         assertDoesNotThrow(() -> produtoService.atualizar(salvo));
+    }
+
+    @Test
+    void operadorPodeCadastrarEEditarMasNaoExcluirProduto() throws Exception {
+        var operador = new UsuarioModel();
+        operador.setAdmin(false);
+        SessaoUsuario.login(operador);
+
+        var salvo = produtoService.salvar(produtoValido());
+        salvo.setObservacoes("Editado pelo operador");
+        assertDoesNotThrow(() -> produtoService.atualizar(salvo));
+        assertThrows(IllegalArgumentException.class, () -> produtoService.excluirById(salvo.getId()));
     }
 }

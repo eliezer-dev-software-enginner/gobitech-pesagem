@@ -1,6 +1,8 @@
 package my_app.db.services;
 
 import my_app.db.models.EmpresaModel;
+import my_app.db.models.UsuarioModel;
+import my_app.domain.SessaoUsuario;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -65,5 +67,20 @@ class EmpresaServiceTest extends BaseServiceTest {
         var encontrado = empresaService.buscarUnico();
         assertNotNull(encontrado);
         assertEquals("10.123.456-7", encontrado.getInscricaoEstadual());
+    }
+
+    @Test
+    void operadorPodeConsultarMasNaoAlterarEmpresa() throws Exception {
+        var e = new EmpresaModel();
+        e.setNome("Empresa protegida");
+        empresaService.salvarOuAtualizar(e);
+
+        var operador = new UsuarioModel();
+        operador.setAdmin(false);
+        SessaoUsuario.login(operador);
+
+        assertNotNull(empresaService.buscarUnico());
+        e.setNome("Alteração indevida");
+        assertThrows(IllegalArgumentException.class, () -> empresaService.salvarOuAtualizar(e));
     }
 }

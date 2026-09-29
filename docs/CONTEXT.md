@@ -51,6 +51,54 @@ menu "Conexão das câmeras" está **comentado** em `HomeScreen.java:74` **por d
 (pendência M3 da vistoria, "decidido: manter" — a câmera entra no fluxo só na Fase 2/uso real),
 deixando a tela inalcançável pela UI. Ver `/home/eliezer/Desktop/dev/outros/balanca-gobitech/docs/ENTREGAS.md`.
 
+## Estado atual (2026-09-29)
+
+- **Logomarca nas exportações cadastrais (29/09)**: `ListaPdfExporter`, usado por Produtos,
+  Clientes e Usuários, agora carrega a logomarca da Empresa tanto de arquivo/URI quanto de
+  recurso empacotado (`assets/...`). Isso corrige a ausência da imagem nos PDFs quando a
+  logomarca cadastrada é a imagem padrão interna da aplicação. A linha divisória considera a
+  maior altura entre imagem e textos, ficando sempre abaixo do telefone.
+
+- **Perfis Admin e Operador (29/09)**: o booleano `usuarios.admin` foi preservado, sem migration,
+  mas a interface agora o apresenta como `Perfil: Operador/Admin` (Operador por padrão). O
+  Operador pode cadastrar/editar clientes e produtos, realizar pesagens, consultar/exportar o
+  histórico e imprimir tickets. Exclusões de clientes, produtos e pesagens, gerenciamento de
+  usuários, Empresa, Configurações, conexões, licenças e logs exigem Admin. A proteção existe no
+  menu, nas rotas, nos botões e nos serviços. O próprio admin e o último admin ativo não podem
+  ser inativados/rebaixados. O menu completo `Logs` é omitido para operadores usando
+  `MenuBar.menuIf`, fornecido por `megalodonte-components`.
+
+- **Cadastro de produto simplificado (29/09)**: a unidade `Quilos` foi renomeada para `Kg` e o
+  desconto padrão foi removido do modelo, formulário, detalhes, tabela, exportação e seleção na
+  pesagem. A migration `V24` remove `produtos.desconto` e converte produtos existentes de
+  `Quilos` para `Kg`; os descontos próprios de cada pesagem continuam inalterados.
+
+- **Cliente somente com Razão social (29/09)**: o campo `Loja` foi removido do modelo, cadastro,
+  detalhes, tabela, exportação e banco pela migration `V23`. Seletores de pesagem, histórico,
+  tickets e relatórios agora identificam o cliente por `Razão social`. A migração mantém os
+  valores já existentes em `razao_social` e descarta somente a coluna antiga `loja`.
+
+- **Ajustes visuais do ticket A4 (29/09)**: removido o campo `UF`, que não possuía fonte de
+  dados, e eliminada a linha em branco excedente entre Produto e Cliente nas duas vias.
+
+- **Descontos no fluxo de descarregamento (29/09)**: `TicketPesagemDados` passou a usar
+  `|saída - entrada|` como base do líquido inicial e dos descontos, igual ao formulário. No
+  cenário Entrada 20000 / Saída 8020, o ticket mostra líquido inicial 11980, descontos reais
+  599 + 599 + 599 + 1198 = 2995 e líquido final 8985. Pesagens ainda somente de Entrada
+  continuam com base zero. Suíte completa: **273 testes, 0 falhas**; A4 renderizado e conferido.
+
+- **Componente de placa (29/09)**: formulários de pesagem e filtro do histórico usam
+  `Components.InputPlaca`, que converte para maiúsculas, remove caracteres que não sejam letras
+  ou números e limita a sete caracteres. O serviço aceita apenas placa comum (`ABC1234`) ou
+  Mercosul (`ABC1D23`) e normaliza o valor antes de persistir. Suíte atual: **273 testes, 0 falhas**.
+
+- **Logomarca no ticket A4 (29/09)**: somente a logomarca cadastrada em **Cadastro da empresa**
+  (`EmpresaModel.logomarca`) é carregada de arquivo, URI `file:` ou recurso interno e desenhada
+  proporcionalmente no canto direito das duas vias. A imagem horizontal das Preferências é
+  exclusiva do dashboard e não alimenta o ticket. O espaço dos dados da empresa é reduzido
+  quando há imagem, evitando sobreposição. Suíte atual: **273 testes, 0 falhas**; prévia A4
+  renderizada e conferida visualmente.
+
 ## Estado atual (2026-09-24)
 
 - **Filtro por data não é sobrescrito (24/09)**: a carga inicial do histórico e a aplicação do

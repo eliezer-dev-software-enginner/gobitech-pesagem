@@ -68,7 +68,7 @@ public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<Usuari
                 .column("Nome", UsuarioModel::getNome)
                 .column("Login", UsuarioModel::getLogin)
                 .column("Telefone", it -> it.getTelefone() != null ? FormatterPack.formatPhone(it.getTelefone()) : "")
-                .column("Admin", it -> Boolean.TRUE.equals(it.getAdmin()) ? "Sim" : "Não")
+                .column("Perfil", it -> Boolean.TRUE.equals(it.getAdmin()) ? "Admin" : "Operador")
                 .column("Ativo", it -> Boolean.TRUE.equals(it.getAtivo()) ? "Sim" : "Não")
                 .column("Data de criação", it -> DatePack.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
                 .build()
@@ -80,12 +80,12 @@ public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<Usuari
 
     @Override
     public void exportPdf(File destino, EmpresaModel empresa, List<UsuarioModel> snapshotFiltrado) throws Exception {
-        var headers = java.util.List.of("ID", "Nome", "Login", "Admin", "Data de criacao");
+        var headers = java.util.List.of("ID", "Nome", "Login", "Perfil", "Data de criacao");
         var rows = snapshotFiltrado.stream().map(u -> java.util.List.of(
                 String.valueOf(u.getId()),
                 u.getNome() != null ? u.getNome() : "",
                 u.getLogin() != null ? u.getLogin() : "",
-                Boolean.TRUE.equals(u.getAdmin()) ? "Sim" : "Nao",
+                Boolean.TRUE.equals(u.getAdmin()) ? "Admin" : "Operador",
                 DatePack.localDateTimeToBrazilianDateTime(u.getDataCriacao())
         )).toList();
         ListaPdfExporter.exportar(destino, empresa, "Lista de Usuarios", headers, rows);

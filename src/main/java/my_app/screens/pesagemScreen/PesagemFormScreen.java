@@ -110,11 +110,11 @@ public abstract class PesagemFormScreen implements ScreenComponent {
                 .c_child(Components.FormTitle("Dados da pesagem"))
                 .c_child(new FlowRow(new FlowRowProps().spacingOf(10))
                         .children(
-                                Components.InputColumnUppercase(Components.obrigatorio("Placa"), vm.placa, "Ex: ABC1D23"),
+                                Components.InputPlaca(Components.obrigatorio("Placa"), vm.placa, "Ex: ABC1234 ou ABC1D23"),
                                 Components.InputColumn("Nome do motorista", vm.motoristaNome, "Ex: José da Silva"),
                                 Components.InputRgCpf("Documento do motorista", vm.motoristaDocumento),
                                 Components.SelectColumn("Cliente", vm.clientesState, vm.clienteSelected,
-                                        c -> c.getLoja(), true),
+                                        c -> c.getRazaoSocial(), true),
                                 Components.SelectColumn("Produto", vm.produtosState, vm.produtoSelected,
                                         p -> p.getNome(), true),
                                 Components.InputColumn("Nota fiscal", vm.notaFiscal, "Nº da nota (se houver)")

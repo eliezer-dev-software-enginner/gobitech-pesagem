@@ -11,6 +11,7 @@ import my_app.db.repositories.DescontoRepository;
 import my_app.db.repositories.PesagemRepository;
 import my_app.db.repositories.ProdutoRepository;
 import my_app.db.repositories.UsuarioRepository;
+import my_app.domain.Autorizacao;
 import my_app.core.Identifier;
 import net.sf.persism.Session;
 import org.slf4j.Logger;
@@ -21,6 +22,7 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Locale;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -168,9 +170,20 @@ public class PesagemService extends BaseService<PesagemModel> {
         return entrada;
     }
 
+    @Override
+    public void excluirById(long id) throws SQLException {
+        Autorizacao.exigirAdmin("excluir pesagens");
+        super.excluirById(id);
+    }
+
     private void validarCampos(PesagemModel model) {
         if (model.getPlaca() == null || model.getPlaca().isBlank())
             throw new IllegalArgumentException("Placa é obrigatória");
+        String placa = model.getPlaca().trim().toUpperCase(Locale.ROOT);
+        if (!placa.matches("^[A-Z]{3}(?:[0-9]{4}|[0-9][A-Z][0-9]{2})$"))
+            throw new IllegalArgumentException(
+                    "Placa inválida. Informe uma placa comum (ABC1234) ou Mercosul (ABC1D23).");
+        model.setPlaca(placa);
         if (model.getTipoPesagem() == null || model.getTipoPesagem().isBlank())
             throw new IllegalArgumentException("Tipo de pesagem é obrigatório");
         if (model.getMotoristaDocumento() != null && !model.getMotoristaDocumento().isBlank()

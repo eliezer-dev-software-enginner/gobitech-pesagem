@@ -18,14 +18,6 @@ public class ClienteRepository extends BaseRepository<ClienteModel> {
         return ClienteModel.class;
     }
 
-    public ClienteModel buscarPorLoja(String loja) throws SQLException {
-        return session().fetch(
-                modelClass(),
-                sql("SELECT * FROM clientes WHERE loja = ?"),
-                params(loja)
-        );
-    }
-
     public ClienteModel buscarPorCpfCnpj(String cpfCnpj) throws SQLException {
         return session().fetch(
                 modelClass(),

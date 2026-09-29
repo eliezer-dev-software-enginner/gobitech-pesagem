@@ -3,6 +3,7 @@ package my_app.db.services;
 import my_app.db.DB;
 import my_app.db.models.LicensaModel;
 import my_app.db.repositories.LicensaRepository;
+import my_app.domain.Autorizacao;
 import net.sf.persism.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.List;
 
 public class LicensaService extends BaseService<LicensaModel> {
 
@@ -28,6 +30,7 @@ public class LicensaService extends BaseService<LicensaModel> {
 
     @Override
     public LicensaModel salvar(LicensaModel model) throws SQLException {
+        Autorizacao.exigirAdmin("gerar licenças");
         if (model.getValor() == null || model.getValor().isBlank())
             throw new IllegalArgumentException("Valor da licença é obrigatório");
         var existente = licensaRepository.buscarPorValor(model.getValor());
@@ -45,10 +48,29 @@ public class LicensaService extends BaseService<LicensaModel> {
      * responsabilidade da camada de tela/ViewModel, não deste serviço.
      */
     public LicensaModel gerarNova(LocalDateTime expiraEm) throws SQLException {
+        Autorizacao.exigirAdmin("gerar licenças");
         var model = new LicensaModel();
         model.setValor(UUID.randomUUID().toString());
         model.setExpiraEm(expiraEm);
         return salvar(model);
+    }
+
+    @Override
+    public List<LicensaModel> listar() throws SQLException {
+        Autorizacao.exigirAdmin("consultar licenças");
+        return super.listar();
+    }
+
+    @Override
+    public void atualizar(LicensaModel model) throws SQLException {
+        Autorizacao.exigirAdmin("alterar licenças");
+        super.atualizar(model);
+    }
+
+    @Override
+    public void excluirById(long id) throws SQLException {
+        Autorizacao.exigirAdmin("excluir licenças");
+        super.excluirById(id);
     }
 
     public LicensaModel buscarMaisRecente() throws SQLException {

@@ -105,13 +105,6 @@ public abstract class PesagemFormViewModel {
 
         EventBus.getInstance().subscribe(eventListener);
 
-        // Ao selecionar um produto, carrega o desconto padrão dele no campo "Outros" — só um
-        // ponto de partida editável pelo operador.
-        produtoSelected.subscribe(produto -> {
-            if (produto == null) return;
-            outros.set(produto.getDesconto() == null ? "" : produto.getDesconto().toPlainString());
-        });
-
         // Peso líquido recalculado dinamicamente a cada mudança de bruto, tara ou de qualquer
         // desconto — dispensa o botão "Calcular" (o campo é de exibição, não editável).
         pesoTotal.subscribe(v -> recalcularPesoLiquido());

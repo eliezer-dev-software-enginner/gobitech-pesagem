@@ -665,6 +665,36 @@ public class Components {
                 .c_child(input);
     }
 
+    /**
+     * Campo de placa brasileira: mantém somente letras e números em maiúsculas e limita a
+     * sete caracteres. A validação definitiva dos formatos comum ({@code ABC1234}) e Mercosul
+     * ({@code ABC1D23}) é feita no serviço ao salvar a pesagem.
+     */
+    public static Component InputPlaca(String label, State<String> inputState, String placeholder) {
+        var props = getInputPropsV2(placeholder).width(220).height(35);
+
+        var input = new Input(inputState, props)
+                .onInitialize(value -> {
+                    String placa = normalizarPlaca(value);
+                    return OnChangeResult.of(placa, placa);
+                })
+                .onChange(value -> {
+                    String placa = normalizarPlaca(value);
+                    return OnChangeResult.of(placa, placa);
+                })
+                .lockCursorToEnd();
+
+        return new Column()
+                .c_child(new Text(label, new TextProps().fontSize(ThemeManager.theme().typography().small())))
+                .c_child(input);
+    }
+
+    private static String normalizarPlaca(String valor) {
+        String placa = valor == null ? "" : valor.toUpperCase(java.util.Locale.ROOT)
+                .replaceAll("[^A-Z0-9]", "");
+        return placa.length() > 7 ? placa.substring(0, 7) : placa;
+    }
+
 
     // Variante que cresce com o conteúdo em vez de ficar travado numa altura fixa
     // (a outra sobrecarga, com um único "height", trava prefHeight=minHeight=maxHeight).

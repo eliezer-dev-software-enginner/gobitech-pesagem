@@ -23,6 +23,7 @@ import megalodonte.utils.ThrowingSupplier;
 import my_app.db.models.PesagemModel;
 import my_app.db.services.PesagemService;
 import my_app.domain.components.Components;
+import my_app.domain.Autorizacao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pack.utilities.DatePack;
@@ -41,7 +42,7 @@ public class DetailsPesagemScreen implements ScreenComponent {
     private final ComputedState<String> motorista = campo(PesagemModel::getMotoristaNome);
     private final ComputedState<String> motoristaDocumento = campo(PesagemModel::getMotoristaDocumento);
     private final ComputedState<String> tipo = campo(PesagemModel::getTipoPesagem);
-    private final ComputedState<String> cliente = campo(p -> p.getCliente() != null ? p.getCliente().getLoja() : "-");
+    private final ComputedState<String> cliente = campo(p -> p.getCliente() != null ? p.getCliente().getRazaoSocial() : "-");
     private final ComputedState<String> produto = campo(p -> p.getProduto() != null ? p.getProduto().getNome() : "-");
     private final ComputedState<String> notaFiscal = campo(PesagemModel::getNotaFiscal);
     private final ComputedState<String> tara = peso(PesagemModel::getPesoVeiculo);
@@ -113,22 +114,23 @@ public class DetailsPesagemScreen implements ScreenComponent {
     }
 
     private Row acoesRow() {
-        return new Row(new RowProps().fillWidth().spacingOf(10))
-                .children(
-                        new Button("Imprimir", new ButtonProps().bgColor("#16a34a").textColor("white"))
-                                .onClick(() -> {
-                                    var m = model.get();
-                                    if (m != null) vm.imprimirTicket(m);
-                                }),
-                        new Button("Excluir", new ButtonProps().bgColor("#ef4444").textColor("white"))
-                                .onClick(() -> {
-                                    var m = model.get();
-                                    if (m == null) return;
-                                    vm.selected.set(m);
-                                    ctx.selfStage().close();
-                                    vm.handleClickMenuDelete();
-                                })
-                );
+        var acoes = new Row(new RowProps().fillWidth().spacingOf(10))
+                .r_child(new Button("Imprimir", new ButtonProps().bgColor("#16a34a").textColor("white"))
+                        .onClick(() -> {
+                            var m = model.get();
+                            if (m != null) vm.imprimirTicket(m);
+                        }));
+        if (Autorizacao.podeAdministrar()) {
+            acoes.r_child(new Button("Excluir", new ButtonProps().bgColor("#ef4444").textColor("white"))
+                    .onClick(() -> {
+                        var m = model.get();
+                        if (m == null) return;
+                        vm.selected.set(m);
+                        ctx.selfStage().close();
+                        vm.handleClickMenuDelete();
+                    }));
+        }
+        return acoes;
     }
 
     private ComputedState<String> campo(Function<PesagemModel, Object> extract) {

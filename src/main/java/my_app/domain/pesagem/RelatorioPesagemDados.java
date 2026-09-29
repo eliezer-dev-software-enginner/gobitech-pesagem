@@ -45,7 +45,7 @@ public final class RelatorioPesagemDados {
                 dataHora(TicketPesagemDados.dataSaida(p), true),
                 p.getPlaca() != null ? p.getPlaca() : "",
                 p.getProduto() != null ? p.getProduto().getNome() : "---",
-                p.getCliente() != null ? p.getCliente().getLoja() : "",
+                p.getCliente() != null ? p.getCliente().getRazaoSocial() : "",
                 pesoStr(p.getPesoTotal()),
                 pesoStr(p.getPesoFinal())
         );

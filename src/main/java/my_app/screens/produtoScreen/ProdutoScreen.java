@@ -66,7 +66,6 @@ public class ProdutoScreen implements ScreenComponent, ContratoTelaCrudV3<Produt
                 .column("ID", ProdutoModel::getId)
                 .column("Nome", ProdutoModel::getNome)
                 .column("Unidade", ProdutoModel::getUnidade)
-                .column("Desconto (%)", it -> it.getDesconto() == null ? "0" : it.getDesconto().toPlainString())
                 .column("Ativo", it -> Boolean.TRUE.equals(it.getAtivo()) ? "Sim" : "Não")
                 .column("Observações", ProdutoModel::getObservacoes)
                 .column("Data de criação", it -> DatePack.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
@@ -80,12 +79,11 @@ public class ProdutoScreen implements ScreenComponent, ContratoTelaCrudV3<Produt
 
     @Override
     public void exportPdf(File destino, EmpresaModel empresa, List<ProdutoModel> snapshotFiltrado) throws Exception {
-        var headers = java.util.List.of("ID", "Nome", "Unidade", "Desconto (%)", "Data de criacao");
+        var headers = java.util.List.of("ID", "Nome", "Unidade", "Data de criacao");
         var rows = snapshotFiltrado.stream().map(p -> java.util.List.of(
                 String.valueOf(p.getId()),
                 p.getNome() != null ? p.getNome() : "",
                 p.getUnidade() != null ? p.getUnidade() : "",
-                p.getDesconto() != null ? p.getDesconto().toPlainString() : "0",
                 DatePack.localDateTimeToBrazilianDateTime(p.getDataCriacao())
         )).toList();
         ListaPdfExporter.exportar(destino, empresa, "Lista de Produtos", headers, rows);

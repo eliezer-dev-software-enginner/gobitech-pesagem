@@ -34,7 +34,7 @@ public class DetailsUsuarioScreen implements ScreenComponent {
     private final ComputedState<String> nome = campo(UsuarioModel::getNome);
     private final ComputedState<String> login = campo(UsuarioModel::getLogin);
     private final ComputedState<String> telefone = campo(UsuarioModel::getTelefone);
-    private final ComputedState<String> admin = campo(u -> Boolean.TRUE.equals(u.getAdmin()) ? "Sim" : "Não");
+    private final ComputedState<String> perfil = campo(u -> Boolean.TRUE.equals(u.getAdmin()) ? "Admin" : "Operador");
     private final ComputedState<String> dataCriacao = campo(u -> DatePack.localDateTimeToBrazilianDateTime(u.getDataCriacao()));
 
     public DetailsUsuarioScreen(ScreenContextInterface ctx) {
@@ -71,7 +71,7 @@ public class DetailsUsuarioScreen implements ScreenComponent {
                                 .c_child(Components.TextWithDetailsState("Nome: ", nome))
                                 .c_child(Components.TextWithDetailsState("Login: ", login))
                                 .c_child(Components.TextWithDetailsState("Telefone: ", telefone))
-                                .c_child(Components.TextWithDetailsState("Administrador: ", admin))
+                                .c_child(Components.TextWithDetailsState("Perfil: ", perfil))
                                 .c_child(Components.TextWithDetailsState("Data de criação: ", dataCriacao))
                 )
         );

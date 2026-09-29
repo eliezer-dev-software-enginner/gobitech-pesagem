@@ -4,6 +4,7 @@ import my_app.db.DB;
 import my_app.db.models.UsuarioModel;
 import my_app.db.repositories.UsuarioRepository;
 import my_app.security.CryptoManager;
+import my_app.domain.Autorizacao;
 import my_app.utils.Validacoes;
 import net.sf.persism.Session;
 import org.slf4j.Logger;
@@ -41,6 +42,7 @@ public class UsuarioService extends BaseService<UsuarioModel> {
 
     @Override
     public UsuarioModel salvar(UsuarioModel model) throws SQLException {
+        Autorizacao.exigirAdmin("cadastrar usuários");
         validarCamposObrigatorios(model);
 
         Validacoes.validarTelefone(model.getTelefone());
@@ -73,7 +75,9 @@ public class UsuarioService extends BaseService<UsuarioModel> {
 
     @Override
     public void atualizar(UsuarioModel model) throws SQLException {
+        Autorizacao.exigirAdmin("alterar usuários");
         validarCamposObrigatorios(model);
+        validarPreservacaoDeAdministradores(model);
 
         Validacoes.validarTelefone(model.getTelefone());
 
@@ -98,8 +102,16 @@ public class UsuarioService extends BaseService<UsuarioModel> {
     }
 
     public void inativar(long id) throws SQLException {
+        Autorizacao.exigirAdmin("inativar usuários");
         var usuario = repository.buscarById(id);
         if (usuario == null) throw new IllegalArgumentException("Usuário não encontrado");
+        if (Autorizacao.usuarioLogado(id)) {
+            throw new IllegalArgumentException("O administrador não pode inativar o próprio usuário.");
+        }
+        if (Boolean.TRUE.equals(usuario.getAdmin()) && Boolean.TRUE.equals(usuario.getAtivo())
+                && usuarioRepository.contarAdministradoresAtivos() <= 1) {
+            throw new IllegalArgumentException("Não é possível inativar o último administrador ativo.");
+        }
         usuario.setAtivo(false);
         repository.atualizar(usuario);
         log.info("Usuário inativado: id={}", id);
@@ -133,6 +145,7 @@ public class UsuarioService extends BaseService<UsuarioModel> {
 
     @Override
     public UsuarioModel buscarById(long id) throws SQLException {
+        Autorizacao.exigirAdmin("consultar usuários");
         var usuario = repository.buscarById(id);
         if (usuario == null) return null;
         var crypto = new CryptoManager();
@@ -142,6 +155,7 @@ public class UsuarioService extends BaseService<UsuarioModel> {
     }
 
     public List<UsuarioModel> listarAtivos() throws SQLException {
+        Autorizacao.exigirAdmin("consultar usuários");
         var lista = usuarioRepository.listarAtivos();
         var crypto = new CryptoManager();
         for (var usuario : lista) {
@@ -155,6 +169,7 @@ public class UsuarioService extends BaseService<UsuarioModel> {
      * @param login texto puro — criptografado internamente pra buscar.
      */
     public UsuarioModel buscarPorLogin(String login) throws SQLException {
+        Autorizacao.exigirAdmin("consultar usuários");
         var crypto = new CryptoManager();
         var usuario = usuarioRepository.buscarPorLogin(crypto.encrypt(login));
         if (usuario == null) return null;
@@ -170,5 +185,28 @@ public class UsuarioService extends BaseService<UsuarioModel> {
             throw new IllegalArgumentException("Login é obrigatório");
         if (model.getSenha() == null || model.getSenha().isBlank())
             throw new IllegalArgumentException("Senha é obrigatória");
+    }
+
+    private void validarPreservacaoDeAdministradores(UsuarioModel alterado) throws SQLException {
+        if (alterado.getId() == null) return;
+        var existente = repository.buscarById(alterado.getId());
+        if (existente == null || !Boolean.TRUE.equals(existente.getAdmin())
+                || !Boolean.TRUE.equals(existente.getAtivo())) return;
+
+        boolean removePrivilegio = !Boolean.TRUE.equals(alterado.getAdmin());
+        boolean inativa = !Boolean.TRUE.equals(alterado.getAtivo());
+        if (!removePrivilegio && !inativa) return;
+
+        if (Autorizacao.usuarioLogado(alterado.getId())) {
+            throw new IllegalArgumentException("O administrador não pode remover o próprio acesso administrativo.");
+        }
+        if (usuarioRepository.contarAdministradoresAtivos() <= 1) {
+            throw new IllegalArgumentException("Não é possível remover o último administrador ativo.");
+        }
+    }
+
+    @Override
+    public void excluirById(long id) {
+        throw new IllegalArgumentException("Usuários não podem ser excluídos; utilize a inativação.");
     }
 }

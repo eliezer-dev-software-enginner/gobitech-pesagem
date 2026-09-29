@@ -92,7 +92,7 @@ public class TicketThermalExporter {
         raw(linhas, "Operador..........: " + nomeOperador(pesagem), false, false);
         raw(linhas, "Motorista.........: " + valorOu(pesagem.getMotoristaNome(), "---"), false, false);
         raw(linhas, "Produto...........: " + (pesagem.getProduto() != null ? valorOu(pesagem.getProduto().getNome(), "---") : "---"), false, false);
-        raw(linhas, "Cliente...........: " + (pesagem.getCliente() != null ? valorOu(pesagem.getCliente().getLoja(), "") : ""), false, false);
+        raw(linhas, "Cliente...........: " + (pesagem.getCliente() != null ? valorOu(pesagem.getCliente().getRazaoSocial(), "") : ""), false, false);
         vazio(linhas);
         raw(linhas, "Peso de Entrada....: " + peso(TicketPesagemDados.pesoEntrada(pesagem, entrada)) + " Kg", false, false);
         raw(linhas, "Peso de Saída......: " + peso(TicketPesagemDados.pesoSaida(pesagem)) + " Kg", false, false);
