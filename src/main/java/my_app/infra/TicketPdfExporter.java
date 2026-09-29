@@ -117,8 +117,7 @@ public class TicketPdfExporter {
     }
 
     private PDImageXObject carregarLogomarca(PDDocument doc, EmpresaModel empresa) {
-        String origem = empresa == null ? null : empresa.getLogomarca();
-        if (origem == null || origem.isBlank()) return null;
+        String origem = EmpresaModel.resolverLogomarca(empresa);
         try (var entrada = abrirLogomarca(origem)) {
             var imagem = ImageIO.read(entrada);
             if (imagem == null) throw new IOException("Formato de imagem não reconhecido");

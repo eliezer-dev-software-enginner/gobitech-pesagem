@@ -141,6 +141,30 @@ class TicketPdfExporterTest {
         return count;
     }
 
+    @Test
+    void usaLogomarcaPadraoQuandoCadastroExibeFallbackMasBancoEstaNulo() throws Exception {
+        var empresa = new EmpresaModel();
+        empresa.setNome("BALANÇAS GOBITECH");
+        assertNull(empresa.getLogomarca(), "Reproduz o banco recém-criado, sem logo persistida");
+
+        var pasta = Path.of("build", "reports", "printing");
+        java.nio.file.Files.createDirectories(pasta);
+        var destino = pasta.resolve("ticket-logomarca-fallback.pdf").toFile();
+        exporter.gerar(destino, empresa, pesagemBasica(), entradaBasica());
+
+        try (var doc = PDDocument.load(destino)) {
+            int imagens = 0;
+            for (var nome : doc.getPage(0).getResources().getXObjectNames()) {
+                if (doc.getPage(0).getResources().isImageXObject(nome)) imagens++;
+            }
+            assertEquals(1, imagens, "O fallback mostrado no cadastro também deve entrar no ticket");
+
+            var render = new org.apache.pdfbox.rendering.PDFRenderer(doc).renderImageWithDPI(0, 72);
+            assertTrue(temPixelsColoridos(render, 430, 20, 575, 90));
+            assertTrue(temPixelsColoridos(render, 430, 415, 575, 485));
+        }
+    }
+
     private boolean temPixelsColoridos(java.awt.image.BufferedImage imagem,
                                        int xInicial, int yInicial, int xFinal, int yFinal) {
         int coloridos = 0;

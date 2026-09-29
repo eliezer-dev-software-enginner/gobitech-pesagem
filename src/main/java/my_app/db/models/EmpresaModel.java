@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 @Table("empresas")
 public class EmpresaModel extends Identifier {
 
+    public static final String LOGOMARCA_PADRAO = "assets/app_banner_square.png";
+
     private String nome;
     private String cpfCnpj;
     private String telefone;
@@ -40,6 +42,14 @@ public class EmpresaModel extends Identifier {
     private String numero;
 
     private String logomarca;
+
+    /** Mesma imagem que o cadastro exibe quando ainda não há caminho persistido. */
+    public static String resolverLogomarca(EmpresaModel empresa) {
+        if (empresa == null || empresa.getLogomarca() == null || empresa.getLogomarca().isBlank()) {
+            return LOGOMARCA_PADRAO;
+        }
+        return empresa.getLogomarca();
+    }
 
     @Column(name = "dataCriacao")
     private LocalDateTime dataCriacao;

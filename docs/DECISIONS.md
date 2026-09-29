@@ -1,5 +1,15 @@
 # Decisões Arquiteturais
 
+## 2026-09-29: Logomarca nula usa a imagem padrão do sistema
+
+**Decisão:** `EmpresaModel.resolverLogomarca` é a fonte única para decidir a imagem do
+cabeçalho. Quando `empresas.logomarca` possui valor, usa a imagem cadastrada; quando está nula
+ou vazia, usa `assets/app_banner_square.png`. A tela de Empresa, o ticket A4 e as exportações
+cadastrais compartilham essa regra. Isso corrige bancos recém-criados, nos quais o cadastro já
+mostrava visualmente o fallback, mas a coluna permanecia nula e o PDF saía sem imagem.
+
+---
+
 ## 2026-09-29: Admin padrão vem do `.env` e pacote não duplica o runtime
 
 **Decisão:** o build lê login e senha do administrador pelas chaves `GOBITECH_ADMIN_LOGIN` e

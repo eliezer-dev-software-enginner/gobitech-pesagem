@@ -104,4 +104,44 @@ class RelatorioPesagemPdfExporterTest {
             assertTrue(doc.getNumberOfPages() > 1);
         }
     }
+
+    @Test
+    void usaLogomarcaPadraoQuandoCadastroExibeFallbackMasBancoEstaNulo(@TempDir Path tempDir) throws IOException {
+        var empresa = new EmpresaModel();
+        empresa.setNome("BALANÇAS GOBITECH");
+        assertNull(empresa.getLogomarca(), "Reproduz o banco recém-criado, sem logo persistida");
+
+        var destino = tempDir.resolve("relatorio-logomarca.pdf").toFile();
+        RelatorioPesagemPdfExporter.exportar(destino, empresa, "Relatório",
+                List.of("Ticket", "Placa"), List.of(List.of("1", "ABC1234")),
+                List.of("---"), 1, "100");
+
+        try (var doc = PDDocument.load(destino)) {
+            int imagens = 0;
+            for (var nome : doc.getPage(0).getResources().getXObjectNames()) {
+                if (doc.getPage(0).getResources().isImageXObject(nome)) imagens++;
+            }
+            assertEquals(1, imagens, "O relatório deve carregar a mesma logomarca do ticket");
+
+            var render = new org.apache.pdfbox.rendering.PDFRenderer(doc).renderImageWithDPI(0, 72);
+            assertTrue(temPixelsColoridos(render, 430, 20, 575, 90), "A logo deve sair no topo à direita");
+        }
+
+        assertTrue(extrairTexto(destino).contains("BALANÇAS GOBITECH"), "A logo não pode empurrar o cabeçalho para fora");
+    }
+
+    private boolean temPixelsColoridos(java.awt.image.BufferedImage imagem,
+                                       int xInicial, int yInicial, int xFinal, int yFinal) {
+        int coloridos = 0;
+        for (int y = yInicial; y < Math.min(yFinal, imagem.getHeight()); y++) {
+            for (int x = xInicial; x < Math.min(xFinal, imagem.getWidth()); x++) {
+                int rgb = imagem.getRGB(x, y);
+                int r = (rgb >> 16) & 0xff;
+                int g = (rgb >> 8) & 0xff;
+                int b = rgb & 0xff;
+                if (Math.max(r, Math.max(g, b)) - Math.min(r, Math.min(g, b)) > 20) coloridos++;
+            }
+        }
+        return coloridos > 200;
+    }
 }

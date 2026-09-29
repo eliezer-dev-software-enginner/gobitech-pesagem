@@ -24,7 +24,7 @@ Não inicie nenhuma tarefa sem ter lido esses arquivos primeiro.
 
 ## 4. Tarefa
 
-Na impressão de nota térmica está saindo todos os descontos, e deve sair apenas os que foram aplicados, por exemplo: Se o usuário preencheu apenas "Quebra umidade" então é somente ele que deveria aparecer, não precisaria aparecer o restante: Avariados, Ardidos, Impurezas e etc.
+
 
 ## 5. Ao final da tarefa
 

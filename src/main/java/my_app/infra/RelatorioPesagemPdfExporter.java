@@ -7,9 +7,18 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.imageio.ImageIO;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,8 +32,11 @@ import java.util.List;
  */
 public class RelatorioPesagemPdfExporter {
 
+    private static final Logger log = LoggerFactory.getLogger(RelatorioPesagemPdfExporter.class);
     private static final float MARGEM = 30;
     private static final float LEADING = 15;
+    private static final float LOGO_MAX_LARGURA = 130;
+    private static final float LOGO_MAX_ALTURA = 58;
     private static final PDFont REGULAR = PDType1Font.COURIER;
     private static final PDFont BOLD = PDType1Font.COURIER_BOLD;
 
@@ -104,9 +116,56 @@ public class RelatorioPesagemPdfExporter {
             totais.add(new Run(": " + totalLiquido + " ", false));
             linhas.add(new Linha(totais));
 
-            renderizar(doc, page, linhas, tamanhoFonte(linhas));
+            renderizar(doc, page, linhas, tamanhoFonte(linhas), carregarLogomarca(doc, empresa));
             doc.save(destino);
         }
+    }
+
+    /**
+     * Carrega a logomarca da empresa (imagem escolhida no cadastro ou recurso empacotado).
+     * Falha ao abrir/decodificar não quebra o relatório: devolve {@code null} e o documento
+     * sai só com o cabeçalho em texto.
+     */
+    private static PDImageXObject carregarLogomarca(PDDocument doc, EmpresaModel empresa) {
+        String origem = EmpresaModel.resolverLogomarca(empresa);
+        try (InputStream entrada = abrirLogomarca(origem)) {
+            var imagem = ImageIO.read(entrada);
+            if (imagem == null) throw new IOException("Formato de imagem não reconhecido");
+            var bytes = new ByteArrayOutputStream();
+            ImageIO.write(imagem, "png", bytes);
+            return PDImageXObject.createFromByteArray(doc, bytes.toByteArray(), "logomarca-empresa");
+        } catch (Exception ex) {
+            log.warn("Logomarca da empresa ignorada no relatório de pesagem: {}", origem, ex);
+            return null;
+        }
+    }
+
+    private static InputStream abrirLogomarca(String origem) throws IOException {
+        if (origem.startsWith("file:")) {
+            return Files.newInputStream(Path.of(URI.create(origem)));
+        }
+        var arquivo = Path.of(origem);
+        if (Files.isRegularFile(arquivo)) return Files.newInputStream(arquivo);
+
+        String recurso = origem.replace('\\', '/').replaceFirst("^/", "");
+        var entrada = Thread.currentThread().getContextClassLoader().getResourceAsStream(recurso);
+        if (entrada == null) throw new IOException("Arquivo de logomarca não encontrado: " + origem);
+        return entrada;
+    }
+
+    /**
+     * Desenha a logomarca alinhada à direita e devolve a altura reservada na primeira página.
+     * Como o texto é uma grade monoespaçada de largura total, a logo ocupa uma faixa própria
+     * acima do cabeçalho em vez de dividir a linha com o texto (que quebraria o alinhamento).
+     */
+    private static float desenharLogomarca(PDPageContentStream cs, PDImageXObject logomarca, float direita, float topo)
+            throws IOException {
+        if (logomarca == null) return 0;
+        float escala = Math.min(LOGO_MAX_LARGURA / logomarca.getWidth(), LOGO_MAX_ALTURA / logomarca.getHeight());
+        float largura = logomarca.getWidth() * escala;
+        float altura = logomarca.getHeight() * escala;
+        cs.drawImage(logomarca, direita - largura, topo - altura, largura, altura);
+        return altura + 10;
     }
 
     /**
@@ -126,9 +185,12 @@ public class RelatorioPesagemPdfExporter {
         return Math.min(8.5f, tamanho);
     }
 
-    private static void renderizar(PDDocument doc, PDPage page, List<Linha> linhas, float tamanho) throws IOException {
+    private static void renderizar(PDDocument doc, PDPage page, List<Linha> linhas, float tamanho,
+                                   PDImageXObject logomarca) throws IOException {
         PDPageContentStream cs = new PDPageContentStream(doc, page);
+        float direita = PDRectangle.A4.getWidth() - MARGEM;
         float y = page.getMediaBox().getHeight() - MARGEM;
+        y -= desenharLogomarca(cs, logomarca, direita, y);
         for (int i = 0; i < linhas.size(); i++) {
             if (y < MARGEM + LEADING) {
                 cs.close();

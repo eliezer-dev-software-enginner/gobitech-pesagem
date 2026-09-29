@@ -15,10 +15,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ListaPdfExporterTest {
 
     @Test
-    void exportacaoDeProdutosCarregaLogomarcaDaEmpresaDoClasspath() throws Exception {
+    void exportacaoDeProdutosCarregaLogomarcaPadraoQuandoBancoEstaNulo() throws Exception {
         var empresa = new EmpresaModel();
         empresa.setNome("BALANÇAS GOBITECH");
-        empresa.setLogomarca("assets/app_banner_square.png");
+        // A tela de Empresa mostra esse fallback mesmo quando a coluna ainda está nula.
+        // A exportação precisa refletir exatamente o que o cadastro mostra.
+        empresa.setLogomarca(null);
         empresa.setCpfCnpj("27337390000146");
         empresa.setRua("R. 10 QD 36");
         empresa.setNumero("14");

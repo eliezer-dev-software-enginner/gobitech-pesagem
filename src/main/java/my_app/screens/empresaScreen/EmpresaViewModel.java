@@ -25,7 +25,7 @@ public class EmpresaViewModel {
     final State<String> inscricaoEstadual = State.of("");
     final State<String> telefone = State.of("");
     final State<String> email = State.of("");
-    final State<String> logoMarca = State.of("assets/app_banner_square.png");
+    final State<String> logoMarca = State.of(EmpresaModel.LOGOMARCA_PADRAO);
 
     final State<String> cep = State.of("");
     final State<String> cidade = State.of("");
@@ -59,7 +59,7 @@ public class EmpresaViewModel {
                         inscricaoEstadual.set(model.getInscricaoEstadual() == null ? "" : model.getInscricaoEstadual());
                         telefone.set(model.getTelefone() == null ? "" : model.getTelefone());
                         email.set(model.getEmail() == null ? "" : model.getEmail());
-                        logoMarca.set(model.getLogomarca() != null ? model.getLogomarca() : "assets/app_banner_square.png");
+                        logoMarca.set(EmpresaModel.resolverLogomarca(model));
                         cep.set(model.getCep() == null ? "" : model.getCep());
                         cidade.set(model.getCidade() == null ? "" : model.getCidade());
                         estadoSelected.set(model.getEstado() == null ? Data.ufList.getFirst() : model.getEstado());

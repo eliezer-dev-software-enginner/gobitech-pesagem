@@ -107,3 +107,7 @@ HASH.md
 
 ### Manifesto gerado por build/jpackage na raiz ###
 /META-INF/
+
+### Saídas de validação manual de impressão (PDFs/PNGs gerados na sessão) ###
+/output/
+/tmp/

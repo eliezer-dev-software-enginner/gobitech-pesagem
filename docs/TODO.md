@@ -2,6 +2,10 @@
 
 ## Ajustes (29/09/2026)
 
+- [x] **Fallback da logomarca nos PDFs**: se `empresas.logomarca` estiver nula ou vazia, ticket
+  A4 e exportações cadastrais usam `assets/app_banner_square.png`, a mesma imagem mostrada no
+  cadastro da Empresa. Validado visualmente nas duas vias do ticket.
+
 - [x] **Empacotamento sem duplicação**: scripts de MSI, DEB e Flatpak agora isolam o `--input`
   do `jpackage` (somente o JAR) das áreas de JavaFX e runtime do `jlink`, seguindo a
   correção validada no `plics-sw`.

@@ -43,6 +43,9 @@ ver `DECISIONS.md` pras decisões específicas de cada troca.
   do Flyway e antes da rota inicial.
 - `scripts/config.py` separa `temp/input`, `temp/javafx` e `temp/runtime`. O `--input` do
   `jpackage` nunca recebe o SDK nem o runtime, evitando a duplicação que existia nos pacotes.
+- `EmpresaModel.resolverLogomarca` centraliza o cabeçalho visual: caminho cadastrado quando
+  existir; `assets/app_banner_square.png` quando a coluna estiver nula/vazia. Cadastro da
+  Empresa, tickets A4 e exportações cadastrais usam a mesma regra.
 
 ## Estrutura de entidades (Fase 1)
 | Entidade | Tabela | Tela |

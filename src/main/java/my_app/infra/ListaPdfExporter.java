@@ -49,16 +49,17 @@ public class ListaPdfExporter {
                 // --- Cabeçalho da empresa ---
                 if (empresa != null) {
                     float logoHeight = 0;
-                    if (empresa.getLogomarca() != null && !empresa.getLogomarca().isBlank()) {
+                    String origemLogomarca = EmpresaModel.resolverLogomarca(empresa);
+                    if (!origemLogomarca.isBlank()) {
                         try {
-                            var img = carregarImagem(empresa.getLogomarca());
+                            var img = carregarImagem(origemLogomarca);
                             if (img != null) {
                                 float maxHeight = 50;
                                 float ratio = (float) img.getWidth() / img.getHeight();
                                 float width = maxHeight * ratio;
                                 if (width > 100) { width = 100; maxHeight = width / ratio; }
 
-                                var pdImage = PDImageXObject.createFromByteArray(doc, imgBytes(empresa.getLogomarca()), "logo");
+                                var pdImage = PDImageXObject.createFromByteArray(doc, imgBytes(origemLogomarca), "logo");
                                 cs.drawImage(pdImage, MARGEM, y - maxHeight, width, maxHeight);
                                 logoHeight = maxHeight;
                             }

@@ -22,7 +22,6 @@ public class UsuarioScreenViewModel extends ViewModelScreenContract<UsuarioModel
 
     private final UsuarioService usuarioService;
 
-    @SuppressWarnings("rawtypes")
     private final Consumer<Object> eventListener = this::onEntityEvent;
 
     final State<String> login = new State<>("");
