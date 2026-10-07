@@ -111,3 +111,5 @@ HASH.md
 ### Saídas de validação manual de impressão (PDFs/PNGs gerados na sessão) ###
 /output/
 /tmp/
+
+/.packaging/
