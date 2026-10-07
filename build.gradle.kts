@@ -26,9 +26,12 @@ group = "gobitech"
 version = fullVersion
 
 repositories {
-    mavenCentral()
     mavenLocal()
-    maven { url = uri("https://jitpack.io") }
+    mavenCentral()
+    maven {
+        url = uri("https://jitpack.io")
+        content { includeGroup("com.github.anastaciocintra") }
+    }
 }
 
 java {
@@ -91,7 +94,7 @@ dependencies {
     implementation("org.apache.pdfbox:pdfbox:2.0.29")
 
     //utilitties
-    implementation("com.github.eliezer-dev-software-enginner:pack-utilities:v1.0.0")
+    implementation("pack.utilities:pack-utilities:1.0.0")
 }
 
 tasks.test {
