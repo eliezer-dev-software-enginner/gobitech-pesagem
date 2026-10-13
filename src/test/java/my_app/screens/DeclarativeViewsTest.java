@@ -25,4 +25,13 @@ class DeclarativeViewsTest {
             assertEquals("Carregando...", session.states().string("contents").get());
         }
     }
+
+    @Test void dashboardViewBindsLiveWeightAndBranding() {
+        var definition = UiDefinition.fromResource(getClass(), "/views/dashboard.view.jsonc");
+        try (var session = definition.open(new Actions())) {
+            assertEquals("dashboard", session.id());
+            assertEquals("—", session.states().string("weight").get());
+            assertEquals(false, session.states().state("showLogo", Boolean.class).get());
+        }
+    }
 }

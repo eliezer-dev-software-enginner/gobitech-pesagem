@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "id": "dashboard",
+  "states": {
+    "logo": { "type": "string", "initial": "" },
+    "showLogo": { "type": "boolean", "initial": false },
+    "weight": { "type": "string", "initial": "—" }
+  },
+  "view": {
+    "type": "Column",
+    "props": { "padding": 20, "spacing": 24, "fillWidth": true, "fillHeight": true },
+    "children": [
+      { "type": "Image", "id": "brandLogo", "props": { "width": 700, "height": 200 },
+        "bind": { "source": "logo", "visible": "showLogo" } },
+      { "type": "Row", "props": { "fillWidth": true, "alignment": "end" }, "children": [
+        { "type": "Column", "props": { "padding": 20, "spacing": 5 }, "children": [
+          { "type": "Text", "props": { "text": "Balança" }, "style": { "bold": true } },
+          { "type": "Text", "bind": { "text": "weight" }, "style": { "fontSize": 24, "bold": true } }
+        ] }
+      ] }
+    ]
+  }
+}
