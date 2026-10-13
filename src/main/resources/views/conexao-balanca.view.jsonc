@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "id": "scaleConnection",
+  "states": {
+    "connectionTypes": { "type": "string", "initial": "[\"Serial\",\"TCP\"]" },
+    "connectionType": { "type": "string", "initial": "Serial" },
+    "ports": { "type": "string", "initial": "[]" },
+    "serialPort": { "type": "string", "initial": "" },
+    "baudRate": { "type": "string", "initial": "9600" },
+    "ipAddress": { "type": "string", "initial": "" },
+    "ipPort": { "type": "string", "initial": "" },
+    "showSerial": { "type": "boolean", "initial": true },
+    "showTcp": { "type": "boolean", "initial": false }
+  },
+  "view": {
+    "type": "Column", "props": { "padding": 20, "spacing": 12, "fillWidth": true },
+    "children": [
+      { "type": "Text", "props": { "text": "Conexão com a balança" }, "style": { "fontSize": 20, "bold": true } },
+      { "type": "Text", "props": { "text": "Tipo de conexão *" } },
+      { "type": "Select", "bind": { "items": "connectionTypes", "value": "connectionType" } },
+      { "type": "Column", "bind": { "visible": "showSerial" }, "props": { "spacing": 10 }, "children": [
+        { "type": "Text", "props": { "text": "Porta COM *" } },
+        { "type": "Select", "bind": { "items": "ports", "value": "serialPort" } },
+        { "type": "Text", "props": { "text": "Baud rate *" } },
+        { "type": "Input", "props": { "placeholder": "Ex: 9600" }, "bind": { "value": "baudRate" } }
+      ] },
+      { "type": "Column", "bind": { "visible": "showTcp" }, "props": { "spacing": 10 }, "children": [
+        { "type": "Text", "props": { "text": "Endereço IP *" } },
+        { "type": "Input", "props": { "placeholder": "Ex: 192.168.0.100" }, "bind": { "value": "ipAddress" } },
+        { "type": "Text", "props": { "text": "Porta *" } },
+        { "type": "Input", "props": { "placeholder": "Ex: 9100" }, "bind": { "value": "ipPort" } }
+      ] },
+      { "type": "Button", "props": { "text": "Salvar" }, "events": { "onClick": "save" } }
+    ]
+  }
+}

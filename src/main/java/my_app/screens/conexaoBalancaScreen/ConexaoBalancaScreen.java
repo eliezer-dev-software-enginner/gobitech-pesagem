@@ -1,64 +1,55 @@
 package my_app.screens.conexaoBalancaScreen;
 
+import com.google.gson.Gson;
 import megalodonte.base.components.Component;
 import megalodonte.base.components.ScreenComponent;
-import megalodonte.base.theme.ThemeManager;
-import megalodonte.components.Card;
-import megalodonte.components.SpacerVertical;
-import megalodonte.components.layout_components.Column;
-import megalodonte.components.layout_components.Container;
-import megalodonte.components.layout_components.Row;
-import megalodonte.props.ColumnProps;
-import megalodonte.props.ContainerProps;
-import megalodonte.props.RowProps;
 import megalodonte.base.route.v2.ScreenContextInterface;
-import megalodonte.v2.Show;
-import my_app.domain.components.Components;
+import megalodonte.base.state.State;
+import megalodonte.base.state.Subscription;
+import megalodonte.jsonc.Actions;
+import megalodonte.jsonc.UiDefinition;
+import megalodonte.jsonc.UiSession;
 
-public class ConexaoBalancaScreen implements ScreenComponent {
-    private final ConexaoBalancaViewModel vm;
+import java.util.ArrayList;
+import java.util.List;
 
-    public ConexaoBalancaScreen(ScreenContextInterface ctx) {
-        this.vm = new ConexaoBalancaViewModel(ctx);
+/** Serial and TCP settings are data-bound to a JSONC view. */
+public final class ConexaoBalancaScreen implements ScreenComponent {
+    private static final UiDefinition VIEW = UiDefinition.fromResource(ConexaoBalancaScreen.class, "/views/conexao-balanca.view.jsonc");
+    private static final Gson JSON = new Gson();
+    private final ConexaoBalancaViewModel viewModel;
+    private final UiSession session;
+    private final List<Subscription> subscriptions = new ArrayList<>();
+
+    public ConexaoBalancaScreen(ScreenContextInterface context) {
+        viewModel = new ConexaoBalancaViewModel(context);
+        session = VIEW.open(new Actions().register("save", ignored -> viewModel.salvar()));
+        bind("connectionType", viewModel.tipoConexaoSelected);
+        bind("serialPort", viewModel.portaComSelected);
+        bind("baudRate", viewModel.baudRate);
+        bind("ipAddress", viewModel.ipAddress);
+        bind("ipPort", viewModel.ipPort);
+        subscriptions.add(viewModel.portasComState.observe(values ->
+                session.states().string("ports").set(JSON.toJson(values))));
+        subscriptions.add(viewModel.ehSerial.observe(serial -> {
+            session.states().state("showSerial", Boolean.class).set(serial);
+            session.states().state("showTcp", Boolean.class).set(!serial);
+        }));
     }
 
-    @Override
-    public void onMount() {
-        vm.load();
+    private void bind(String name, State<String> model) {
+        var view = session.states().string(name);
+        subscriptions.add(model.observe(view::set));
+        subscriptions.add(view.observe(model::set));
     }
 
-    @Override
-    public void onDestroy() {
-        try {
-            vm.onDestroy();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+    @Override public Component render() { return session.render(); }
+    @Override public void onMount() { viewModel.load(); }
 
-    @Override
-    public Component render() {
-        return new Container(new ContainerProps().paddingAll(10)).children(
-                new Card(
-                        new Column(new ColumnProps().paddingAll(20).spacingOf(ThemeManager.theme().spacing().sm()))
-                                .c_child(Components.FormTitle("Conexão com a balança"))
-                                .c_child(new SpacerVertical(10))
-                                .c_child(Components.SelectColumn(Components.obrigatorio("Tipo de conexão"),
-                                        ConexaoBalancaViewModel.tiposConexaoList, vm.tipoConexaoSelected, it -> it))
-                                .c_child(new SpacerVertical(10))
-                                .c_child(Show.when(vm.ehSerial,
-                                        () -> new Row(new RowProps().spacingOf(10)).children(
-                                                Components.SelectColumn(Components.obrigatorio("Porta COM"), vm.portasComState, vm.portaComSelected, it -> it, false),
-                                                Components.InputColumnNumeric(Components.obrigatorio("Baud rate"), vm.baudRate, "Ex: 9600")
-                                        ),
-                                        () -> new Row(new RowProps().spacingOf(10)).children(
-                                                Components.InputColumn(Components.obrigatorio("Endereço IP"), vm.ipAddress, "Ex: 192.168.0.100"),
-                                                Components.InputColumnNumeric(Components.obrigatorio("Porta"), vm.ipPort, "Ex: 9100")
-                                        )
-                                ))
-                                .c_child(new SpacerVertical(20))
-                                .c_child(Components.ButtonCadastro("Salvar", vm::salvar))
-                )
-        );
+    @Override public void onDestroy() {
+        subscriptions.forEach(Subscription::close);
+        session.close();
+        try { viewModel.onDestroy(); }
+        catch (Exception error) { throw new IllegalStateException("Could not close scale settings", error); }
     }
 }

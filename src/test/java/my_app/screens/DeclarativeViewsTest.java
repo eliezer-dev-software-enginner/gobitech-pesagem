@@ -34,4 +34,13 @@ class DeclarativeViewsTest {
             assertEquals(false, session.states().state("showLogo", Boolean.class).get());
         }
     }
+
+    @Test void scaleConnectionViewHasBoundSerialAndTcpFields() {
+        var definition = UiDefinition.fromResource(getClass(), "/views/conexao-balanca.view.jsonc");
+        try (var session = definition.open(new Actions().register("save", ignored -> {}))) {
+            assertEquals("scaleConnection", session.id());
+            assertEquals("Serial", session.states().string("connectionType").get());
+            assertEquals("9600", session.states().string("baudRate").get());
+        }
+    }
 }
