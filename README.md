@@ -37,7 +37,7 @@ Reescrita completa do software legado (Swing + MySQL) sobre a infraestrutura do
 ## Stack
 
 - Java 25 (toolchain Gradle), JavaFX 25.0.1
-- Megalodonte: `base`, `components`, `reactivity`, `router`, `theme`
+- Megalodonte: `base`, `components`, `reactivity`, `router`, `theme`, `jsonc-ui`
 - Persism (ORM) + SQLite (banco embutido, sem servidor)
 - Flyway (schema e dados padrão)
 - SLF4J/Logback, jSerialComm/jSSC (serial), escpos-coffee (térmica), PDFBox (relatórios)
@@ -45,6 +45,10 @@ Reescrita completa do software legado (Swing + MySQL) sobre a infraestrutura do
 Padrão de tela: `Screen` + `ViewModel` (uma pasta por entidade em `my_app/screens/`);
 camada de dados: `Model` (Persism) + `Repository` (`BaseRepository`) + `Service`
 (`BaseService`) em `my_app/db/`.
+
+O login e a tela de logs usam definições JSONC em `src/main/resources/views/`. Nessas
+telas, o arquivo JSONC define componentes, estados e eventos; a classe Java conecta os
+eventos ao ViewModel. As demais telas ainda estão em migração para esse padrão.
 
 ## Pré-requisitos
 

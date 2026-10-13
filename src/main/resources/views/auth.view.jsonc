@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "id": "auth",
+  "states": {
+    "login": { "type": "string", "initial": "" },
+    "password": { "type": "string", "initial": "" }
+  },
+  "view": {
+    "type": "Scroll",
+    "children": [{
+      "type": "Container",
+      "props": { "padding": 20, "bgImage": "/assets/wallpapers/bgAuth.jpg", "fillWidth": true, "fillHeight": true },
+      "children": [{
+        "type": "Row", "props": { "spacing": 40, "fillWidth": true, "fillHeight": true },
+        "children": [
+          { "type": "Column", "props": { "spacing": 16, "alignment": "center", "fillWidth": true },
+            "children": [
+              { "type": "Image", "props": { "source": "/assets/app_banner.png", "width": 300, "height": 120 } },
+              { "type": "Text", "props": { "text": "Seu sistema completo de pesagem de balança de caminhão: leitura automática da balança, controle de tara, peso bruto e líquido, cadastro de clientes e produtos — tudo em um só lugar." },
+                "style": { "fontSize": 13, "textColor": "#ffffff" } }
+            ] },
+          { "type": "Column", "props": { "spacing": 16, "padding": 20, "alignment": "center", "fillWidth": true },
+            "children": [
+              { "type": "Text", "props": { "text": "Login" }, "style": { "fontSize": 20, "bold": true, "textColor": "#ffffff" } },
+              { "type": "Text", "props": { "text": "E-mail *" }, "style": { "textColor": "#ffffff" } },
+              { "type": "Input", "id": "login", "props": { "placeholder": "Ex.: gestor@teste.com", "width": 300 },
+                "bind": { "value": "login" }, "validation": { "required": true, "label": "E-mail" },
+                "events": { "onEnter": "signIn" } },
+              { "type": "Text", "props": { "text": "Senha *" }, "style": { "textColor": "#ffffff" } },
+              { "type": "PasswordInput", "id": "password", "props": { "placeholder": "Digite sua senha", "width": 300 },
+                "bind": { "value": "password" }, "validation": { "required": true, "label": "Senha" },
+                "events": { "onEnter": "signIn" } },
+              { "type": "Button", "props": { "text": "Entrar", "defaultButton": true },
+                "events": { "onClick": "signIn" } }
+            ] }
+        ]
+      }]
+    }]
+  }
+}

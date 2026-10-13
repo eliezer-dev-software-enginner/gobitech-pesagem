@@ -60,6 +60,7 @@ dependencies {
     implementation("megalodonte:megalodonte-reactivity:1.0.0-beta")
     implementation("megalodonte:megalodonte-router:1.0.0-beta")
     implementation("megalodonte:megalodonte-theme:1.0.0-beta")
+    implementation("megalodonte:megalodonte-jsonc-ui:0.1.0")
 
     //Java library for ESC/POS printer commands
     implementation("com.github.anastaciocintra:escpos-coffee:4.1.0")
