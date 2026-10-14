@@ -31,7 +31,7 @@ public class LicensaRepository extends BaseRepository<LicensaModel> {
     public List<LicensaModel> listarMaisRecentePrimeiro() throws SQLException {
         return session().query(
                 modelClass(),
-                sql("SELECT * FROM licensas ORDER BY dataCriacao DESC")
+                sql("SELECT * FROM licensas ORDER BY dataCriacao DESC, id DESC")
         );
     }
 }

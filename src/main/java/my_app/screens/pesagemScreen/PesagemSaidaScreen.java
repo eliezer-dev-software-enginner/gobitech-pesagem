@@ -1,8 +1,5 @@
 package my_app.screens.pesagemScreen;
 
-import megalodonte.base.components.Component;
-import megalodonte.components.Text;
-import megalodonte.props.TextProps;
 import megalodonte.base.route.v2.ScreenContextInterface;
 
 /**
@@ -21,9 +18,8 @@ public class PesagemSaidaScreen extends PesagemFormScreen {
     }
 
     @Override
-    protected Component secaoExtra() {
-        return new Text("Digite a placa para buscar a pesagem de entrada deste caminhão.",
-                new TextProps().fontSize(13));
+    protected boolean mostrarAvisoSaida() {
+        return true;
     }
 
     @Override

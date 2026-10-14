@@ -1,0 +1,668 @@
+{
+  "version": 1,
+  "id": "weighingForm",
+  "states": {
+    "plate": {
+      "type": "string",
+      "initial": ""
+    },
+    "driver": {
+      "type": "string",
+      "initial": ""
+    },
+    "document": {
+      "type": "string",
+      "initial": ""
+    },
+    "client": {
+      "type": "string",
+      "initial": ""
+    },
+    "product": {
+      "type": "string",
+      "initial": ""
+    },
+    "invoice": {
+      "type": "string",
+      "initial": ""
+    },
+    "tare": {
+      "type": "string",
+      "initial": ""
+    },
+    "gross": {
+      "type": "string",
+      "initial": ""
+    },
+    "net": {
+      "type": "string",
+      "initial": ""
+    },
+    "notes": {
+      "type": "string",
+      "initial": ""
+    },
+    "avariados": {
+      "type": "string",
+      "initial": ""
+    },
+    "ardidos": {
+      "type": "string",
+      "initial": ""
+    },
+    "quebraArdidos": {
+      "type": "string",
+      "initial": ""
+    },
+    "impurezas": {
+      "type": "string",
+      "initial": ""
+    },
+    "quebraImpurezas": {
+      "type": "string",
+      "initial": ""
+    },
+    "umidade": {
+      "type": "string",
+      "initial": ""
+    },
+    "quebraUmidade": {
+      "type": "string",
+      "initial": ""
+    },
+    "outros": {
+      "type": "string",
+      "initial": ""
+    },
+    "clients": {
+      "type": "string",
+      "initial": "[]"
+    },
+    "products": {
+      "type": "string",
+      "initial": "[]"
+    },
+    "title": {
+      "type": "string",
+      "initial": ""
+    },
+    "saveText": {
+      "type": "string",
+      "initial": "Salvar"
+    },
+    "showExitHint": {
+      "type": "boolean",
+      "initial": false
+    },
+    "showCaptureTare": {
+      "type": "boolean",
+      "initial": false
+    },
+    "showCaptureGross": {
+      "type": "boolean",
+      "initial": false
+    },
+    "tareDisabled": {
+      "type": "boolean",
+      "initial": false
+    },
+    "grossDisabled": {
+      "type": "boolean",
+      "initial": false
+    },
+    "netDisabled": {
+      "type": "boolean",
+      "initial": true
+    }
+  },
+  "view": {
+    "type": "Scroll",
+    "children": [
+      {
+        "type": "Column",
+        "props": {
+          "padding": 20,
+          "spacing": 15,
+          "fillWidth": true
+        },
+        "children": [
+          {
+            "type": "Text",
+            "bind": {
+              "text": "title"
+            },
+            "style": {
+              "bold": true,
+              "fontSize": 18
+            }
+          },
+          {
+            "type": "Text",
+            "props": {
+              "text": "Digite a placa para buscar a pesagem de entrada deste caminhão."
+            },
+            "bind": {
+              "visible": "showExitHint"
+            }
+          },
+          {
+            "type": "Text",
+            "props": {
+              "text": "Dados da pesagem"
+            },
+            "style": {
+              "bold": true,
+              "fontSize": 18
+            }
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Placa *"
+                }
+              },
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": "Ex: ABC1234 ou ABC1D23",
+                  "width": 280
+                },
+                "bind": {
+                  "value": "plate"
+                },
+                "format": {
+                  "kind": "uppercase"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Nome do motorista"
+                }
+              },
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": "Ex: José da Silva",
+                  "width": 280
+                },
+                "bind": {
+                  "value": "driver"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Documento do motorista"
+                }
+              },
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": "",
+                  "width": 280
+                },
+                "bind": {
+                  "value": "document"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Cliente"
+                }
+              },
+              {
+                "type": "Select",
+                "bind": {
+                  "items": "clients",
+                  "value": "client"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Produto"
+                }
+              },
+              {
+                "type": "Select",
+                "bind": {
+                  "items": "products",
+                  "value": "product"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Nota fiscal"
+                }
+              },
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": "Nº da nota (se houver)",
+                  "width": 280
+                },
+                "bind": {
+                  "value": "invoice"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Text",
+            "props": {
+              "text": "Pesos"
+            },
+            "style": {
+              "bold": true,
+              "fontSize": 18
+            }
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Entrada (Kg)"
+                }
+              },
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": "Ex: 8500",
+                  "width": 280
+                },
+                "bind": {
+                  "value": "tare",
+                  "disabled": "tareDisabled"
+                },
+                "format": {
+                  "kind": "mask",
+                  "pattern": "####################"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Button",
+            "props": {
+              "text": "Capturar entrada"
+            },
+            "bind": {
+              "visible": "showCaptureTare"
+            },
+            "events": {
+              "onClick": "captureTare"
+            }
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Saída (Kg)"
+                }
+              },
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": "Ex: 32000",
+                  "width": 280
+                },
+                "bind": {
+                  "value": "gross",
+                  "disabled": "grossDisabled"
+                },
+                "format": {
+                  "kind": "mask",
+                  "pattern": "####################"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Button",
+            "props": {
+              "text": "Capturar saída"
+            },
+            "bind": {
+              "visible": "showCaptureGross"
+            },
+            "events": {
+              "onClick": "captureGross"
+            }
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Peso líquido (Kg)"
+                }
+              },
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": "",
+                  "width": 280
+                },
+                "bind": {
+                  "value": "net",
+                  "disabled": "netDisabled"
+                },
+                "format": {
+                  "kind": "mask",
+                  "pattern": "####################"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Text",
+            "props": {
+              "text": "Descontos (%)"
+            },
+            "style": {
+              "bold": true,
+              "fontSize": 18
+            }
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Avariados"
+                }
+              },
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": "0",
+                  "width": 280
+                },
+                "bind": {
+                  "value": "avariados"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Ardidos"
+                }
+              },
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": "0",
+                  "width": 280
+                },
+                "bind": {
+                  "value": "ardidos"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Quebra ardidos"
+                }
+              },
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": "0",
+                  "width": 280
+                },
+                "bind": {
+                  "value": "quebraArdidos"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Impurezas"
+                }
+              },
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": "0",
+                  "width": 280
+                },
+                "bind": {
+                  "value": "impurezas"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Quebra impurezas"
+                }
+              },
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": "0",
+                  "width": 280
+                },
+                "bind": {
+                  "value": "quebraImpurezas"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Umidade"
+                }
+              },
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": "0",
+                  "width": 280
+                },
+                "bind": {
+                  "value": "umidade"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Quebra umidade"
+                }
+              },
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": "0",
+                  "width": 280
+                },
+                "bind": {
+                  "value": "quebraUmidade"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Outros"
+                }
+              },
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": "0",
+                  "width": 280
+                },
+                "bind": {
+                  "value": "outros"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Observações"
+                }
+              },
+              {
+                "type": "TextArea",
+                "props": {
+                  "placeholder": "Alguma observação sobre a pesagem?",
+                  "width": 280
+                },
+                "bind": {
+                  "value": "notes"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Button",
+            "bind": {
+              "text": "saveText"
+            },
+            "events": {
+              "onClick": "save"
+            }
+          },
+          {
+            "type": "Button",
+            "props": {
+              "text": "Salvar e imprimir"
+            },
+            "events": {
+              "onClick": "saveAndPrint"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

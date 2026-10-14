@@ -150,4 +150,17 @@ class DeclarativeViewsTest {
             assertEquals("", session.states().string("placa").get());
         }
     }
+
+    @Test void weighingFormDeclaresFieldsAndModeActions() {
+        var definition = UiDefinition.fromResource(getClass(), "/views/pesagem-form.view.jsonc");
+        try (var session = definition.open(new Actions()
+                .register("captureTare", ignored -> {})
+                .register("captureGross", ignored -> {})
+                .register("save", ignored -> {})
+                .register("saveAndPrint", ignored -> {}))) {
+            assertEquals("weighingForm", session.id());
+            assertEquals("", session.states().string("plate").get());
+            assertEquals(false, session.states().state("showCaptureTare", Boolean.class).get());
+        }
+    }
 }
