@@ -56,4 +56,16 @@ class DeclarativeViewsTest {
             assertEquals(false, session.states().state("showLogo", Boolean.class).get());
         }
     }
+
+    @Test void cameraViewDeclaresBothCameraFormsAndPreviewStates() {
+        var definition = UiDefinition.fromResource(getClass(), "/views/conexao-camera.view.jsonc");
+        try (var session = definition.open(new Actions()
+                .register("testFront", ignored -> {})
+                .register("testBack", ignored -> {})
+                .register("save", ignored -> {}))) {
+            assertEquals("cameraSettings", session.id());
+            assertEquals("80", session.states().string("frontPort").get());
+            assertEquals("80", session.states().string("backPort").get());
+        }
+    }
 }

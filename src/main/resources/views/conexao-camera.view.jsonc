@@ -1,0 +1,452 @@
+{
+  "version": 1,
+  "id": "cameraSettings",
+  "states": {
+    "frontIp": {
+      "type": "string",
+      "initial": ""
+    },
+    "frontPort": {
+      "type": "string",
+      "initial": "80"
+    },
+    "frontChannel": {
+      "type": "string",
+      "initial": "1"
+    },
+    "frontUser": {
+      "type": "string",
+      "initial": ""
+    },
+    "frontPassword": {
+      "type": "string",
+      "initial": ""
+    },
+    "frontPreview": {
+      "type": "string",
+      "initial": ""
+    },
+    "backIp": {
+      "type": "string",
+      "initial": ""
+    },
+    "backPort": {
+      "type": "string",
+      "initial": "80"
+    },
+    "backChannel": {
+      "type": "string",
+      "initial": "1"
+    },
+    "backUser": {
+      "type": "string",
+      "initial": ""
+    },
+    "backPassword": {
+      "type": "string",
+      "initial": ""
+    },
+    "backPreview": {
+      "type": "string",
+      "initial": ""
+    }
+  },
+  "view": {
+    "type": "Scroll",
+    "children": [
+      {
+        "type": "Column",
+        "props": {
+          "padding": 20,
+          "spacing": 18,
+          "fillWidth": true
+        },
+        "children": [
+          {
+            "type": "Text",
+            "props": {
+              "text": "Conexão das câmeras"
+            },
+            "style": {
+              "bold": true,
+              "fontSize": 18
+            }
+          },
+          {
+            "type": "Text",
+            "props": {
+              "text": "Cada pesagem nova captura uma foto de cada câmera automaticamente — na Entrada preenche a foto 1, na Saída a foto 2. Deixe uma câmera em branco se ainda não tiver sido instalada."
+            }
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 12
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Câmera da frente"
+                },
+                "style": {
+                  "bold": true,
+                  "fontSize": 18
+                }
+              },
+              {
+                "type": "Row",
+                "props": {
+                  "spacing": 12
+                },
+                "children": [
+                  {
+                    "type": "Column",
+                    "props": {
+                      "spacing": 4
+                    },
+                    "children": [
+                      {
+                        "type": "Text",
+                        "props": {
+                          "text": "Endereço IP"
+                        }
+                      },
+                      {
+                        "type": "Input",
+                        "props": {
+                          "placeholder": "Ex: 192.168.0.101",
+                          "width": 180
+                        },
+                        "bind": {
+                          "value": "frontIp"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Column",
+                    "props": {
+                      "spacing": 4
+                    },
+                    "children": [
+                      {
+                        "type": "Text",
+                        "props": {
+                          "text": "Porta"
+                        }
+                      },
+                      {
+                        "type": "Input",
+                        "props": {
+                          "placeholder": "Ex: 80",
+                          "width": 180
+                        },
+                        "bind": {
+                          "value": "frontPort"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Column",
+                    "props": {
+                      "spacing": 4
+                    },
+                    "children": [
+                      {
+                        "type": "Text",
+                        "props": {
+                          "text": "Canal"
+                        }
+                      },
+                      {
+                        "type": "Input",
+                        "props": {
+                          "placeholder": "Ex: 1",
+                          "width": 180
+                        },
+                        "bind": {
+                          "value": "frontChannel"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "Row",
+                "props": {
+                  "spacing": 12
+                },
+                "children": [
+                  {
+                    "type": "Column",
+                    "props": {
+                      "spacing": 4
+                    },
+                    "children": [
+                      {
+                        "type": "Text",
+                        "props": {
+                          "text": "Usuário"
+                        }
+                      },
+                      {
+                        "type": "Input",
+                        "props": {
+                          "placeholder": "Ex: admin",
+                          "width": 180
+                        },
+                        "bind": {
+                          "value": "frontUser"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Column",
+                    "props": {
+                      "spacing": 4
+                    },
+                    "children": [
+                      {
+                        "type": "Text",
+                        "props": {
+                          "text": "Senha"
+                        }
+                      },
+                      {
+                        "type": "PasswordInput",
+                        "props": {
+                          "placeholder": "Senha da câmera",
+                          "width": 180
+                        },
+                        "bind": {
+                          "value": "frontPassword"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "Button",
+                "props": {
+                  "text": "Testar câmera"
+                },
+                "events": {
+                  "onClick": "testFront"
+                }
+              },
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Prévia"
+                }
+              },
+              {
+                "type": "Image",
+                "props": {
+                  "width": 140,
+                  "height": 140
+                },
+                "bind": {
+                  "source": "frontPreview"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 12
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Câmera de trás"
+                },
+                "style": {
+                  "bold": true,
+                  "fontSize": 18
+                }
+              },
+              {
+                "type": "Row",
+                "props": {
+                  "spacing": 12
+                },
+                "children": [
+                  {
+                    "type": "Column",
+                    "props": {
+                      "spacing": 4
+                    },
+                    "children": [
+                      {
+                        "type": "Text",
+                        "props": {
+                          "text": "Endereço IP"
+                        }
+                      },
+                      {
+                        "type": "Input",
+                        "props": {
+                          "placeholder": "Ex: 192.168.0.101",
+                          "width": 180
+                        },
+                        "bind": {
+                          "value": "backIp"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Column",
+                    "props": {
+                      "spacing": 4
+                    },
+                    "children": [
+                      {
+                        "type": "Text",
+                        "props": {
+                          "text": "Porta"
+                        }
+                      },
+                      {
+                        "type": "Input",
+                        "props": {
+                          "placeholder": "Ex: 80",
+                          "width": 180
+                        },
+                        "bind": {
+                          "value": "backPort"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Column",
+                    "props": {
+                      "spacing": 4
+                    },
+                    "children": [
+                      {
+                        "type": "Text",
+                        "props": {
+                          "text": "Canal"
+                        }
+                      },
+                      {
+                        "type": "Input",
+                        "props": {
+                          "placeholder": "Ex: 1",
+                          "width": 180
+                        },
+                        "bind": {
+                          "value": "backChannel"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "Row",
+                "props": {
+                  "spacing": 12
+                },
+                "children": [
+                  {
+                    "type": "Column",
+                    "props": {
+                      "spacing": 4
+                    },
+                    "children": [
+                      {
+                        "type": "Text",
+                        "props": {
+                          "text": "Usuário"
+                        }
+                      },
+                      {
+                        "type": "Input",
+                        "props": {
+                          "placeholder": "Ex: admin",
+                          "width": 180
+                        },
+                        "bind": {
+                          "value": "backUser"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Column",
+                    "props": {
+                      "spacing": 4
+                    },
+                    "children": [
+                      {
+                        "type": "Text",
+                        "props": {
+                          "text": "Senha"
+                        }
+                      },
+                      {
+                        "type": "PasswordInput",
+                        "props": {
+                          "placeholder": "Senha da câmera",
+                          "width": 180
+                        },
+                        "bind": {
+                          "value": "backPassword"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "Button",
+                "props": {
+                  "text": "Testar câmera"
+                },
+                "events": {
+                  "onClick": "testBack"
+                }
+              },
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Prévia"
+                }
+              },
+              {
+                "type": "Image",
+                "props": {
+                  "width": 140,
+                  "height": 140
+                },
+                "bind": {
+                  "source": "backPreview"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Button",
+            "props": {
+              "text": "Salvar"
+            },
+            "events": {
+              "onClick": "save"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
