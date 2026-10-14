@@ -1,17 +1,21 @@
 package my_app.screens.pesagemScreen;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonParser;
 import megalodonte.base.components.Component;
+import megalodonte.base.state.State;
+import megalodonte.base.state.Subscription;
+import megalodonte.jsonc.Actions;
+import megalodonte.jsonc.UiDefinition;
+import megalodonte.jsonc.UiSession;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import megalodonte.base.components.ScreenComponent;
-import megalodonte.components.Card;
 import megalodonte.components.SimpleTable;
-import megalodonte.components.layout_components.Column;
-import megalodonte.components.layout_components.FlowRow;
-import megalodonte.components.layout_components.Row;
-import megalodonte.components.layout_components.Stack;
-import megalodonte.props.CardProps;
-import megalodonte.props.ColumnProps;
-import megalodonte.props.FlowRowProps;
-import megalodonte.props.RowProps;
 import megalodonte.props.SimpleTableProps;
 import megalodonte.base.route.v2.ScreenContextInterface;
 import my_app.core.AppRoutes;
@@ -23,7 +27,6 @@ import my_app.domain.components.Components;
 import my_app.domain.Autorizacao;
 import my_app.infra.RelatorioPesagemPdfExporter;
 import pack.utilities.DatePack;
-import org.kordamp.ikonli.entypo.Entypo;
 
 import java.io.File;
 import java.util.List;
@@ -36,6 +39,14 @@ import static my_app.domain.pesagem.RelatorioPesagemDados.pesoStr;
  * de registro são as telas de formulário acessadas pela sidebar.
  */
 public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrudV3<PesagemModel> {
+    private static final UiDefinition VIEW = UiDefinition.fromResource(PesagemHistoricoScreen.class, "/views/pesagem-historico.view.jsonc");
+    private static final Gson JSON = new Gson();
+    private final UiSession session;
+    private final List<Subscription> subscriptions = new ArrayList<>();
+    private final State<String> type = State.of(PesagemHistoricoViewModel.TIPO_TODOS);
+    private final State<String> client = State.of("");
+    private final State<String> startDate = State.of("");
+    private final State<String> endDate = State.of("");
 
     private final PesagemHistoricoViewModel vm;
     private final ScreenContextInterface screenContext;
@@ -43,6 +54,47 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
     public PesagemHistoricoScreen(ScreenContextInterface ctx) {
         this.screenContext = ctx;
         this.vm = new PesagemHistoricoViewModel(ctx);
+        session = VIEW.open(new Actions()
+                .register("filter", ignored -> vm.aplicarFiltro())
+                .register("select", ignored -> selectRow())
+                .register("openDetails", ignored -> openDetails())
+                .register("print", ignored -> printSelected())
+                .register("export", ignored -> handleClickBaixarLista())
+                .register("delete", ignored -> handleClickMenuDelete()));
+        session.bind("plate", vm.filtroPlaca, String.class)
+                .bind("driver", vm.filtroMotorista, String.class)
+                .bind("type", type, String.class)
+                .bind("client", client, String.class)
+                .bind("startDate", startDate, String.class)
+                .bind("endDate", endDate, String.class)
+                .bind("search", vm.searchState, String.class);
+        session.states().string("types").set(JSON.toJson(PesagemHistoricoViewModel.tiposPesagemOpcoes));
+        session.states().state("showDelete", Boolean.class).set(Autorizacao.podeAdministrar());
+        subscriptions.add(type.observe(value -> {
+            var mapped = value == null || value.equals(PesagemHistoricoViewModel.TIPO_TODOS) ? null : value;
+            if (!java.util.Objects.equals(vm.filtroTipo.get(), mapped)) vm.filtroTipo.set(mapped);
+        }));
+        subscriptions.add(vm.filtroTipo.observe(value -> {
+            var mapped = value == null ? PesagemHistoricoViewModel.TIPO_TODOS : value;
+            if (!java.util.Objects.equals(type.get(), mapped)) type.set(mapped);
+        }));
+        subscriptions.add(client.observe(value -> vm.filtroCliente.set(vm.clientesFiltroState.get().stream()
+                .filter(item -> item.getId() != null && String.valueOf(item.getId()).equals(value)).findFirst().orElse(null))));
+        subscriptions.add(vm.clientesFiltroState.observe(items -> {
+            var options = new ArrayList<Map<String, String>>();
+            for (var item : items) {
+                var option = new LinkedHashMap<String, String>();
+                option.put("value", item.getId() == null ? "" : String.valueOf(item.getId()));
+                option.put("label", item.getId() == null ? "Todos" : item.getRazaoSocial());
+                options.add(option);
+            }
+            session.states().string("clients").set(JSON.toJson(options));
+        }));
+        subscriptions.add(vm.filtroDataInicio.observe(value -> startDate.set(value == null ? "" : value.toString())));
+        subscriptions.add(vm.filtroDataFim.observe(value -> endDate.set(value == null ? "" : value.toString())));
+        subscriptions.add(startDate.observe(value -> updateDate(value, vm.filtroDataInicio)));
+        subscriptions.add(endDate.observe(value -> updateDate(value, vm.filtroDataFim)));
+        subscriptions.add(vm.filteredList.observe(items -> session.states().string("rows").set(rowsJson(items))));
     }
 
     @Override
@@ -52,12 +104,14 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
 
     @Override
     public void onDestroy() {
+        subscriptions.forEach(Subscription::close);
+        session.close();
         ContratoTelaCrudV3.super.onDestroy();
     }
 
     @Override
     public Component render() {
-        return mainView();
+        return session.render();
     }
 
     @Override
@@ -68,30 +122,6 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
     @Override
     public ViewModelScreenContract<PesagemModel> viewModel() {
         return vm;
-    }
-
-    @Override
-    public Component extraListContent() {
-        return filtroSection();
-    }
-
-    private Component filtroSection() {
-        return new Card(
-                new Column(new ColumnProps().paddingAll(15))
-                        .c_child(Components.FormTitle("Filtrar pesagens"))
-                        .c_child(new FlowRow(new FlowRowProps().spacingOf(10))
-                                .children(
-                                        Components.InputPlaca("Placa", vm.filtroPlaca, "Ex: ABC1234 ou ABC1D23"),
-                                        Components.InputColumn("Motorista", vm.filtroMotorista, "Ex: João"),
-                                        Components.SelectColumn("Tipo", PesagemHistoricoViewModel.tiposPesagemOpcoes, vm.filtroTipo, it -> it),
-                                        Components.SelectColumn("Cliente", vm.clientesFiltroState, vm.filtroCliente,
-                                                c -> c.getId() == null ? "Todos" : c.getRazaoSocial(), true),
-                                        Components.DatePickerColumn(vm.filtroDataInicio, "Data início"),
-                                        Components.DatePickerColumn(vm.filtroDataFim, "Data fim")
-                                )
-                        )
-                        .c_child(Components.ButtonCadastro("Filtrar", vm::aplicarFiltro))
-        );
     }
 
     @Override
@@ -123,50 +153,58 @@ public class PesagemHistoricoScreen implements ScreenComponent, ContratoTelaCrud
     }
 
 
-    /**
-     * Sobrescreve o layout padrão do contrato pra trocar a barra de ações flutuante: mostra
-     * "Baixar lista" e "Excluir", sem "Criar novo"/"Editar" (as pesagens são criadas nas telas
-     * de formulário, não aqui).
-     */
-    @Override
-    public Component mainView() {
-        var conteudo = Components.ScrollPaneDefault(
-                new Column(new ColumnProps().fillWidth().spacingOf(15))
-                        .children(
-                                extraListContent(),
-                                new Card(
-                                        new Column(new ColumnProps().fillWidth().spacingOf(15))
-                                                .children(
-                                                        Components.searchInput(vm.searchState, "Pesquisar"),
-                                                        table()
-                                                ),
-                                        new CardProps().fillWidth().paddingAll(20).bgColor("#ffffff")
-                                )
-                        )
-        );
-
-        return new Stack()
-                .children(conteudo)
-                .childInCorner(acoesLista(), Stack.Corner.BOTTOM_RIGHT, 20)
-                .fillHeight();
+    private void selectRow() {
+        var selected = session.states().string("selected").get();
+        if (selected.isBlank()) { vm.selected.set(null); return; }
+        try {
+            long id = JsonParser.parseString(selected).getAsJsonObject().get("id").getAsLong();
+            vm.selected.set(vm.filteredList.get().stream().filter(item -> item.getId() == id).findFirst().orElse(null));
+        } catch (RuntimeException error) { vm.selected.set(null); }
     }
 
-    private Row acoesLista() {
-        var acoes = new Row(new RowProps().spacingOf(10).hugWidth())
-                .r_child(Components.actionButton("Imprimir", "white", "#16a34a", Entypo.PRINT,  ()-> {
-                   var m = vm.selected.get();
-                   if(m == null){
-                       Components.ShowAlertError("Selecione o item primeiro");
-                       return;
-                   }
-                   vm.imprimirTicket(m);
-                }))
-                .r_child(Components.actionButton("Exportar relatório", "black", "#CDD7D6", Entypo.DOWNLOAD, this::handleClickBaixarLista));
-        if (Autorizacao.podeAdministrar()) {
-            acoes.r_child(Components.actionButton("Excluir", "white", "#E55934", Entypo.TRASH, this::handleClickMenuDelete));
+    private void openDetails() {
+        selectRow();
+        var selected = vm.selected.get();
+        if (selected != null) screenContext.spawnWindow(AppRoutes.Screens.DETAILS_PESAGEM.name() + "/" + selected.getId());
+    }
+
+    private void printSelected() {
+        selectRow();
+        var selected = vm.selected.get();
+        if (selected == null) { Components.ShowAlertError("Selecione o item primeiro"); return; }
+        vm.imprimirTicket(selected);
+    }
+
+    private static void updateDate(String iso, State<LocalDate> target) {
+        try {
+            var value = iso == null || iso.isBlank() ? null : LocalDate.parse(iso);
+            if (!java.util.Objects.equals(target.get(), value)) target.set(value);
+        } catch (DateTimeParseException ignored) { /* DatePicker keeps the last valid date. */ }
+    }
+
+    private String rowsJson(List<PesagemModel> items) {
+        var rows = new ArrayList<Map<String, String>>(items.size());
+        for (var item : items) {
+            var row = new LinkedHashMap<String, String>();
+            row.put("id", String.valueOf(item.getId()));
+            row.put("plate", safe(item.getPlaca()));
+            row.put("driver", safe(item.getMotoristaNome()));
+            row.put("document", safe(item.getMotoristaDocumento()));
+            row.put("type", safe(item.getTipoPesagem()));
+            row.put("client", item.getCliente() == null ? "-" : safe(item.getCliente().getRazaoSocial()));
+            row.put("product", item.getProduto() == null ? "-" : safe(item.getProduto().getNome()));
+            row.put("invoice", safe(item.getNotaFiscal()));
+            row.put("tare", pesoStr(item.getPesoVeiculo()));
+            row.put("gross", pesoStr(item.getPesoTotal()));
+            row.put("net", pesoStr(item.getPesoFinal()));
+            row.put("created", DatePack.localDateTimeToBrazilianDateTime(item.getDataCriacao()));
+            row.put("notes", safe(item.getObservacoes()));
+            rows.add(row);
         }
-        return acoes;
+        return JSON.toJson(rows);
     }
+
+    private static String safe(Object value) { return value == null ? "" : value.toString(); }
 
     @Override
     public void exportPdf(File destino, EmpresaModel empresa, List<PesagemModel> snapshotFiltrado) throws Exception {

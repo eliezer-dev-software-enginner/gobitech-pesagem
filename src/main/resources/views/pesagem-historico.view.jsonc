@@ -1,0 +1,342 @@
+{
+  "version": 1,
+  "id": "weighingHistory",
+  "states": {
+    "plate": {
+      "type": "string",
+      "initial": ""
+    },
+    "driver": {
+      "type": "string",
+      "initial": ""
+    },
+    "type": {
+      "type": "string",
+      "initial": "Todos"
+    },
+    "types": {
+      "type": "string",
+      "initial": "[]"
+    },
+    "client": {
+      "type": "string",
+      "initial": ""
+    },
+    "clients": {
+      "type": "string",
+      "initial": "[]"
+    },
+    "startDate": {
+      "type": "string",
+      "initial": ""
+    },
+    "endDate": {
+      "type": "string",
+      "initial": ""
+    },
+    "search": {
+      "type": "string",
+      "initial": ""
+    },
+    "rows": {
+      "type": "string",
+      "initial": "[]"
+    },
+    "selected": {
+      "type": "string",
+      "initial": ""
+    },
+    "showDelete": {
+      "type": "boolean",
+      "initial": false
+    }
+  },
+  "view": {
+    "type": "Scroll",
+    "children": [
+      {
+        "type": "Column",
+        "props": {
+          "padding": 20,
+          "spacing": 15,
+          "fillWidth": true
+        },
+        "children": [
+          {
+            "type": "Text",
+            "props": {
+              "text": "Filtrar pesagens"
+            }
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Placa"
+                }
+              },
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": "Ex: ABC1234 ou ABC1D23"
+                },
+                "bind": {
+                  "value": "plate"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Motorista"
+                }
+              },
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": "Ex: João"
+                },
+                "bind": {
+                  "value": "driver"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Tipo"
+                }
+              },
+              {
+                "type": "Select",
+                "bind": {
+                  "items": "types",
+                  "value": "type"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Cliente"
+                }
+              },
+              {
+                "type": "Select",
+                "bind": {
+                  "items": "clients",
+                  "value": "client"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Data início"
+                }
+              },
+              {
+                "type": "DatePicker",
+                "bind": {
+                  "value": "startDate"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Data fim"
+                }
+              },
+              {
+                "type": "DatePicker",
+                "bind": {
+                  "value": "endDate"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Button",
+            "props": {
+              "text": "Filtrar"
+            },
+            "events": {
+              "onClick": "filter"
+            }
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Pesquisar"
+                }
+              },
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": ""
+                },
+                "bind": {
+                  "value": "search"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Table",
+            "props": {
+              "columns": [
+                {
+                  "title": "ID",
+                  "field": "id"
+                },
+                {
+                  "title": "Placa",
+                  "field": "plate"
+                },
+                {
+                  "title": "Motorista",
+                  "field": "driver"
+                },
+                {
+                  "title": "Documento",
+                  "field": "document"
+                },
+                {
+                  "title": "Tipo",
+                  "field": "type"
+                },
+                {
+                  "title": "Cliente",
+                  "field": "client"
+                },
+                {
+                  "title": "Produto",
+                  "field": "product"
+                },
+                {
+                  "title": "Nota fiscal",
+                  "field": "invoice"
+                },
+                {
+                  "title": "Tara (Kg)",
+                  "field": "tare"
+                },
+                {
+                  "title": "Peso bruto (Kg)",
+                  "field": "gross"
+                },
+                {
+                  "title": "Peso líquido (Kg)",
+                  "field": "net"
+                },
+                {
+                  "title": "Data",
+                  "field": "created"
+                },
+                {
+                  "title": "Observações",
+                  "field": "notes"
+                }
+              ],
+              "height": 300,
+              "horizontalScroll": true
+            },
+            "bind": {
+              "items": "rows",
+              "selected": "selected"
+            },
+            "events": {
+              "onSelect": "select",
+              "onDoubleClick": "openDetails"
+            }
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 8
+            },
+            "children": [
+              {
+                "type": "Button",
+                "props": {
+                  "text": "Imprimir"
+                },
+                "events": {
+                  "onClick": "print"
+                }
+              },
+              {
+                "type": "Button",
+                "props": {
+                  "text": "Exportar relatório"
+                },
+                "events": {
+                  "onClick": "export"
+                }
+              },
+              {
+                "type": "Button",
+                "props": {
+                  "text": "Excluir"
+                },
+                "bind": {
+                  "visible": "showDelete"
+                },
+                "events": {
+                  "onClick": "delete"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

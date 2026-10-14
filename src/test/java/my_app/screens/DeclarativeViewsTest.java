@@ -124,4 +124,19 @@ class DeclarativeViewsTest {
             assertEquals("[]", session.states().string("rows").get());
         }
     }
+
+    @Test void weighingHistoryDeclaresFiltersAndNativeTable() {
+        var definition = UiDefinition.fromResource(getClass(), "/views/pesagem-historico.view.jsonc");
+        try (var session = definition.open(new Actions()
+                .register("filter", ignored -> {})
+                .register("select", ignored -> {})
+                .register("openDetails", ignored -> {})
+                .register("print", ignored -> {})
+                .register("export", ignored -> {})
+                .register("delete", ignored -> {}))) {
+            assertEquals("weighingHistory", session.id());
+            assertEquals("[]", session.states().string("rows").get());
+            assertEquals("", session.states().string("startDate").get());
+        }
+    }
 }
