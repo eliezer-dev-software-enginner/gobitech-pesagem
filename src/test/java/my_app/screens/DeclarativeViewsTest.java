@@ -100,8 +100,8 @@ class DeclarativeViewsTest {
         }
     }
 
-    @Test void productAndUserListsDeclareNativeTables() {
-        for (var kind : new String[]{"produto", "usuario"}) {
+    @Test void entityListsDeclareNativeTables() {
+        for (var kind : new String[]{"produto", "usuario", "cliente"}) {
             var definition = UiDefinition.fromResource(getClass(), "/views/" + kind + "-list.view.jsonc");
             try (var session = definition.open(new Actions()
                     .register("select", ignored -> {})

@@ -1,0 +1,172 @@
+{
+  "version": 1,
+  "id": "clienteList",
+  "states": {
+    "search": {
+      "type": "string",
+      "initial": ""
+    },
+    "rows": {
+      "type": "string",
+      "initial": "[]"
+    },
+    "selected": {
+      "type": "string",
+      "initial": ""
+    },
+    "showDelete": {
+      "type": "boolean",
+      "initial": false
+    }
+  },
+  "view": {
+    "type": "Scroll",
+    "children": [
+      {
+        "type": "Column",
+        "props": {
+          "padding": 20,
+          "spacing": 15,
+          "fillWidth": true
+        },
+        "children": [
+          {
+            "type": "Text",
+            "props": {
+              "text": "Clientes"
+            },
+            "style": {
+              "fontSize": 20,
+              "bold": true
+            }
+          },
+          {
+            "type": "Input",
+            "props": {
+              "placeholder": "Pesquisar"
+            },
+            "bind": {
+              "value": "search"
+            }
+          },
+          {
+            "type": "Table",
+            "props": {
+              "columns": [
+                {
+                  "title": "ID",
+                  "field": "id"
+                },
+                {
+                  "title": "Razão social",
+                  "field": "razaoSocial"
+                },
+                {
+                  "title": "CPF/CNPJ",
+                  "field": "cpfCnpj"
+                },
+                {
+                  "title": "Telefone",
+                  "field": "telefone"
+                },
+                {
+                  "title": "UF",
+                  "field": "uf"
+                },
+                {
+                  "title": "CEP",
+                  "field": "cep"
+                },
+                {
+                  "title": "Cidade",
+                  "field": "cidade"
+                },
+                {
+                  "title": "Bairro",
+                  "field": "bairro"
+                },
+                {
+                  "title": "Rua",
+                  "field": "rua"
+                },
+                {
+                  "title": "Número",
+                  "field": "numero"
+                },
+                {
+                  "title": "Complemento",
+                  "field": "complemento"
+                },
+                {
+                  "title": "Ativo",
+                  "field": "ativo"
+                },
+                {
+                  "title": "Data de criação",
+                  "field": "dataCriacao"
+                }
+              ],
+              "height": 300,
+              "horizontalScroll": true
+            },
+            "bind": {
+              "items": "rows",
+              "selected": "selected"
+            },
+            "events": {
+              "onSelect": "select",
+              "onDoubleClick": "openDetails"
+            }
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 8
+            },
+            "children": [
+              {
+                "type": "Button",
+                "props": {
+                  "text": "Exportar PDF"
+                },
+                "events": {
+                  "onClick": "export"
+                }
+              },
+              {
+                "type": "Button",
+                "props": {
+                  "text": "Editar"
+                },
+                "events": {
+                  "onClick": "edit"
+                }
+              },
+              {
+                "type": "Button",
+                "props": {
+                  "text": "Excluir"
+                },
+                "bind": {
+                  "visible": "showDelete"
+                },
+                "events": {
+                  "onClick": "delete"
+                }
+              },
+              {
+                "type": "Button",
+                "props": {
+                  "text": "Criar novo"
+                },
+                "events": {
+                  "onClick": "create"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
