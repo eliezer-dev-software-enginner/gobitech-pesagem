@@ -7,6 +7,21 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class DeclarativeViewsTest {
+    @Test void homeViewDeclaresNavigationAndContentSlot() {
+        var definition = UiDefinition.fromResource(getClass(), "/views/home.view.jsonc");
+        var actions = new Actions();
+        for (var action : new String[] {"company", "settings", "scale", "products", "customers",
+                "users", "licenses", "logs", "toggle", "home", "entry", "exit",
+                "adhoc", "manual", "history", "logout"}) {
+            actions.register(action, ignored -> {});
+        }
+        try (var session = definition.open(actions)) {
+            assertEquals("home", session.id());
+            assertEquals(true, session.states().state("expanded", Boolean.class).get());
+            assertEquals(false, session.states().state("compact", Boolean.class).get());
+        }
+    }
+
     @Test void loginViewHasStateAndAction() {
         var definition = UiDefinition.fromResource(getClass(), "/views/auth.view.jsonc");
         try (var session = definition.open(new Actions().register("signIn", ignored -> {}))) {

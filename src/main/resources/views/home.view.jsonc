@@ -1,0 +1,466 @@
+{
+  "version": 1,
+  "id": "home",
+  "states": {
+    "expanded": {
+      "type": "boolean",
+      "initial": true
+    },
+    "compact": {
+      "type": "boolean",
+      "initial": false
+    },
+    "showAdmin": {
+      "type": "boolean",
+      "initial": false
+    }
+  },
+  "view": {
+    "type": "Column",
+    "props": {
+      "spacing": 0,
+      "fillHeight": true,
+      "fillWidth": true
+    },
+    "children": [
+      {
+        "type": "Row",
+        "props": {
+          "spacing": 4,
+          "padding": 4,
+          "bgColor": "#2f3030"
+        },
+        "children": [
+          {
+            "type": "Button",
+            "props": {
+              "text": "Empresa"
+            },
+            "style": {
+              "bgColor": "#2f3030",
+              "textColor": "#ffffff"
+            },
+            "events": {
+              "onClick": "company"
+            },
+            "bind": {
+              "visible": "showAdmin"
+            }
+          },
+          {
+            "type": "Button",
+            "props": {
+              "text": "Configurações"
+            },
+            "style": {
+              "bgColor": "#2f3030",
+              "textColor": "#ffffff"
+            },
+            "events": {
+              "onClick": "settings"
+            },
+            "bind": {
+              "visible": "showAdmin"
+            }
+          },
+          {
+            "type": "Button",
+            "props": {
+              "text": "Conexão da balança"
+            },
+            "style": {
+              "bgColor": "#2f3030",
+              "textColor": "#ffffff"
+            },
+            "events": {
+              "onClick": "scale"
+            },
+            "bind": {
+              "visible": "showAdmin"
+            }
+          },
+          {
+            "type": "Button",
+            "props": {
+              "text": "Produtos"
+            },
+            "style": {
+              "bgColor": "#2f3030",
+              "textColor": "#ffffff"
+            },
+            "events": {
+              "onClick": "products"
+            }
+          },
+          {
+            "type": "Button",
+            "props": {
+              "text": "Clientes"
+            },
+            "style": {
+              "bgColor": "#2f3030",
+              "textColor": "#ffffff"
+            },
+            "events": {
+              "onClick": "customers"
+            }
+          },
+          {
+            "type": "Button",
+            "props": {
+              "text": "Usuários"
+            },
+            "style": {
+              "bgColor": "#2f3030",
+              "textColor": "#ffffff"
+            },
+            "events": {
+              "onClick": "users"
+            },
+            "bind": {
+              "visible": "showAdmin"
+            }
+          },
+          {
+            "type": "Button",
+            "props": {
+              "text": "Licenças"
+            },
+            "style": {
+              "bgColor": "#2f3030",
+              "textColor": "#ffffff"
+            },
+            "events": {
+              "onClick": "licenses"
+            },
+            "bind": {
+              "visible": "showAdmin"
+            }
+          },
+          {
+            "type": "Button",
+            "props": {
+              "text": "Logs"
+            },
+            "style": {
+              "bgColor": "#2f3030",
+              "textColor": "#ffffff"
+            },
+            "events": {
+              "onClick": "logs"
+            },
+            "bind": {
+              "visible": "showAdmin"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Row",
+        "props": {
+          "spacing": 0,
+          "fillHeight": true,
+          "fillWidth": true
+        },
+        "children": [
+          {
+            "type": "Scroll",
+            "props": {
+              "width": 190,
+              "fillHeight": true
+            },
+            "bind": {
+              "visible": "expanded"
+            },
+            "children": [
+              {
+                "type": "Column",
+                "props": {
+                  "width": 190,
+                  "padding": 12,
+                  "spacing": 12,
+                  "bgColor": "#2f3030",
+                  "fillHeight": true
+                },
+                "children": [
+                  {
+                    "type": "Image",
+                    "props": {
+                      "source": "/assets/app_banner.png",
+                      "width": 166,
+                      "height": 48
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "props": {
+                      "text": "☰",
+                      "fillWidth": true
+                    },
+                    "style": {
+                      "bgColor": "transparent",
+                      "textColor": "#ffffff"
+                    },
+                    "events": {
+                      "onClick": "toggle"
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "props": {
+                      "text": "⌂  Início",
+                      "fillWidth": true
+                    },
+                    "style": {
+                      "bgColor": "transparent",
+                      "textColor": "#ffffff"
+                    },
+                    "events": {
+                      "onClick": "home"
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "props": {
+                      "text": "▣  Pesagem entrada",
+                      "fillWidth": true
+                    },
+                    "style": {
+                      "bgColor": "transparent",
+                      "textColor": "#ffffff"
+                    },
+                    "events": {
+                      "onClick": "entry"
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "props": {
+                      "text": "▣  Pesagem de saída",
+                      "fillWidth": true
+                    },
+                    "style": {
+                      "bgColor": "transparent",
+                      "textColor": "#ffffff"
+                    },
+                    "events": {
+                      "onClick": "exit"
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "props": {
+                      "text": "▣  Pesagem avulsa",
+                      "fillWidth": true
+                    },
+                    "style": {
+                      "bgColor": "transparent",
+                      "textColor": "#ffffff"
+                    },
+                    "events": {
+                      "onClick": "adhoc"
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "props": {
+                      "text": "▣  Pesagem manual",
+                      "fillWidth": true
+                    },
+                    "style": {
+                      "bgColor": "transparent",
+                      "textColor": "#ffffff"
+                    },
+                    "events": {
+                      "onClick": "manual"
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "props": {
+                      "text": "☷  Histórico de pesagens",
+                      "fillWidth": true
+                    },
+                    "style": {
+                      "bgColor": "transparent",
+                      "textColor": "#ffffff"
+                    },
+                    "events": {
+                      "onClick": "history"
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "props": {
+                      "text": "Sair",
+                      "fillWidth": true
+                    },
+                    "style": {
+                      "bgColor": "transparent",
+                      "textColor": "#ffffff"
+                    },
+                    "events": {
+                      "onClick": "logout"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Scroll",
+            "props": {
+              "width": 64,
+              "fillHeight": true
+            },
+            "bind": {
+              "visible": "compact"
+            },
+            "children": [
+              {
+                "type": "Column",
+                "props": {
+                  "width": 64,
+                  "padding": 12,
+                  "spacing": 12,
+                  "bgColor": "#2f3030",
+                  "fillHeight": true
+                },
+                "children": [
+                  {
+                    "type": "Image",
+                    "props": {
+                      "source": "/assets/app_banner_square.png",
+                      "width": 40,
+                      "height": 48
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "props": {
+                      "text": "☰",
+                      "fillWidth": true
+                    },
+                    "style": {
+                      "bgColor": "transparent",
+                      "textColor": "#ffffff"
+                    },
+                    "events": {
+                      "onClick": "toggle"
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "props": {
+                      "text": "⌂",
+                      "fillWidth": true
+                    },
+                    "style": {
+                      "bgColor": "transparent",
+                      "textColor": "#ffffff"
+                    },
+                    "events": {
+                      "onClick": "home"
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "props": {
+                      "text": "▣",
+                      "fillWidth": true
+                    },
+                    "style": {
+                      "bgColor": "transparent",
+                      "textColor": "#ffffff"
+                    },
+                    "events": {
+                      "onClick": "entry"
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "props": {
+                      "text": "⇥",
+                      "fillWidth": true
+                    },
+                    "style": {
+                      "bgColor": "transparent",
+                      "textColor": "#ffffff"
+                    },
+                    "events": {
+                      "onClick": "exit"
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "props": {
+                      "text": "◆",
+                      "fillWidth": true
+                    },
+                    "style": {
+                      "bgColor": "transparent",
+                      "textColor": "#ffffff"
+                    },
+                    "events": {
+                      "onClick": "adhoc"
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "props": {
+                      "text": "✎",
+                      "fillWidth": true
+                    },
+                    "style": {
+                      "bgColor": "transparent",
+                      "textColor": "#ffffff"
+                    },
+                    "events": {
+                      "onClick": "manual"
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "props": {
+                      "text": "☷",
+                      "fillWidth": true
+                    },
+                    "style": {
+                      "bgColor": "transparent",
+                      "textColor": "#ffffff"
+                    },
+                    "events": {
+                      "onClick": "history"
+                    }
+                  },
+                  {
+                    "type": "Button",
+                    "props": {
+                      "text": "⏻",
+                      "fillWidth": true
+                    },
+                    "style": {
+                      "bgColor": "transparent",
+                      "textColor": "#ffffff"
+                    },
+                    "events": {
+                      "onClick": "logout"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Slot",
+            "props": {
+              "name": "content",
+              "fillWidth": true,
+              "fillHeight": true
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

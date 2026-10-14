@@ -1,7 +1,5 @@
 package my_app.screens.homeScreen;
 
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import lombok.Getter;
 import megalodonte.base.components.Ref;
 import megalodonte.base.components.ScreenComponent;
@@ -39,9 +37,6 @@ public class HomeScreenViewModel {
         dashboardRef.setCurrent(new DashboardScreen(screenContext));
 
         contentArea.current().children(dashboardRef.current().render());
-        // Sidebar tem largura fixa — a área de conteúdo precisa esticar pra ocupar o resto
-        // da Row; Row só faz isso automaticamente pra SpacerHorizontal, não pra qualquer filho.
-        HBox.setHgrow(contentArea.current().getJavaFxNode(), Priority.ALWAYS);
     }
 
     public void navigateFromSidebar(AppRoutes.Screens screen) {

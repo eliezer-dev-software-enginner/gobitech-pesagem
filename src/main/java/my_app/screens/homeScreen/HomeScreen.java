@@ -1,81 +1,54 @@
 package my_app.screens.homeScreen;
 
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import megalodonte.base.components.Component;
 import megalodonte.base.components.ScreenComponent;
-import megalodonte.components.Menu;
-import megalodonte.components.MenuBar;
-import megalodonte.components.layout_components.Container;
-import megalodonte.components.layout_components.Row;
-import megalodonte.components.layout_components.Stack;
-import megalodonte.props.ContainerProps;
-import megalodonte.props.RowProps;
 import megalodonte.base.route.v2.ScreenContextInterface;
+import megalodonte.base.state.Subscription;
+import megalodonte.jsonc.Actions;
+import megalodonte.jsonc.UiDefinition;
+import megalodonte.jsonc.UiSession;
 import my_app.core.AppRoutes;
 import my_app.domain.SessaoUsuario;
 
-public class HomeScreen implements ScreenComponent {
-
+/** Native shell and navigation are defined in JSONC; the dashboard occupies its named slot. */
+public final class HomeScreen implements ScreenComponent {
+    private static final UiDefinition VIEW = UiDefinition.fromResource(HomeScreen.class, "/views/home.view.jsonc");
     private final HomeScreenViewModel viewModel;
-    private final ScreenContextInterface ctx;
+    private final UiSession session;
+    private final Subscription minimizedSubscription;
 
-    public HomeScreen(ScreenContextInterface ctx) {
-        this.ctx = ctx;
-        this.viewModel = new HomeScreenViewModel(ctx);
+    public HomeScreen(ScreenContextInterface context) {
+        viewModel = new HomeScreenViewModel(context);
+        session = VIEW.open(new Actions()
+                .register("toggle", ignored -> viewModel.sidebarMinimizada.set(!viewModel.sidebarMinimizada.get()))
+                .register("home", ignored -> viewModel.navigateFromSidebar(AppRoutes.Screens.HOME))
+                .register("entry", ignored -> viewModel.navigateFromSidebar(AppRoutes.Screens.PESAGEM_ENTRADA))
+                .register("exit", ignored -> viewModel.navigateFromSidebar(AppRoutes.Screens.PESAGEM_SAIDA))
+                .register("adhoc", ignored -> viewModel.navigateFromSidebar(AppRoutes.Screens.PESAGEM_AVULSA))
+                .register("manual", ignored -> viewModel.navigateFromSidebar(AppRoutes.Screens.PESAGEM_MANUAL))
+                .register("history", ignored -> viewModel.navigateFromSidebar(AppRoutes.Screens.PESAGEM_HISTORICO))
+                .register("logout", ignored -> viewModel.logout())
+                .register("company", ignored -> context.spawnWindow(AppRoutes.Screens.EMPRESA.name()))
+                .register("settings", ignored -> context.spawnWindow(AppRoutes.Screens.CONFIGURACOES.name()))
+                .register("scale", ignored -> context.spawnWindow(AppRoutes.Screens.CONEXAO_BALANCA.name()))
+                .register("products", ignored -> context.spawnWindow(AppRoutes.Screens.PRODUTOS.name()))
+                .register("customers", ignored -> context.spawnWindow(AppRoutes.Screens.CLIENTES.name()))
+                .register("users", ignored -> context.spawnWindow(AppRoutes.Screens.USUARIOS.name()))
+                .register("licenses", ignored -> context.spawnWindow(AppRoutes.Screens.LICENSA.name()))
+                .register("logs", ignored -> context.spawnWindow(AppRoutes.Screens.LOGS.name())))
+                .mount("content", viewModel.contentArea.current());
+        session.states().state("showAdmin", Boolean.class).set(SessaoUsuario.isAdmin());
+        minimizedSubscription = viewModel.sidebarMinimizada.observe(value -> {
+            session.states().state("expanded", Boolean.class).set(!value);
+            session.states().state("compact", Boolean.class).set(value);
+        });
     }
 
-    @Override
-    public void onMount() {
-        viewModel.onMount();
-    }
-
-    @Override
-    public void onDestroy() {
+    @Override public Component render() { return session.render(); }
+    @Override public void onMount() { viewModel.onMount(); }
+    @Override public void onDestroy() {
+        minimizedSubscription.close();
+        session.close();
         viewModel.onDestroy();
-    }
-
-    public Component render() {
-        var linha = new Row(new RowProps().fillHeight().fillWidth())
-                .children(Sidebar.render(viewModel),
-                        viewModel.contentArea.current());
-
-        // O botão de toggle precisa ser o último filho de um Stack que envolve Sidebar E
-        // contentArea juntos (não só a Sidebar) — ver o porquê no javadoc de
-        // Sidebar.toggleButton(): a metade do círculo que "vaza" pra fora da largura da
-        // sidebar só pinta por cima do contentArea vizinho se os dois estiverem dentro do
-        // mesmo Stack (irmãos numa Row simples pintam na ordem dos filhos, não por
-        // sobreposição na tela).
-        var corpo = new Stack().children(linha, Sidebar.toggleButton(viewModel));
-        var corpoNode = (StackPane) corpo.getJavaFxNode();
-        corpoNode.setMaxHeight(Double.MAX_VALUE);
-        VBox.setVgrow(corpoNode, Priority.ALWAYS);
-
-        return new Container(new ContainerProps().fillHeight().paddingAll(0)).children(
-                menuBar(),
-                corpo
-        );
-    }
-
-    private Component menuBar() {
-        boolean isAdmin = SessaoUsuario.isAdmin();
-               // Pendência M3: reativar item quando a câmera fizer parte do fluxo
-                        // .item("Conexão das câmeras", () -> ctx.spawnWindow(AppRoutes.Screens.CONEXAO_CAMERA.name(), e -> {}));
-
-                        return new MenuBar()
-                                .bgColor(Sidebar.BG)
-                                .menu(new Menu("Gerencial")
-                                        .textColor(Sidebar.TEXT_COLOR)
-                                        .itemIf(isAdmin, "Empresa", () -> ctx.spawnWindow(AppRoutes.Screens.EMPRESA.name(), e -> {}))
-                                        .itemIf(isAdmin, "Configurações", () -> ctx.spawnWindow(AppRoutes.Screens.CONFIGURACOES.name(), e -> {}))
-                                        .itemIf(isAdmin, "Conexão da balança", () -> ctx.spawnWindow(AppRoutes.Screens.CONEXAO_BALANCA.name(), e -> {}))
-                                        .item("Produtos", () -> ctx.spawnWindow(AppRoutes.Screens.PRODUTOS.name(), e -> {}))
-                                        .item("Clientes", () -> ctx.spawnWindow(AppRoutes.Screens.CLIENTES.name(), e -> {}))
-                                        .itemIf(isAdmin, "Usuários do sistema", () -> ctx.spawnWindow(AppRoutes.Screens.USUARIOS.name(), e -> {}))
-                                        .itemIf(isAdmin, "Gerar licença", () -> ctx.spawnWindow(AppRoutes.Screens.LICENSA.name(), e -> {})))
-                                .menuIf(isAdmin, new Menu("Logs")
-                                        .textColor(Sidebar.TEXT_COLOR)
-                                        .item("Ver logs da aplicação", () -> ctx.spawnWindow(AppRoutes.Screens.LOGS.name(), e -> {})));
     }
 }
