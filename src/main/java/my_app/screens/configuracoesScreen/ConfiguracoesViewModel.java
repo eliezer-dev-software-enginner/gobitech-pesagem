@@ -1,9 +1,9 @@
 package my_app.screens.configuracoesScreen;
 
-import javafx.stage.FileChooser;
 import megalodonte.ComputedState;
 import megalodonte.base.UI;
 import megalodonte.base.state.State;
+import megalodonte.components.FilePicker;
 import megalodonte.base.route.v2.ScreenContextInterface;
 import my_app.core.events.EventBus;
 import my_app.core.events.PreferenciasEvent;
@@ -13,7 +13,6 @@ import my_app.domain.pesagem.TipoImpressao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -87,15 +86,7 @@ public class ConfiguracoesViewModel {
     }
 
     public void handleUpdateLogoMarca() {
-        var fileChooser = new FileChooser();
-        fileChooser.setTitle("Selecionar imagem");
-        fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Imagens", "*.png", "*.jpg", "*.jpeg"));
-
-        File arquivo = fileChooser.showOpenDialog(this.ctx.selfStage());
-        if (arquivo != null) {
-            logoHorizontal.set(arquivo.toURI().toString());
-        }
+        FilePicker.chooseImage(ctx.selfStage()).ifPresent(uri -> logoHorizontal.set(uri.toString()));
     }
 
     public void limparLogo() {

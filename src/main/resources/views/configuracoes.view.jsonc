@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "id": "settings",
+  "states": {
+    "printTypes": { "type": "string", "initial": "[\"Impressora térmica (80 mm)\",\"Impressora a laser\"]" },
+    "printType": { "type": "string", "initial": "Impressora a laser" },
+    "status": { "type": "string", "initial": "Carregando configurações..." },
+    "logo": { "type": "string", "initial": "" },
+    "showSettings": { "type": "boolean", "initial": false },
+    "showLoading": { "type": "boolean", "initial": true },
+    "showLogo": { "type": "boolean", "initial": false },
+    "showNoLogo": { "type": "boolean", "initial": true }
+  },
+  "view": {
+    "type": "Scroll", "children": [{
+      "type": "Column", "props": { "padding": 20, "spacing": 15, "fillWidth": true },
+      "children": [
+        { "type": "Text", "props": { "text": "Configurações" }, "style": { "fontSize": 20, "bold": true } },
+        { "type": "Column", "props": { "spacing": 15 }, "bind": { "visible": "showSettings" }, "children": [
+          { "type": "Text", "props": { "text": "Tipo de impressão *" } },
+          { "type": "Select", "bind": { "items": "printTypes", "value": "printType" } },
+          { "type": "Text", "props": { "text": "Os tickets serão enviados à impressora padrão do sistema." } },
+          { "type": "Text", "props": { "text": "Térmica: bobina de 80 mm. Laser: duas vias em uma folha A4." } }
+        ] },
+        { "type": "Column", "props": { "spacing": 10 }, "bind": { "visible": "showLoading" }, "children": [
+          { "type": "Text", "bind": { "text": "status" } },
+          { "type": "Button", "props": { "text": "Tentar novamente" }, "events": { "onClick": "retry" } }
+        ] },
+        { "type": "Column", "props": { "spacing": 10 }, "bind": { "visible": "showNoLogo" }, "children": [
+          { "type": "Text", "props": { "text": "Nenhuma logomarca definida" } },
+          { "type": "Button", "props": { "text": "Definir logomarca" }, "events": { "onClick": "chooseLogo" } }
+        ] },
+        { "type": "Column", "props": { "spacing": 10 }, "bind": { "visible": "showLogo" }, "children": [
+          { "type": "Image", "props": { "width": 700, "height": 100 }, "bind": { "source": "logo" } },
+          { "type": "Row", "props": { "spacing": 10 }, "children": [
+            { "type": "Button", "props": { "text": "Mudar logomarca" }, "events": { "onClick": "chooseLogo" } },
+            { "type": "Button", "props": { "text": "Remover logomarca" }, "events": { "onClick": "removeLogo" } }
+          ] }
+        ] },
+        { "type": "Button", "props": { "text": "Salvar" }, "events": { "onClick": "save" } }
+      ]
+    }]
+  }
+}

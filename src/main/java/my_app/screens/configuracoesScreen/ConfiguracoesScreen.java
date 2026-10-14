@@ -1,79 +1,60 @@
 package my_app.screens.configuracoesScreen;
 
-import javafx.scene.paint.Color;
 import megalodonte.base.components.Component;
 import megalodonte.base.components.ScreenComponent;
-import megalodonte.components.Card;
-import megalodonte.components.Image;
-import megalodonte.components.SpacerVertical;
-import megalodonte.components.Text;
-import megalodonte.components.layout_components.Column;
-import megalodonte.components.layout_components.Container;
-import megalodonte.components.layout_components.Row;
-import megalodonte.props.ColumnProps;
-import megalodonte.props.ContainerProps;
-import megalodonte.props.ImageProps;
-import megalodonte.props.RowProps;
 import megalodonte.base.route.v2.ScreenContextInterface;
-import megalodonte.v2.Show;
-import my_app.domain.components.Components;
+import megalodonte.base.state.State;
+import megalodonte.base.state.Subscription;
+import megalodonte.jsonc.Actions;
+import megalodonte.jsonc.UiDefinition;
+import megalodonte.jsonc.UiSession;
 import my_app.domain.pesagem.TipoImpressao;
-import org.kordamp.ikonli.entypo.Entypo;
-import org.kordamp.ikonli.javafx.FontIcon;
 
-public class ConfiguracoesScreen implements ScreenComponent {
-    private final ConfiguracoesViewModel vm;
+import java.util.ArrayList;
+import java.util.List;
 
-    public ConfiguracoesScreen(ScreenContextInterface ctx) {
-        vm = new ConfiguracoesViewModel(ctx);
+/** Presents print and branding settings from JSONC while services remain in the view model. */
+public final class ConfiguracoesScreen implements ScreenComponent {
+    private static final UiDefinition VIEW = UiDefinition.fromResource(ConfiguracoesScreen.class, "/views/configuracoes.view.jsonc");
+    private final ConfiguracoesViewModel viewModel;
+    private final UiSession session;
+    private final List<Subscription> subscriptions = new ArrayList<>();
+
+    public ConfiguracoesScreen(ScreenContextInterface context) {
+        viewModel = new ConfiguracoesViewModel(context);
+        session = VIEW.open(new Actions()
+                .register("retry", ignored -> viewModel.load())
+                .register("chooseLogo", ignored -> viewModel.handleUpdateLogoMarca())
+                .register("removeLogo", ignored -> viewModel.limparLogo())
+                .register("save", ignored -> viewModel.salvar()));
+        session.display("status", viewModel.status, String.class)
+                .display("logo", viewModel.logoHorizontal, String.class);
+        var printLabel = State.of(viewModel.tipoImpressao.get().descricao());
+        session.bind("printType", printLabel, String.class);
+        subscriptions.add(viewModel.tipoImpressao.observe(value -> printLabel.set(value.descricao())));
+        subscriptions.add(printLabel.observe(label -> {
+            for (TipoImpressao type : TipoImpressao.values()) {
+                if (type.descricao().equals(label)) {
+                    viewModel.tipoImpressao.set(type);
+                    return;
+                }
+            }
+        }));
+        subscriptions.add(viewModel.carregado.observe(loaded -> {
+            session.states().state("showSettings", Boolean.class).set(loaded);
+            session.states().state("showLoading", Boolean.class).set(!loaded);
+        }));
+        subscriptions.add(viewModel.logoVazia.observe(empty -> {
+            session.states().state("showLogo", Boolean.class).set(!empty);
+            session.states().state("showNoLogo", Boolean.class).set(empty);
+        }));
     }
 
-    @Override
-    public void onMount() {
-        vm.load();
-    }
-
-    @Override
-    public void onDestroy() {
-        vm.onDestroy();
-    }
-
-    @Override
-    public Component render() {
-        return new Container(new ContainerProps().paddingAll(10).spacingOf(10)).children(
-                new Card(new Column(new ColumnProps().paddingAll(20).spacingOf(15))
-                        .c_child(Components.FormTitle("Configurações"))
-                        .c_child(Show.when(vm.carregado,
-                                () -> new Column(new ColumnProps().spacingOf(15))
-                                        .c_child(Components.SelectColumn(Components.obrigatorio("Tipo de impressão"),
-                                                ConfiguracoesViewModel.tiposImpressao, vm.tipoImpressao, TipoImpressao::descricao))
-                                        .c_child(new Text("Os tickets serão enviados à impressora padrão do sistema."))
-                                        .c_child(new Text("Térmica: bobina de 80 mm. Laser: duas vias em uma folha A4.")),
-                                () -> new Column(new ColumnProps().spacingOf(15))
-                                        .c_child(new Text(vm.status))
-                                        .c_child(Components.ButtonCadastro("Tentar novamente", vm::load))))
-                ),
-                new Card(new Column(new ColumnProps().spacingOf(15))
-                        .c_child(Show.when(vm.logoVazia, () -> iconColumn(), () -> imageColumn()))
-                ),
-                new SpacerVertical(10),
-                Components.ButtonCadastro("Salvar", vm::salvar)
-        );
-    }
-
-    private Component iconColumn() {
-        var icon = Component.CreateFromJavaFxNode(FontIcon.of(Entypo.FOLDER_IMAGES, 48, Color.web("#bababa")));
-        return new Column(new ColumnProps().centerHorizontally().spacingOf(5))
-                .c_child(icon)
-                .c_child(Components.ButtonCadastro("Definir logomarca", vm::handleUpdateLogoMarca));
-    }
-    private Component imageColumn() {
-        return new Column(new ColumnProps().centerHorizontally().spacingOf(5))
-                .c_child(new Image(vm.logoHorizontal,
-                        new ImageProps().width(700).height(100).preserveRatio(true)))
-                .c_child(new Row(new RowProps().spacingOf(10)).children(
-                        Components.ButtonCadastro("Mudar logomarca", vm::handleUpdateLogoMarca),
-                        Components.ButtonCadastro("Remover logomarca", vm::limparLogo)
-                ));
+    @Override public Component render() { return session.render(); }
+    @Override public void onMount() { viewModel.load(); }
+    @Override public void onDestroy() {
+        subscriptions.forEach(Subscription::close);
+        session.close();
+        viewModel.onDestroy();
     }
 }

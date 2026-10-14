@@ -43,4 +43,17 @@ class DeclarativeViewsTest {
             assertEquals("9600", session.states().string("baudRate").get());
         }
     }
+
+    @Test void settingsViewDeclaresPrintAndLogoStates() {
+        var definition = UiDefinition.fromResource(getClass(), "/views/configuracoes.view.jsonc");
+        try (var session = definition.open(new Actions()
+                .register("retry", ignored -> {})
+                .register("chooseLogo", ignored -> {})
+                .register("removeLogo", ignored -> {})
+                .register("save", ignored -> {}))) {
+            assertEquals("settings", session.id());
+            assertEquals("Impressora a laser", session.states().string("printType").get());
+            assertEquals(false, session.states().state("showLogo", Boolean.class).get());
+        }
+    }
 }
