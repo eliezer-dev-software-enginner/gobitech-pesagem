@@ -1,0 +1,428 @@
+{
+  "version": 1,
+  "id": "companySettings",
+  "states": {
+    "nome": {
+      "type": "string",
+      "initial": ""
+    },
+    "cpfCnpj": {
+      "type": "string",
+      "initial": ""
+    },
+    "inscricaoEstadual": {
+      "type": "string",
+      "initial": ""
+    },
+    "telefone": {
+      "type": "string",
+      "initial": ""
+    },
+    "email": {
+      "type": "string",
+      "initial": ""
+    },
+    "logo": {
+      "type": "string",
+      "initial": ""
+    },
+    "cep": {
+      "type": "string",
+      "initial": ""
+    },
+    "cidade": {
+      "type": "string",
+      "initial": ""
+    },
+    "uf": {
+      "type": "string",
+      "initial": ""
+    },
+    "bairro": {
+      "type": "string",
+      "initial": ""
+    },
+    "rua": {
+      "type": "string",
+      "initial": ""
+    },
+    "numero": {
+      "type": "string",
+      "initial": ""
+    },
+    "ufs": {
+      "type": "string",
+      "initial": "[]"
+    }
+  },
+  "view": {
+    "type": "Scroll",
+    "children": [
+      {
+        "type": "Column",
+        "props": {
+          "padding": 20,
+          "spacing": 16,
+          "fillWidth": true
+        },
+        "children": [
+          {
+            "type": "Text",
+            "props": {
+              "text": "Informações da empresa"
+            },
+            "style": {
+              "bold": true,
+              "fontSize": 18
+            }
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 12
+            },
+            "children": [
+              {
+                "type": "Column",
+                "props": {
+                  "spacing": 4
+                },
+                "children": [
+                  {
+                    "type": "Text",
+                    "props": {
+                      "text": "Nome *"
+                    }
+                  },
+                  {
+                    "type": "Input",
+                    "props": {
+                      "placeholder": "Ex: Balanças Gobitech",
+                      "width": 200
+                    },
+                    "bind": {
+                      "value": "nome"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "Column",
+                "props": {
+                  "spacing": 4
+                },
+                "children": [
+                  {
+                    "type": "Text",
+                    "props": {
+                      "text": "Telefone/Celular"
+                    }
+                  },
+                  {
+                    "type": "Input",
+                    "props": {
+                      "placeholder": "",
+                      "width": 200
+                    },
+                    "bind": {
+                      "value": "telefone"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 8
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Logomarca"
+                }
+              },
+              {
+                "type": "Image",
+                "props": {
+                  "width": 100,
+                  "height": 100
+                },
+                "bind": {
+                  "source": "logo"
+                }
+              },
+              {
+                "type": "Button",
+                "props": {
+                  "text": "Mudar logomarca"
+                },
+                "events": {
+                  "onClick": "chooseLogo"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 12
+            },
+            "children": [
+              {
+                "type": "Column",
+                "props": {
+                  "spacing": 4
+                },
+                "children": [
+                  {
+                    "type": "Text",
+                    "props": {
+                      "text": "CPF/CNPJ"
+                    }
+                  },
+                  {
+                    "type": "Input",
+                    "props": {
+                      "placeholder": "",
+                      "width": 200
+                    },
+                    "bind": {
+                      "value": "cpfCnpj"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "Column",
+                "props": {
+                  "spacing": 4
+                },
+                "children": [
+                  {
+                    "type": "Text",
+                    "props": {
+                      "text": "Inscrição estadual"
+                    }
+                  },
+                  {
+                    "type": "Input",
+                    "props": {
+                      "placeholder": "Ex: 10.123.456-7",
+                      "width": 200
+                    },
+                    "bind": {
+                      "value": "inscricaoEstadual"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "Column",
+                "props": {
+                  "spacing": 4
+                },
+                "children": [
+                  {
+                    "type": "Text",
+                    "props": {
+                      "text": "Email"
+                    }
+                  },
+                  {
+                    "type": "Input",
+                    "props": {
+                      "placeholder": "Ex: contato@empresa.com.br",
+                      "width": 200
+                    },
+                    "bind": {
+                      "value": "email"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Text",
+            "props": {
+              "text": "Endereço"
+            },
+            "style": {
+              "bold": true,
+              "fontSize": 18
+            }
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 12
+            },
+            "children": [
+              {
+                "type": "Column",
+                "props": {
+                  "spacing": 4
+                },
+                "children": [
+                  {
+                    "type": "Text",
+                    "props": {
+                      "text": "CEP"
+                    }
+                  },
+                  {
+                    "type": "Input",
+                    "props": {
+                      "placeholder": "",
+                      "width": 200
+                    },
+                    "bind": {
+                      "value": "cep"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "Column",
+                "props": {
+                  "spacing": 4
+                },
+                "children": [
+                  {
+                    "type": "Text",
+                    "props": {
+                      "text": "UF"
+                    }
+                  },
+                  {
+                    "type": "Select",
+                    "bind": {
+                      "items": "ufs",
+                      "value": "uf"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "Column",
+                "props": {
+                  "spacing": 4
+                },
+                "children": [
+                  {
+                    "type": "Text",
+                    "props": {
+                      "text": "Cidade"
+                    }
+                  },
+                  {
+                    "type": "Input",
+                    "props": {
+                      "placeholder": "Ex: Formosa",
+                      "width": 200
+                    },
+                    "bind": {
+                      "value": "cidade"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 12
+            },
+            "children": [
+              {
+                "type": "Column",
+                "props": {
+                  "spacing": 4
+                },
+                "children": [
+                  {
+                    "type": "Text",
+                    "props": {
+                      "text": "Bairro"
+                    }
+                  },
+                  {
+                    "type": "Input",
+                    "props": {
+                      "placeholder": "Ex: Centro",
+                      "width": 200
+                    },
+                    "bind": {
+                      "value": "bairro"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "Column",
+                "props": {
+                  "spacing": 4
+                },
+                "children": [
+                  {
+                    "type": "Text",
+                    "props": {
+                      "text": "Rua"
+                    }
+                  },
+                  {
+                    "type": "Input",
+                    "props": {
+                      "placeholder": "Ex: R. Dez",
+                      "width": 200
+                    },
+                    "bind": {
+                      "value": "rua"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "Column",
+                "props": {
+                  "spacing": 4
+                },
+                "children": [
+                  {
+                    "type": "Text",
+                    "props": {
+                      "text": "Número"
+                    }
+                  },
+                  {
+                    "type": "Input",
+                    "props": {
+                      "placeholder": "Ex: 36",
+                      "width": 200
+                    },
+                    "bind": {
+                      "value": "numero"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Button",
+            "props": {
+              "text": "Salvar"
+            },
+            "events": {
+              "onClick": "save"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

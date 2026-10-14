@@ -1,6 +1,6 @@
 package my_app.screens.empresaScreen;
 
-import javafx.stage.FileChooser;
+import megalodonte.components.FilePicker;
 import megalodonte.base.state.State;
 import megalodonte.base.UI;
 import megalodonte.base.async.Async;
@@ -12,7 +12,6 @@ import my_app.domain.components.Components;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 
 public class EmpresaViewModel {
     private static final Logger log = LoggerFactory.getLogger(EmpresaViewModel.class);
@@ -76,15 +75,7 @@ public class EmpresaViewModel {
     }
 
     public void handleUpdateLogoMarca() {
-        var fileChooser = new FileChooser();
-        fileChooser.setTitle("Selecionar imagem");
-        fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Imagens", "*.png", "*.jpg", "*.jpeg"));
-
-        File arquivo = fileChooser.showOpenDialog(this.ctx.selfStage());
-        if (arquivo != null) {
-            logoMarca.set(arquivo.toURI().toString());
-        }
+        FilePicker.chooseImage(ctx.selfStage()).ifPresent(uri -> logoMarca.set(uri.toString()));
     }
 
     public void handleSave() {
