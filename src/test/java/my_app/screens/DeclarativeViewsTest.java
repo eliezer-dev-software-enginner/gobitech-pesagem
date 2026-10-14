@@ -68,4 +68,14 @@ class DeclarativeViewsTest {
             assertEquals("80", session.states().string("backPort").get());
         }
     }
+
+    @Test void detailViewsDeclareBoundValues() {
+        for (var kind : new String[]{"cliente", "produto", "usuario"}) {
+            var definition = UiDefinition.fromResource(getClass(), "/views/" + kind + "-details.view.jsonc");
+            try (var session = definition.open(new Actions())) {
+                assertEquals(kind + "Details", session.id());
+                assertEquals("", session.states().string("id").get());
+            }
+        }
+    }
 }

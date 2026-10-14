@@ -1,0 +1,193 @@
+{
+  "version": 1,
+  "id": "usuarioDetails",
+  "states": {
+    "id": {
+      "type": "string",
+      "initial": ""
+    },
+    "nome": {
+      "type": "string",
+      "initial": ""
+    },
+    "login": {
+      "type": "string",
+      "initial": ""
+    },
+    "telefone": {
+      "type": "string",
+      "initial": ""
+    },
+    "perfil": {
+      "type": "string",
+      "initial": ""
+    },
+    "dataCriacao": {
+      "type": "string",
+      "initial": ""
+    }
+  },
+  "view": {
+    "type": "Scroll",
+    "children": [
+      {
+        "type": "Column",
+        "props": {
+          "padding": 20,
+          "spacing": 12,
+          "fillWidth": true
+        },
+        "children": [
+          {
+            "type": "Text",
+            "props": {
+              "text": "Detalhes do usuario"
+            },
+            "style": {
+              "fontSize": 20,
+              "bold": true
+            }
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "ID:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "id"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Nome:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "nome"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Login:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "login"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Telefone:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "telefone"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Perfil:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "perfil"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Data de criação:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "dataCriacao"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

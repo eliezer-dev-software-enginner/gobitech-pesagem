@@ -1,0 +1,166 @@
+{
+  "version": 1,
+  "id": "produtoDetails",
+  "states": {
+    "id": {
+      "type": "string",
+      "initial": ""
+    },
+    "nome": {
+      "type": "string",
+      "initial": ""
+    },
+    "unidade": {
+      "type": "string",
+      "initial": ""
+    },
+    "dataCriacao": {
+      "type": "string",
+      "initial": ""
+    },
+    "observacoes": {
+      "type": "string",
+      "initial": ""
+    }
+  },
+  "view": {
+    "type": "Scroll",
+    "children": [
+      {
+        "type": "Column",
+        "props": {
+          "padding": 20,
+          "spacing": 12,
+          "fillWidth": true
+        },
+        "children": [
+          {
+            "type": "Text",
+            "props": {
+              "text": "Detalhes do produto"
+            },
+            "style": {
+              "fontSize": 20,
+              "bold": true
+            }
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "ID:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "id"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Nome:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "nome"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Unidade:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "unidade"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Data de criação:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "dataCriacao"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Observações:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "observacoes"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

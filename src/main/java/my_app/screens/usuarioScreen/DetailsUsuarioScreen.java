@@ -1,19 +1,15 @@
 package my_app.screens.usuarioScreen;
 
 import megalodonte.ComputedState;
+import megalodonte.jsonc.Actions;
+import megalodonte.jsonc.UiDefinition;
+import megalodonte.jsonc.UiSession;
 import megalodonte.application.ErrorReporter;
 import megalodonte.base.UI;
 import megalodonte.base.async.Async;
 import megalodonte.base.components.Component;
 import megalodonte.base.components.ScreenComponent;
 import megalodonte.base.state.State;
-import megalodonte.base.theme.ThemeManager;
-import megalodonte.components.Card;
-import megalodonte.components.SpacerVertical;
-import megalodonte.components.Text;
-import megalodonte.components.layout_components.Column;
-import megalodonte.props.ColumnProps;
-import megalodonte.props.TextProps;
 import megalodonte.base.route.v2.ScreenContextInterface;
 import megalodonte.utils.ThrowingSupplier;
 import my_app.db.models.UsuarioModel;
@@ -26,6 +22,8 @@ import pack.utilities.DatePack;
 import java.util.function.Function;
 
 public class DetailsUsuarioScreen implements ScreenComponent {
+    private static final UiDefinition VIEW = UiDefinition.fromResource(DetailsUsuarioScreen.class, "/views/usuario-details.view.jsonc");
+    private final UiSession session;
     private static final Logger log = LoggerFactory.getLogger(DetailsUsuarioScreen.class);
     private final UsuarioService usuarioService;
     private final State<UsuarioModel> model = State.of(null);
@@ -48,6 +46,13 @@ public class DetailsUsuarioScreen implements ScreenComponent {
             throw new IllegalStateException(e);
         }
         this.usuarioService = createOrReport(UsuarioService::new);
+        session = VIEW.open(new Actions());
+        session.display("id", this.id, String.class)
+                .display("nome", nome, String.class)
+                .display("login", login, String.class)
+                .display("telefone", telefone, String.class)
+                .display("perfil", perfil, String.class)
+                .display("dataCriacao", dataCriacao, String.class);
 
         Async.Run(() -> {
             try {
@@ -61,21 +66,7 @@ public class DetailsUsuarioScreen implements ScreenComponent {
     }
 
     @Override
-    public Component render() {
-        return Components.ScrollPaneDefault(
-                new Card(
-                        new Column(new ColumnProps().paddingAll(20))
-                                .c_child(new Text("Detalhes do usuário", new TextProps().fontSize(ThemeManager.theme().typography().subtitle())))
-                                .c_child(new SpacerVertical(20))
-                                .c_child(Components.TextWithDetailsState("ID: ", id))
-                                .c_child(Components.TextWithDetailsState("Nome: ", nome))
-                                .c_child(Components.TextWithDetailsState("Login: ", login))
-                                .c_child(Components.TextWithDetailsState("Telefone: ", telefone))
-                                .c_child(Components.TextWithDetailsState("Perfil: ", perfil))
-                                .c_child(Components.TextWithDetailsState("Data de criação: ", dataCriacao))
-                )
-        );
-    }
+    public Component render() { return session.render(); }
 
     private ComputedState<String> campo(Function<UsuarioModel, Object> extract) {
         return ComputedState.of(() -> {
@@ -97,6 +88,7 @@ public class DetailsUsuarioScreen implements ScreenComponent {
 
     @Override
     public void onDestroy() {
+        session.close();
         try {
             usuarioService.close();
         } catch (Exception e) {

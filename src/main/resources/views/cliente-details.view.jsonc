@@ -1,0 +1,355 @@
+{
+  "version": 1,
+  "id": "clienteDetails",
+  "states": {
+    "id": {
+      "type": "string",
+      "initial": ""
+    },
+    "razaoSocial": {
+      "type": "string",
+      "initial": ""
+    },
+    "cpfCnpj": {
+      "type": "string",
+      "initial": ""
+    },
+    "telefone": {
+      "type": "string",
+      "initial": ""
+    },
+    "uf": {
+      "type": "string",
+      "initial": ""
+    },
+    "cep": {
+      "type": "string",
+      "initial": ""
+    },
+    "cidade": {
+      "type": "string",
+      "initial": ""
+    },
+    "bairro": {
+      "type": "string",
+      "initial": ""
+    },
+    "rua": {
+      "type": "string",
+      "initial": ""
+    },
+    "numero": {
+      "type": "string",
+      "initial": ""
+    },
+    "complemento": {
+      "type": "string",
+      "initial": ""
+    },
+    "dataCriacao": {
+      "type": "string",
+      "initial": ""
+    }
+  },
+  "view": {
+    "type": "Scroll",
+    "children": [
+      {
+        "type": "Column",
+        "props": {
+          "padding": 20,
+          "spacing": 12,
+          "fillWidth": true
+        },
+        "children": [
+          {
+            "type": "Text",
+            "props": {
+              "text": "Detalhes do cliente"
+            },
+            "style": {
+              "fontSize": 20,
+              "bold": true
+            }
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "ID:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "id"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Razão social:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "razaoSocial"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "CPF/CNPJ:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "cpfCnpj"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Telefone:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "telefone"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "UF:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "uf"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "CEP:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "cep"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Cidade:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "cidade"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Bairro:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "bairro"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Rua:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "rua"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Número:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "numero"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Complemento:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "complemento"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Data de criação:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "dataCriacao"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
