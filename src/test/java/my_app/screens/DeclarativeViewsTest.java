@@ -89,4 +89,14 @@ class DeclarativeViewsTest {
             }
         }
     }
+
+    @Test void customerFormDeclaresAddressStates() {
+        var definition = UiDefinition.fromResource(getClass(), "/views/cliente-form.view.jsonc");
+        try (var session = definition.open(new Actions().register("save", ignored -> {}))) {
+            assertEquals("clienteForm", session.id());
+            assertEquals("", session.states().string("razaoSocial").get());
+            assertEquals("", session.states().string("cep").get());
+            assertEquals("[]", session.states().string("ufs").get());
+        }
+    }
 }

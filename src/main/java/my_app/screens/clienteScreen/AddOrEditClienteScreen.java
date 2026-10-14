@@ -1,18 +1,16 @@
 package my_app.screens.clienteScreen;
 
+import com.google.gson.Gson;
+import megalodonte.jsonc.Actions;
+import megalodonte.jsonc.UiDefinition;
+import megalodonte.jsonc.UiSession;
 import megalodonte.application.ErrorReporter;
+import my_app.domain.Data;
 import megalodonte.base.UI;
 import megalodonte.base.async.Async;
 import megalodonte.base.components.Component;
 import megalodonte.base.components.ScreenComponent;
 import megalodonte.base.state.State;
-import megalodonte.components.Card;
-import megalodonte.components.LineHorizontal;
-import megalodonte.components.SpacerVertical;
-import megalodonte.components.layout_components.Column;
-import megalodonte.components.layout_components.FlowRow;
-import megalodonte.props.ColumnProps;
-import megalodonte.props.FlowRowProps;
 import megalodonte.base.route.v2.ScreenContextInterface;
 import megalodonte.utils.ThrowingSupplier;
 import my_app.db.services.ClienteService;
@@ -21,6 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AddOrEditClienteScreen implements ScreenComponent {
+    private static final UiDefinition VIEW = UiDefinition.fromResource(AddOrEditClienteScreen.class, "/views/cliente-form.view.jsonc");
+    private final UiSession session;
     Long id;
     ClienteViewModel viewModel;
     Logger log = LoggerFactory.getLogger(AddOrEditClienteScreen.class);
@@ -31,6 +31,21 @@ public class AddOrEditClienteScreen implements ScreenComponent {
     public AddOrEditClienteScreen(ScreenContextInterface screenContext){
         viewModel = new ClienteViewModel(screenContext);
         clienteService = createOrReport(ClienteService::new);
+        session = VIEW.open(new Actions().register("save", ignored -> handleAddOrUpdate()));
+        var address = viewModel.enderecoState.get();
+        session.display("title", titleState, String.class)
+                .display("saveText", viewModel.btnText, String.class)
+                .bind("razaoSocial", viewModel.razaoSocial, String.class)
+                .bind("cnpjCpf", viewModel.cnpjCpf, String.class)
+                .bind("telefone", viewModel.telefone, String.class)
+                .bind("uf", address.ufSelected, String.class)
+                .bind("cep", address.cep, String.class)
+                .bind("cidade", address.cidade, String.class)
+                .bind("bairro", address.bairro, String.class)
+                .bind("rua", address.rua, String.class)
+                .bind("numero", address.numero, String.class)
+                .bind("complemento", viewModel.complemento, String.class);
+        session.states().string("ufs").set(new Gson().toJson(Data.ufList));
         String type = screenContext.getParams().get("type");
 
         String idParam = screenContext.getParams().get("id");
@@ -75,29 +90,7 @@ public class AddOrEditClienteScreen implements ScreenComponent {
     }
 
     @Override
-    public Component render() {
-        return Components.ScrollPaneDefault(
-                new Card(
-                        new Column(new ColumnProps().paddingAll(20))
-                                .c_child(Components.FormTitle("Cadastrar cliente"))
-                                .c_child(new SpacerVertical(20))
-                                .c_child(new FlowRow(new FlowRowProps().spacingOf(10))
-                                        .children(
-                                                Components.InputColumn(Components.obrigatorio("Razão social"), viewModel.razaoSocial, "Ex: Santa Rita Agropecuária Ltda"),
-                                                Components.InputColumnCpfCnpj("CPF/CNPJ", viewModel.cnpjCpf),
-                                                Components.InputColumnPhone("Telefone", viewModel.telefone)
-                                        )
-                                )
-                                .c_child(new SpacerVertical(10))
-                                .c_child(Components.enderecoComponent(viewModel.enderecoState.get()))
-                                .c_child(Components.InputColumn("Complemento", viewModel.complemento, "Ex: Galpão 2"))
-                                .c_child(new SpacerVertical(20))
-                                .c_child(new LineHorizontal())
-                                .c_child(new SpacerVertical(20))
-                                .c_child(Components.actionButtons(viewModel.btnText, this::handleAddOrUpdate))
-                )
-        ) ;
-    }
+    public Component render() { return session.render(); }
 
      void handleAddOrUpdate() {
         try {
@@ -114,6 +107,7 @@ public class AddOrEditClienteScreen implements ScreenComponent {
     // do NPE de session nula já corrigido no projeto).
     @Override
     public void onDestroy() {
+        session.close();
         try {
             viewModel.onDestroy();
             clienteService.close();
