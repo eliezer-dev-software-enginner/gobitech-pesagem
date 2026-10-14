@@ -115,4 +115,13 @@ class DeclarativeViewsTest {
             }
         }
     }
+
+    @Test void licenseViewDeclaresDateAndHistory() {
+        var definition = UiDefinition.fromResource(getClass(), "/views/licensa.view.jsonc");
+        try (var session = definition.open(new Actions().register("generate", ignored -> {}))) {
+            assertEquals("licenseManagement", session.id());
+            assertEquals("", session.states().string("date").get());
+            assertEquals("[]", session.states().string("rows").get());
+        }
+    }
 }

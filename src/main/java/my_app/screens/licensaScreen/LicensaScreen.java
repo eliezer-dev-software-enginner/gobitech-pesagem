@@ -1,84 +1,75 @@
 package my_app.screens.licensaScreen;
 
+import com.google.gson.Gson;
 import megalodonte.base.components.Component;
 import megalodonte.base.components.ScreenComponent;
-import megalodonte.components.Card;
-import megalodonte.components.LineHorizontal;
-import megalodonte.components.SimpleTable;
-import megalodonte.components.SpacerVertical;
-import megalodonte.components.layout_components.Column;
-import megalodonte.components.layout_components.Container;
-import megalodonte.props.ColumnProps;
-import megalodonte.props.ContainerProps;
-import megalodonte.props.SimpleTableProps;
 import megalodonte.base.route.v2.ScreenContextInterface;
-import megalodonte.v2.Show;
+import megalodonte.base.state.State;
+import megalodonte.base.state.Subscription;
+import megalodonte.jsonc.Actions;
+import megalodonte.jsonc.UiDefinition;
+import megalodonte.jsonc.UiSession;
 import my_app.db.models.LicensaModel;
 import my_app.domain.Data;
-import my_app.domain.components.Components;
 import pack.utilities.DatePack;
 
-public class LicensaScreen implements ScreenComponent {
-    private final LicensaViewModel vm;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
-    public LicensaScreen(ScreenContextInterface ctx) {
-        this.vm = new LicensaViewModel(ctx);
+/** License generation and history are rendered from the JSONC view. */
+public final class LicensaScreen implements ScreenComponent {
+    private static final UiDefinition VIEW = UiDefinition.fromResource(LicensaScreen.class, "/views/licensa.view.jsonc");
+    private static final Gson JSON = new Gson();
+    private final LicensaViewModel viewModel;
+    private final UiSession session;
+    private final State<String> date = State.of("");
+    private final List<Subscription> subscriptions = new ArrayList<>();
+
+    public LicensaScreen(ScreenContextInterface context) {
+        viewModel = new LicensaViewModel(context);
+        session = VIEW.open(new Actions().register("generate", ignored -> viewModel.gerar()));
+        session.bind("expiryMode", viewModel.definirExpiracaoSelected, String.class)
+                .bind("date", date, String.class)
+                .display("generatedCode", viewModel.codigoGerado, String.class);
+        session.states().string("modes").set(JSON.toJson(Data.simNaoList));
+        subscriptions.add(viewModel.dataExpiracao.observe(value -> date.set(value == null ? "" : value.toString())));
+        subscriptions.add(date.observe(value -> {
+            try {
+                var parsed = value == null || value.isBlank() ? null : LocalDate.parse(value);
+                if (!java.util.Objects.equals(viewModel.dataExpiracao.get(), parsed)) viewModel.dataExpiracao.set(parsed);
+            } catch (DateTimeParseException ignored) { /* DatePicker keeps the last valid date. */ }
+        }));
+        subscriptions.add(viewModel.definirExpiracao.observe(value -> session.states().state("showDate", Boolean.class).set(value)));
+        subscriptions.add(viewModel.codigoGeradoVisible.observe(value -> session.states().state("showCode", Boolean.class).set(value)));
+        subscriptions.add(viewModel.licensasState.observe(items -> session.states().string("rows").set(rowsJson(items))));
     }
 
-    @Override
-    public void onMount() {
-        if (!vm.acessoPermitido()) {
-            vm.bloquearAcesso();
-            return;
+    @Override public Component render() { return session.render(); }
+    @Override public void onMount() {
+        if (!viewModel.acessoPermitido()) { viewModel.bloquearAcesso(); return; }
+        viewModel.carregar();
+    }
+    @Override public void onDestroy() {
+        subscriptions.forEach(Subscription::close);
+        session.close();
+        try { viewModel.onDestroy(); }
+        catch (Exception error) { throw new IllegalStateException("Could not close license screen", error); }
+    }
+
+    private String rowsJson(List<LicensaModel> licenses) {
+        var rows = new ArrayList<Map<String, String>>(licenses.size());
+        for (var license : licenses) {
+            var row = new LinkedHashMap<String, String>();
+            row.put("code", license.getValor());
+            row.put("expires", license.getExpiraEm() == null ? "Sem expiração" : DatePack.localDateTimeToBrazilianDateTime(license.getExpiraEm()));
+            row.put("status", license.expirada() ? "Expirada" : "Válida");
+            row.put("created", DatePack.localDateTimeToBrazilianDateTime(license.getDataCriacao()));
+            rows.add(row);
         }
-        vm.carregar();
-    }
-
-    @Override
-    public void onDestroy() {
-        try {
-            vm.onDestroy();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public Component render() {
-        return new Container(new ContainerProps().paddingAll(10)).children(
-                new Card(
-                        new Column(new ColumnProps().paddingAll(20))
-                                .c_child(Components.FormTitle("Gerar licença"))
-                                .c_child(new SpacerVertical(10))
-                                .c_child(Components.SelectColumn("Definir data de expiração?", Data.simNaoList, vm.definirExpiracaoSelected, it -> it))
-                                .c_child(Show.when(vm.definirExpiracao, () -> Components.DatePickerColumn(vm.dataExpiracao, "Validade")))
-                                .c_child(new SpacerVertical(10))
-                                .c_child(Components.ButtonCadastro("Gerar nova licença", vm::gerar))
-                                .c_child(new SpacerVertical(10))
-                                .c_child(Show.when(vm.codigoGeradoVisible,
-                                        () -> Components.InputColumn("Código gerado", vm.codigoGerado, "", true)))
-                                .c_child(new SpacerVertical(20))
-                                .c_child(new LineHorizontal())
-                                .c_child(new SpacerVertical(10))
-                                .c_child(Components.FormTitle("Licenças já geradas"))
-                                .c_child(new SpacerVertical(10))
-                                .c_child(table())
-                )
-        );
-    }
-
-    private SimpleTable<LicensaModel> table() {
-        var simpleTable = new SimpleTable<LicensaModel>(new SimpleTableProps().maxHeight(Components.TABLE_MAX_HEIGHT));
-        simpleTable.fromData(vm.licensasState)
-                .header()
-                .columns()
-                .column("Código", LicensaModel::getValor)
-                .column("Validade", it -> it.getExpiraEm() == null ? "Sem expiração"
-                        : DatePack.localDateTimeToBrazilianDateTime(it.getExpiraEm()))
-                .column("Situação", it -> it.expirada() ? "Expirada" : "Válida")
-                .column("Gerada em", it -> DatePack.localDateTimeToBrazilianDateTime(it.getDataCriacao()))
-                .build();
-
-        return simpleTable;
+        return JSON.toJson(rows);
     }
 }

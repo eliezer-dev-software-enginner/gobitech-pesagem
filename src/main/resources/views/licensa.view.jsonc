@@ -1,0 +1,168 @@
+{
+  "version": 1,
+  "id": "licenseManagement",
+  "states": {
+    "expiryMode": {
+      "type": "string",
+      "initial": "Não"
+    },
+    "modes": {
+      "type": "string",
+      "initial": "[\"Sim\",\"Não\"]"
+    },
+    "date": {
+      "type": "string",
+      "initial": ""
+    },
+    "showDate": {
+      "type": "boolean",
+      "initial": false
+    },
+    "generatedCode": {
+      "type": "string",
+      "initial": ""
+    },
+    "showCode": {
+      "type": "boolean",
+      "initial": false
+    },
+    "rows": {
+      "type": "string",
+      "initial": "[]"
+    },
+    "selected": {
+      "type": "string",
+      "initial": ""
+    }
+  },
+  "view": {
+    "type": "Scroll",
+    "children": [
+      {
+        "type": "Column",
+        "props": {
+          "padding": 20,
+          "spacing": 15,
+          "fillWidth": true
+        },
+        "children": [
+          {
+            "type": "Text",
+            "props": {
+              "text": "Gerar licença"
+            },
+            "style": {
+              "fontSize": 20,
+              "bold": true
+            }
+          },
+          {
+            "type": "Text",
+            "props": {
+              "text": "Definir data de expiração?"
+            }
+          },
+          {
+            "type": "Select",
+            "bind": {
+              "items": "modes",
+              "value": "expiryMode"
+            }
+          },
+          {
+            "type": "Column",
+            "bind": {
+              "visible": "showDate"
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Validade"
+                }
+              },
+              {
+                "type": "DatePicker",
+                "bind": {
+                  "value": "date"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Button",
+            "props": {
+              "text": "Gerar nova licença"
+            },
+            "events": {
+              "onClick": "generate"
+            }
+          },
+          {
+            "type": "Column",
+            "bind": {
+              "visible": "showCode"
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Código gerado"
+                }
+              },
+              {
+                "type": "TextArea",
+                "props": {
+                  "readOnly": true,
+                  "height": 45
+                },
+                "bind": {
+                  "value": "generatedCode"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Text",
+            "props": {
+              "text": "Licenças já geradas"
+            },
+            "style": {
+              "fontSize": 18,
+              "bold": true
+            }
+          },
+          {
+            "type": "Table",
+            "props": {
+              "columns": [
+                {
+                  "title": "Código",
+                  "field": "code"
+                },
+                {
+                  "title": "Validade",
+                  "field": "expires"
+                },
+                {
+                  "title": "Situação",
+                  "field": "status"
+                },
+                {
+                  "title": "Gerada em",
+                  "field": "created"
+                }
+              ],
+              "height": 300,
+              "horizontalScroll": true
+            },
+            "bind": {
+              "items": "rows",
+              "selected": "selected"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
