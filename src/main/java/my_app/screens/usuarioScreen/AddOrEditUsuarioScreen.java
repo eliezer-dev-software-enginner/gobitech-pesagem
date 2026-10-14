@@ -1,18 +1,15 @@
 package my_app.screens.usuarioScreen;
 
+import com.google.gson.Gson;
+import megalodonte.jsonc.Actions;
+import megalodonte.jsonc.UiDefinition;
+import megalodonte.jsonc.UiSession;
 import megalodonte.application.ErrorReporter;
 import megalodonte.base.UI;
 import megalodonte.base.async.Async;
 import megalodonte.base.components.Component;
 import megalodonte.base.components.ScreenComponent;
 import megalodonte.base.state.State;
-import megalodonte.components.Card;
-import megalodonte.components.LineHorizontal;
-import megalodonte.components.SpacerVertical;
-import megalodonte.components.layout_components.Column;
-import megalodonte.components.layout_components.FlowRow;
-import megalodonte.props.ColumnProps;
-import megalodonte.props.FlowRowProps;
 import megalodonte.base.route.v2.ScreenContextInterface;
 import megalodonte.utils.ThrowingSupplier;
 import my_app.db.services.UsuarioService;
@@ -22,6 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AddOrEditUsuarioScreen implements ScreenComponent {
+    private static final UiDefinition VIEW = UiDefinition.fromResource(AddOrEditUsuarioScreen.class, "/views/usuario-form.view.jsonc");
+    private final UiSession session;
     Long id;
     UsuarioScreenViewModel viewModel;
     Logger log = LoggerFactory.getLogger(AddOrEditUsuarioScreen.class);
@@ -32,6 +31,15 @@ public class AddOrEditUsuarioScreen implements ScreenComponent {
     public AddOrEditUsuarioScreen(ScreenContextInterface screenContext){
         viewModel = new UsuarioScreenViewModel(screenContext);
         usuarioService = createOrReport(UsuarioService::new);
+        session = VIEW.open(new Actions().register("save", ignored -> handleAddOrUpdate()));
+        session.display("title", titleState, String.class)
+                .display("saveText", viewModel.btnText, String.class)
+                .bind("nome", viewModel.nome, String.class)
+                .bind("login", viewModel.login, String.class)
+                .bind("senha", viewModel.senha, String.class)
+                .bind("telefone", viewModel.telefone, String.class)
+                .bind("perfil", viewModel.perfilSelected, String.class);
+        session.states().string("profiles").set(new Gson().toJson(Data.perfisUsuarioList));
         String type = screenContext.getParams().get("type");
 
         String idParam = screenContext.getParams().get("id");
@@ -76,26 +84,7 @@ public class AddOrEditUsuarioScreen implements ScreenComponent {
     }
 
     @Override
-    public Component render() {
-         return new Card(
-                new Column(new ColumnProps().paddingAll(20))
-                        .c_child(Components.FormTitle("Cadastrar usuário"))
-                        .c_child(new SpacerVertical(20))
-                        .c_child(new FlowRow(new FlowRowProps().spacingOf(10))
-                                .children(
-                                        Components.InputColumn(Components.obrigatorio("Nome"), viewModel.nome, "Ex: Maria Silva"),
-                                        Components.InputColumn(Components.obrigatorio("Login"), viewModel.login, "Ex: maria"),
-                                        Components.InputColumnAuth(Components.obrigatorio("Senha"), viewModel.senha, "Digite a senha"),
-                                        Components.InputColumnPhone("Telefone", viewModel.telefone),
-                                        Components.SelectColumn("Perfil", Data.perfisUsuarioList, viewModel.perfilSelected, it -> it)
-                                )
-                        )
-                        .c_child(new SpacerVertical(10))
-                        .c_child(new LineHorizontal())
-                        .c_child(new SpacerVertical(20))
-                        .c_child(Components.actionButtons(viewModel.btnText, this::handleAddOrUpdate))
-        );
-    }
+    public Component render() { return session.render(); }
 
      void handleAddOrUpdate() {
         try {
@@ -111,6 +100,7 @@ public class AddOrEditUsuarioScreen implements ScreenComponent {
     // do NPE de session nula já corrigido no projeto).
     @Override
     public void onDestroy() {
+        session.close();
         try {
             viewModel.onDestroy();
             usuarioService.close();

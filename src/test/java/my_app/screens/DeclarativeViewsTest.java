@@ -78,4 +78,15 @@ class DeclarativeViewsTest {
             }
         }
     }
+
+    @Test void productAndUserFormsDeclareEditableStates() {
+        for (var kind : new String[]{"produto", "usuario"}) {
+            var definition = UiDefinition.fromResource(getClass(), "/views/" + kind + "-form.view.jsonc");
+            try (var session = definition.open(new Actions().register("save", ignored -> {}))) {
+                assertEquals(kind + "Form", session.id());
+                assertEquals("", session.states().string("nome").get());
+                assertEquals("", session.states().string("saveText").get());
+            }
+        }
+    }
 }

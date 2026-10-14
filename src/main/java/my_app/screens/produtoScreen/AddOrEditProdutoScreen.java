@@ -1,18 +1,15 @@
 package my_app.screens.produtoScreen;
 
+import com.google.gson.Gson;
+import megalodonte.jsonc.Actions;
+import megalodonte.jsonc.UiDefinition;
+import megalodonte.jsonc.UiSession;
 import megalodonte.application.ErrorReporter;
 import megalodonte.base.UI;
 import megalodonte.base.async.Async;
 import megalodonte.base.components.Component;
 import megalodonte.base.components.ScreenComponent;
 import megalodonte.base.state.State;
-import megalodonte.components.Card;
-import megalodonte.components.LineHorizontal;
-import megalodonte.components.SpacerVertical;
-import megalodonte.components.layout_components.Column;
-import megalodonte.components.layout_components.FlowRow;
-import megalodonte.props.ColumnProps;
-import megalodonte.props.FlowRowProps;
 import megalodonte.base.route.v2.ScreenContextInterface;
 import megalodonte.utils.ThrowingSupplier;
 import my_app.db.services.ProdutoService;
@@ -22,6 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AddOrEditProdutoScreen implements ScreenComponent {
+    private static final UiDefinition VIEW = UiDefinition.fromResource(AddOrEditProdutoScreen.class, "/views/produto-form.view.jsonc");
+    private final UiSession session;
     Long id;
     ProdutoScreenViewModel viewModel;
     Logger log = LoggerFactory.getLogger(AddOrEditProdutoScreen.class);
@@ -32,6 +31,13 @@ public class AddOrEditProdutoScreen implements ScreenComponent {
     public AddOrEditProdutoScreen(ScreenContextInterface screenContext){
         viewModel = new ProdutoScreenViewModel(screenContext);
         produtoService = createOrReport(ProdutoService::new);
+        session = VIEW.open(new Actions().register("save", ignored -> handleAddOrUpdate()));
+        session.display("title", titleState, String.class)
+                .display("saveText", viewModel.btnText, String.class)
+                .bind("nome", viewModel.nome, String.class)
+                .bind("unidade", viewModel.unidadeSelected, String.class)
+                .bind("observacoes", viewModel.observacoes, String.class);
+        session.states().string("units").set(new Gson().toJson(Data.unidadesDeMedidaList));
         String type = screenContext.getParams().get("type");
 
         String idParam = screenContext.getParams().get("id");
@@ -76,24 +82,7 @@ public class AddOrEditProdutoScreen implements ScreenComponent {
     }
 
     @Override
-    public Component render() {
-         return new Card(
-                new Column(new ColumnProps().paddingAll(10))
-                        .c_child(Components.FormTitle(titleState))
-                        .c_child(new SpacerVertical(20))
-                        .c_child(new FlowRow(new FlowRowProps().spacingOf(10))
-                                .children(
-                                        Components.InputColumn(Components.obrigatorio("Nome do produto"), viewModel.nome, "Ex: Soja"),
-                                        Components.SelectColumn("Unidade", Data.unidadesDeMedidaList, viewModel.unidadeSelected, it -> it)
-                                )
-                        )
-                        .c_child(new SpacerVertical(10))
-                        .c_child(new LineHorizontal())
-                        .c_child(Components.TextAreaColumn("Observações", viewModel.observacoes, "Alguma observação sobre o produto?", 60, 160))
-                        .c_child(new SpacerVertical(20))
-                        .c_child(Components.actionButtons(viewModel.btnText, this::handleAddOrUpdate))
-        );
-    }
+    public Component render() { return session.render(); }
 
      void handleAddOrUpdate() {
         try {
@@ -110,6 +99,7 @@ public class AddOrEditProdutoScreen implements ScreenComponent {
     // do NPE de session nula já corrigido no projeto).
     @Override
     public void onDestroy() {
+        session.close();
         try {
             viewModel.onDestroy();
             produtoService.close();

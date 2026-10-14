@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "id": "produtoForm",
+  "states": {
+    "title": {
+      "type": "string",
+      "initial": ""
+    },
+    "saveText": {
+      "type": "string",
+      "initial": ""
+    },
+    "nome": {
+      "type": "string",
+      "initial": ""
+    },
+    "unidade": {
+      "type": "string",
+      "initial": ""
+    },
+    "observacoes": {
+      "type": "string",
+      "initial": ""
+    },
+    "units": {
+      "type": "string",
+      "initial": "[]"
+    }
+  },
+  "view": {
+    "type": "Scroll",
+    "children": [
+      {
+        "type": "Column",
+        "props": {
+          "padding": 20,
+          "spacing": 16,
+          "fillWidth": true
+        },
+        "children": [
+          {
+            "type": "Text",
+            "bind": {
+              "text": "title"
+            },
+            "style": {
+              "bold": true,
+              "fontSize": 18
+            }
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Nome do produto *"
+                }
+              },
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": "Ex: Soja",
+                  "width": 280
+                },
+                "bind": {
+                  "value": "nome"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Unidade"
+                }
+              },
+              {
+                "type": "Select",
+                "bind": {
+                  "items": "units",
+                  "value": "unidade"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Observações"
+                }
+              },
+              {
+                "type": "TextArea",
+                "props": {
+                  "placeholder": "Alguma observação sobre o produto?",
+                  "width": 280
+                },
+                "bind": {
+                  "value": "observacoes"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Button",
+            "bind": {
+              "text": "saveText"
+            },
+            "events": {
+              "onClick": "save"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

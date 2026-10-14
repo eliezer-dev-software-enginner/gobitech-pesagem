@@ -1,0 +1,189 @@
+{
+  "version": 1,
+  "id": "usuarioForm",
+  "states": {
+    "title": {
+      "type": "string",
+      "initial": ""
+    },
+    "saveText": {
+      "type": "string",
+      "initial": ""
+    },
+    "nome": {
+      "type": "string",
+      "initial": ""
+    },
+    "login": {
+      "type": "string",
+      "initial": ""
+    },
+    "senha": {
+      "type": "string",
+      "initial": ""
+    },
+    "telefone": {
+      "type": "string",
+      "initial": ""
+    },
+    "perfil": {
+      "type": "string",
+      "initial": ""
+    },
+    "profiles": {
+      "type": "string",
+      "initial": "[]"
+    }
+  },
+  "view": {
+    "type": "Scroll",
+    "children": [
+      {
+        "type": "Column",
+        "props": {
+          "padding": 20,
+          "spacing": 16,
+          "fillWidth": true
+        },
+        "children": [
+          {
+            "type": "Text",
+            "bind": {
+              "text": "title"
+            },
+            "style": {
+              "bold": true,
+              "fontSize": 18
+            }
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Nome *"
+                }
+              },
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": "Ex: Maria Silva",
+                  "width": 280
+                },
+                "bind": {
+                  "value": "nome"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Login *"
+                }
+              },
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": "Ex: maria",
+                  "width": 280
+                },
+                "bind": {
+                  "value": "login"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Senha *"
+                }
+              },
+              {
+                "type": "PasswordInput",
+                "props": {
+                  "placeholder": "Digite a senha",
+                  "width": 280
+                },
+                "bind": {
+                  "value": "senha"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Telefone"
+                }
+              },
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": "",
+                  "width": 280
+                },
+                "bind": {
+                  "value": "telefone"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 4
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Perfil"
+                }
+              },
+              {
+                "type": "Select",
+                "bind": {
+                  "items": "profiles",
+                  "value": "perfil"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Button",
+            "bind": {
+              "text": "saveText"
+            },
+            "events": {
+              "onClick": "save"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
