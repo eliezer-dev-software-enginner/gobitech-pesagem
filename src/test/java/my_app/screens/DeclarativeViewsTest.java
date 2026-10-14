@@ -99,4 +99,20 @@ class DeclarativeViewsTest {
             assertEquals("[]", session.states().string("ufs").get());
         }
     }
+
+    @Test void productAndUserListsDeclareNativeTables() {
+        for (var kind : new String[]{"produto", "usuario"}) {
+            var definition = UiDefinition.fromResource(getClass(), "/views/" + kind + "-list.view.jsonc");
+            try (var session = definition.open(new Actions()
+                    .register("select", ignored -> {})
+                    .register("openDetails", ignored -> {})
+                    .register("export", ignored -> {})
+                    .register("edit", ignored -> {})
+                    .register("delete", ignored -> {})
+                    .register("create", ignored -> {}))) {
+                assertEquals(kind + "List", session.id());
+                assertEquals("[]", session.states().string("rows").get());
+            }
+        }
+    }
 }

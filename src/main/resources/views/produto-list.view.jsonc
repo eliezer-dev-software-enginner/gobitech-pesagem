@@ -1,0 +1,144 @@
+{
+  "version": 1,
+  "id": "produtoList",
+  "states": {
+    "search": {
+      "type": "string",
+      "initial": ""
+    },
+    "rows": {
+      "type": "string",
+      "initial": "[]"
+    },
+    "selected": {
+      "type": "string",
+      "initial": ""
+    },
+    "showDelete": {
+      "type": "boolean",
+      "initial": false
+    }
+  },
+  "view": {
+    "type": "Scroll",
+    "children": [
+      {
+        "type": "Column",
+        "props": {
+          "padding": 20,
+          "spacing": 15,
+          "fillWidth": true
+        },
+        "children": [
+          {
+            "type": "Text",
+            "props": {
+              "text": "Produtos"
+            },
+            "style": {
+              "fontSize": 20,
+              "bold": true
+            }
+          },
+          {
+            "type": "Input",
+            "props": {
+              "placeholder": "Pesquisar"
+            },
+            "bind": {
+              "value": "search"
+            }
+          },
+          {
+            "type": "Table",
+            "props": {
+              "columns": [
+                {
+                  "title": "ID",
+                  "field": "id"
+                },
+                {
+                  "title": "Nome",
+                  "field": "nome"
+                },
+                {
+                  "title": "Unidade",
+                  "field": "unidade"
+                },
+                {
+                  "title": "Ativo",
+                  "field": "ativo"
+                },
+                {
+                  "title": "Observações",
+                  "field": "observacoes"
+                },
+                {
+                  "title": "Data de criação",
+                  "field": "dataCriacao"
+                }
+              ],
+              "height": 300,
+              "horizontalScroll": true
+            },
+            "bind": {
+              "items": "rows",
+              "selected": "selected"
+            },
+            "events": {
+              "onSelect": "select",
+              "onDoubleClick": "openDetails"
+            }
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 8
+            },
+            "children": [
+              {
+                "type": "Button",
+                "props": {
+                  "text": "Exportar PDF"
+                },
+                "events": {
+                  "onClick": "export"
+                }
+              },
+              {
+                "type": "Button",
+                "props": {
+                  "text": "Editar"
+                },
+                "events": {
+                  "onClick": "edit"
+                }
+              },
+              {
+                "type": "Button",
+                "props": {
+                  "text": "Excluir"
+                },
+                "bind": {
+                  "visible": "showDelete"
+                },
+                "events": {
+                  "onClick": "delete"
+                }
+              },
+              {
+                "type": "Button",
+                "props": {
+                  "text": "Criar novo"
+                },
+                "events": {
+                  "onClick": "create"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

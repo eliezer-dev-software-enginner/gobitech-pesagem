@@ -1,6 +1,16 @@
 package my_app.screens.usuarioScreen;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonParser;
 import megalodonte.base.components.Component;
+import megalodonte.base.state.Subscription;
+import megalodonte.jsonc.Actions;
+import megalodonte.jsonc.UiDefinition;
+import megalodonte.jsonc.UiSession;
+import my_app.domain.Autorizacao;
+import java.util.LinkedHashMap;
+import java.util.ArrayList;
+import java.util.Map;
 import megalodonte.base.components.ScreenComponent;
 import megalodonte.base.theme.ThemeManager;
 import megalodonte.components.SimpleTable;
@@ -25,12 +35,26 @@ import java.io.File;
 import java.util.List;
 
 public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<UsuarioModel> {
+    private static final UiDefinition VIEW = UiDefinition.fromResource(UsuarioScreen.class, "/views/usuario-list.view.jsonc");
+    private static final Gson JSON = new Gson();
+    private final UiSession session;
+    private final Subscription rowsSubscription;
     private final UsuarioScreenViewModel vm;
     private final ScreenContextInterface screenContext;
 
     public UsuarioScreen(ScreenContextInterface ctx) {
         this.screenContext = ctx;
         this.vm = new UsuarioScreenViewModel(ctx);
+        session = VIEW.open(new Actions()
+                .register("select", ignored -> selectRow())
+                .register("openDetails", ignored -> openDetails())
+                .register("export", ignored -> handleClickBaixarLista())
+                .register("edit", ignored -> handleClickMenuEdit())
+                .register("delete", ignored -> handleClickMenuDelete())
+                .register("create", ignored -> handleClickNew()));
+        session.bind("search", vm.searchState, String.class);
+        session.states().state("showDelete", Boolean.class).set(Autorizacao.podeAdministrar());
+        rowsSubscription = vm.filteredList.observe(items -> session.states().string("rows").set(rowsJson(items)));
     }
 
     @Override
@@ -40,12 +64,14 @@ public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<Usuari
 
     @Override
     public void onDestroy() {
+        rowsSubscription.close();
+        session.close();
         ContratoTelaCrudV3.super.onDestroy();
     }
 
     @Override
     public Component render() {
-        return mainView();
+        return session.render();
     }
 
     @Override
@@ -77,6 +103,39 @@ public class UsuarioScreen implements ScreenComponent, ContratoTelaCrudV3<Usuari
 
         return simpleTable;
     }
+
+    private void selectRow() {
+        var value = session.states().string("selected").get();
+        if (value.isBlank()) { vm.selected.set(null); return; }
+        try {
+            var id = JsonParser.parseString(value).getAsJsonObject().get("id").getAsLong();
+            vm.selected.set(vm.filteredList.get().stream().filter(model -> model.getId() == id).findFirst().orElse(null));
+        } catch (RuntimeException error) { vm.selected.set(null); }
+    }
+
+    private void openDetails() {
+        selectRow();
+        var selected = vm.selected.get();
+        if (selected != null) screenContext.spawnWindow(AppRoutes.Screens.DETAILS_USUARIO.name() + "/" + selected.getId());
+    }
+
+    private String rowsJson(List<UsuarioModel> models) {
+        var rows = new ArrayList<Map<String, String>>(models.size());
+        for (var model : models) {
+            var row = new LinkedHashMap<String, String>();
+            row.put("id", safe(model.getId()));
+            row.put("nome", safe(model.getNome()));
+            row.put("login", safe(model.getLogin()));
+            row.put("telefone", safe(FormatterPack.formatPhone(model.getTelefone())));
+            row.put("perfil", safe(Boolean.TRUE.equals(model.getAdmin()) ? "Admin" : "Operador"));
+            row.put("ativo", safe(Boolean.TRUE.equals(model.getAtivo()) ? "Sim" : "Não"));
+            row.put("dataCriacao", safe(DatePack.localDateTimeToBrazilianDateTime(model.getDataCriacao())));
+            rows.add(row);
+        }
+        return JSON.toJson(rows);
+    }
+
+    private static String safe(Object value) { return value == null ? "" : value.toString(); }
 
     @Override
     public void exportPdf(File destino, EmpresaModel empresa, List<UsuarioModel> snapshotFiltrado) throws Exception {
