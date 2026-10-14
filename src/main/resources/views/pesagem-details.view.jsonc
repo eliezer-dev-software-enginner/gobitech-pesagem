@@ -1,0 +1,416 @@
+{
+  "version": 1,
+  "id": "weighingDetails",
+  "states": {
+    "id": {
+      "type": "string",
+      "initial": ""
+    },
+    "placa": {
+      "type": "string",
+      "initial": ""
+    },
+    "motorista": {
+      "type": "string",
+      "initial": ""
+    },
+    "motoristaDocumento": {
+      "type": "string",
+      "initial": ""
+    },
+    "tipo": {
+      "type": "string",
+      "initial": ""
+    },
+    "cliente": {
+      "type": "string",
+      "initial": ""
+    },
+    "produto": {
+      "type": "string",
+      "initial": ""
+    },
+    "notaFiscal": {
+      "type": "string",
+      "initial": ""
+    },
+    "tara": {
+      "type": "string",
+      "initial": ""
+    },
+    "pesoBruto": {
+      "type": "string",
+      "initial": ""
+    },
+    "pesoLiquido": {
+      "type": "string",
+      "initial": ""
+    },
+    "dataCriacao": {
+      "type": "string",
+      "initial": ""
+    },
+    "observacoes": {
+      "type": "string",
+      "initial": ""
+    },
+    "showDelete": {
+      "type": "boolean",
+      "initial": false
+    }
+  },
+  "view": {
+    "type": "Scroll",
+    "children": [
+      {
+        "type": "Column",
+        "props": {
+          "padding": 20,
+          "spacing": 12,
+          "fillWidth": true
+        },
+        "children": [
+          {
+            "type": "Text",
+            "props": {
+              "text": "Detalhes da pesagem"
+            },
+            "style": {
+              "fontSize": 20,
+              "bold": true
+            }
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "ID:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "id"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Placa:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "placa"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Button",
+            "props": {
+              "text": "Copiar placa"
+            },
+            "events": {
+              "onClick": "copyPlate"
+            }
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Motorista:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "motorista"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Documento do motorista:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "motoristaDocumento"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Tipo:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "tipo"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Cliente:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "cliente"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Produto:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "produto"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Nota fiscal:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "notaFiscal"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Tara:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "tara"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Peso bruto:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "pesoBruto"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Peso líquido:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "pesoLiquido"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Data de criação:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "dataCriacao"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Column",
+            "props": {
+              "spacing": 2
+            },
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Observações:"
+                },
+                "style": {
+                  "bold": true
+                }
+              },
+              {
+                "type": "Text",
+                "bind": {
+                  "text": "observacoes"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Button",
+            "props": {
+              "text": "Imprimir"
+            },
+            "events": {
+              "onClick": "print"
+            }
+          },
+          {
+            "type": "Button",
+            "props": {
+              "text": "Excluir"
+            },
+            "bind": {
+              "visible": "showDelete"
+            },
+            "events": {
+              "onClick": "delete"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

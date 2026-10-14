@@ -139,4 +139,15 @@ class DeclarativeViewsTest {
             assertEquals("", session.states().string("startDate").get());
         }
     }
+
+    @Test void weighingDetailsDeclareActionsAndFields() {
+        var definition = UiDefinition.fromResource(getClass(), "/views/pesagem-details.view.jsonc");
+        try (var session = definition.open(new Actions()
+                .register("copyPlate", ignored -> {})
+                .register("print", ignored -> {})
+                .register("delete", ignored -> {}))) {
+            assertEquals("weighingDetails", session.id());
+            assertEquals("", session.states().string("placa").get());
+        }
+    }
 }
