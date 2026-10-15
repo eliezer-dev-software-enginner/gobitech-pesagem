@@ -1,8 +1,6 @@
 package my_app.domain.components;
 
 import javafx.scene.control.*;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.*;
 import megalodonte.ComputedState;
@@ -153,27 +151,7 @@ public class Components {
     }
 
     public static Component ScrollPaneDefault(Component child) {
-        var scroll = new ScrollPane();
-        scroll.setContent(child.getJavaFxNode());
-        VBox.setVgrow(scroll, Priority.ALWAYS);
-        // Sem isso, quando o pai não é uma VBox (ex.: um HBox/Row — vgrow acima só vale pra
-        // pai VBox), o ScrollPane fica travado na própria altura preferida em vez de esticar
-        // até o espaço que o pai realmente oferece.
-        scroll.setMaxHeight(Double.MAX_VALUE);
-        // Sem isso, a altura MÍNIMA do ScrollPane é herdada do conteúdo (ex.: SimpleTable tem
-        // um piso de 200px de propósito — ver comentário lá — pra ele nunca encolher a ponto de
-        // nunca rolar). Esse mínimo, sem ser zerado aqui, sobe pela árvore de layout (contentArea
-        // -> Row -> janela) e força a Row inteira a crescer além da altura real da janela sempre
-        // que o conteúdo em foco for alto (tabela cheia + formulário), cortando qualquer coisa
-        // que esteja do lado — inclusive a Sidebar, mesmo ela não tendo mudado nada. Zerando o
-        // mínimo, o ScrollPane nunca dita tamanho pro pai: só aceita o que for dado e rola por
-        // dentro quando não é o suficiente — que é o comportamento que se espera de um scroll.
-        scroll.setMinHeight(0);
-        scroll.setFitToWidth(true);
-        scroll.setFitToHeight(true);
-        scroll.setStyle("-fx-background-color: transparent;-fx-border-color: transparent;");
-
-        return Component.CreateFromJavaFxNode(scroll);
+        return new Scroll(child).fillAvailableHeight();
     }
 
     public static void ShowPopup(ScreenContextInterface context, String message) {
