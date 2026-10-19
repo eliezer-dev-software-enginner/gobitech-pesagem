@@ -52,8 +52,8 @@ eventos ao ViewModel. As demais telas ainda estão em migração para esse padr�
 
 ## Pré-requisitos
 
-- JDK 25 (o Gradle toolchain resolve a versão; `JAVA_HOME` é usada pelos scripts de
-  empacotamento)
+- JDK 25 disponível para o Gradle toolchain; os scripts de empacotamento usam
+  `JAVA_HOME`.
 - Variável de ambiente **`JAVAFX_MODULES_HOME`** apontando para a pasta que contém
   `windows-25.0.1/` e `linux-25.0.1/` — obrigatória para o `./gradlew run`.
 - Variáveis opcionais: `DEV_MODE=true` (liga `-Dprism.verbose` no run), `GITHUB_TOKEN`
@@ -131,7 +131,9 @@ Os scripts mantêm três áreas separadas em `temp/`: `input/` recebe somente o 
 - Roteiro de testes manuais de pesagem: `testes-pesagem.md`
 - Simulador de balança TCP: `scripts/simular_balanca_tcp.py` (e a versão manual
   `simular_balanca_tcp_manual.py`); seed de produtos: `scripts/seed_produtos.py`
-- Watch/reload simples: `python dev.py` (reinicia via `gradlew run`)
+- Watch/reload simples: `python dev.py` (reinicia via `gradlew run`). Requer Python
+  com o pacote `watchdog` instalado; o repositório não inclui um manifesto de
+  dependências Python.
 
 ## Documentação
 
