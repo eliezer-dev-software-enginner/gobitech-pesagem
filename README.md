@@ -58,9 +58,19 @@ eventos ao ViewModel. As demais telas ainda estão em migração para esse padr�
   `windows-25.0.1/` e `linux-25.0.1/` — obrigatória para o `./gradlew run`.
 - Variáveis opcionais: `DEV_MODE=true` (liga `-Dprism.verbose` no run), `GITHUB_TOKEN`
   (workflow de release).
-- Arquivo `.env` criado a partir de `.env.example`, com as credenciais iniciais do admin.
+- Credenciais iniciais do administrador em `.env` (a partir de `.env.example`) ou nas
+  variáveis de ambiente `GOBITECH_ADMIN_LOGIN` e `GOBITECH_ADMIN_PASSWORD`.
+- Dependências Gradle disponíveis nos repositórios configurados em `build.gradle.kts`:
+  Maven Local, Maven Central e JitPack. Os módulos Megalodonte e `pack-utilities`
+  precisam estar publicados com as coordenadas declaradas no build; este repositório
+  não inclui seus fontes nem um procedimento de instalação dessas bibliotecas.
 
 ## Execução
+
+Antes de executar, copie `.env.example` para `.env` e substitua os valores de exemplo
+de `GOBITECH_ADMIN_LOGIN` e `GOBITECH_ADMIN_PASSWORD`. Alternativamente, defina essas
+duas variáveis no ambiente. Configure também `JAVAFX_MODULES_HOME` conforme os
+pré-requisitos.
 
 ```bash
 ./gradlew run
@@ -68,7 +78,7 @@ eventos ao ViewModel. As demais telas ainda estão em migração para esse padr�
 
 O banco fica em `%APPDATA%\gobitech\erp.db` (Windows) ou `~/.gobitech/erp.db` (Linux).
 Na primeira execução o Flyway cria o schema e o usuário admin padrão; antes de abrir a tela de
-login, as credenciais são substituídas pelos valores do `.env`.
+login, as credenciais são substituídas pelos valores das variáveis de ambiente ou do `.env`.
 
 ## Testes
 
@@ -78,7 +88,7 @@ login, as credenciais são substituídas pelos valores do `.env`.
 
 ## Empacotamento
 
-Antes de executar ou empacotar, copie `.env.example` para `.env` e defina:
+Para empacotar, configure as mesmas credenciais em `.env` ou no ambiente, por exemplo:
 
 ```dotenv
 GOBITECH_ADMIN_LOGIN=admin@exemplo.com
@@ -118,7 +128,7 @@ Os scripts mantêm três áreas separadas em `temp/`: `input/` recebe somente o 
 
 ## Desenvolvimento
 
-- Separador/help de testes manuais: `docs/testes-pesagem.md`
+- Roteiro de testes manuais de pesagem: `testes-pesagem.md`
 - Simulador de balança TCP: `scripts/simular_balanca_tcp.py` (e a versão manual
   `simular_balanca_tcp_manual.py`); seed de produtos: `scripts/seed_produtos.py`
 - Watch/reload simples: `python dev.py` (reinicia via `gradlew run`)
