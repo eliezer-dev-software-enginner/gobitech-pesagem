@@ -13,23 +13,32 @@ import org.slf4j.LoggerFactory;
  * Pesagem de saída: o operador digita a placa e o formulário puxa os dados da última pesagem
  * de entrada daquele caminhão (motorista, documento, cliente, produto e a Tara) — sem precisar
  * redigitar nem repesar vazio. Resta confirmar o peso bruto (balança) e os descontos.
+ * Ao alterar a placa, descarta imediatamente o vínculo e os dados herdados da entrada anterior;
+ * respostas de buscas anteriores não podem preencher o formulário novamente.
  */
 public class PesagemSaidaViewModel extends PesagemFormViewModel {
 
     private static final Logger log = LoggerFactory.getLogger(PesagemSaidaViewModel.class);
 
     private Integer entradaIdVinculada;
+    private long versaoBusca;
 
     public PesagemSaidaViewModel(ScreenContextInterface ctx) {
         super(ctx);
 
-        // Digitar a placa dispara a busca pela última Entrada daquele caminhão. Assíncrono
-        // (vai no banco); quando o resultado chega, confere se a placa ainda é a mesma antes
-        // de preencher (evita uma resposta atrasada sobrescrever o que já é relevante).
-        placa.subscribe(valor -> puxarDadosDaEntrada(valor));
+        // A consulta ao banco é assíncrona; a versão distingue buscas sucessivas mesmo
+        // quando o operador volta a digitar a mesma placa.
+        placa.subscribe(valor -> {
+            versaoBusca++;
+            if (entradaIdVinculada != null) {
+                entradaIdVinculada = null;
+                limparDadosDaEntrada();
+            }
+            puxarDadosDaEntrada(valor, versaoBusca);
+        });
     }
 
-    private void puxarDadosDaEntrada(String placaValue) {
+    private void puxarDadosDaEntrada(String placaValue, long versao) {
         if (placaValue == null || placaValue.trim().isEmpty()) return;
         var placaAtual = placaValue.trim();
 
@@ -37,9 +46,8 @@ public class PesagemSaidaViewModel extends PesagemFormViewModel {
             try {
                 var entrada = pesagemService.buscarUltimaEntrada(placaAtual);
                 UI.runOnUi(() -> {
-                    if (!placa.get().trim().equals(placaAtual)) return; // placa já mudou
+                    if (versao != versaoBusca || !placa.get().trim().equals(placaAtual)) return;
                     if (entrada == null) {
-                        entradaIdVinculada = null;
                         Components.ShowPopup(ctx, "Nenhuma pesagem de entrada encontrada para essa placa");
                         return;
                     }
@@ -48,8 +56,21 @@ public class PesagemSaidaViewModel extends PesagemFormViewModel {
                 });
             } catch (Exception e) {
                 log.error("Erro ao buscar a entrada da placa {}", placaAtual, e);
+                UI.runOnUi(() -> {
+                    if (versao == versaoBusca) Components.ShowAlertError("Não foi possível buscar a entrada. Tente novamente.");
+                });
             }
         });
+    }
+
+    private void limparDadosDaEntrada() {
+        motoristaNome.set("");
+        motoristaDocumento.set("");
+        notaFiscal.set("");
+        pesoVeiculo.set("");
+        pesoTotal.set("");
+        clienteSelected.set(null);
+        produtoSelected.set(null);
     }
 
     private void preencherDaEntrada(PesagemModel entrada) {
