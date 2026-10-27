@@ -34,11 +34,8 @@ ver `DECISIONS.md` pras decisões específicas de cada troca.
 
 ## Configuração runtime e empacotamento
 
-- `.env` fornece `GOBITECH_ADMIN_LOGIN` e `GOBITECH_ADMIN_PASSWORD` no desenvolvimento; o arquivo
-  real é local e ignorado, enquanto `.env.example` documenta as chaves. No CI, GitHub Secrets
-  fornecem as mesmas variáveis diretamente.
-- Gradle e `scripts/config.py` codificam os valores em Base64 e os injetam como propriedades
-  `-D` do launcher. `AdminRuntimeConfig` as lê em runtime; nenhum `.env` entra no pacote.
+- `RuntimeEnvironment` lê `GOBITECH_ADMIN_LOGIN` e `GOBITECH_ADMIN_PASSWORD` do ambiente ou do `.env` privado do usuário. No checkout, aceita também o `.env` local ignorado pelo Git.
+- O build e o workflow não recebem credenciais e não as incluem em opções `-D` ou no instalador. `AdminRuntimeConfig` carrega os valores ao iniciar.
 - `AdminPadraoInitializer` aplica as credenciais ao admin rastreado pela migration `V25`, depois
   do Flyway e antes da rota inicial.
 - `scripts/config.py` separa `temp/input`, `temp/javafx` e `temp/runtime`. O `--input` do

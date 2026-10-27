@@ -90,20 +90,14 @@ login, as credenciais são substituídas pelos valores das variáveis de ambient
 
 ## Empacotamento
 
-Para empacotar, configure as mesmas credenciais em `.env` ou no ambiente, por exemplo:
+O instalador não contém credenciais. Para usar uma instalação, configure as credenciais no ambiente do processo ou em `%APPDATA%\Megalodonte\gobitech-pesagem\.env` (Windows) ou `~/.config/megalodonte/gobitech-pesagem/.env` (Linux):
 
 ```dotenv
 GOBITECH_ADMIN_LOGIN=admin@exemplo.com
 GOBITECH_ADMIN_PASSWORD=uma-senha-segura
 ```
 
-O `.env` real não é versionado. Em desenvolvimento o Gradle o lê e injeta as credenciais com
-`-Dgobitech.adminLoginBase64`/`-Dgobitech.adminPasswordBase64`. No empacotamento,
-`scripts/config.py` faz a mesma injeção nas opções Java do launcher; o arquivo `.env` não entra
-no pacote.
-No workflow de release, configure os secrets `GOBITECH_ADMIN_LOGIN` e
-`GOBITECH_ADMIN_PASSWORD`; eles são entregues diretamente ao script como variáveis de ambiente,
-sem criar um `.env` no runner.
+O `.env` real não é versionado. No checkout de desenvolvimento, o aplicativo também lê o `.env` na raiz do projeto. Os valores são lidos ao iniciar e não entram no launcher, no instalador ou no workflow. Para notificações, configure `GOBITECH_TELEGRAM_BOT_TOKEN` e `GOBITECH_TELEGRAM_CHAT_ID` no mesmo arquivo.
 
 A versão vive em `gradle.properties` (`appVersion` + `appPatch`). Incremente com:
 

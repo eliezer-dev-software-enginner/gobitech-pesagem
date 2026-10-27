@@ -10,10 +10,9 @@
   do `jpackage` (somente o JAR) das áreas de JavaFX e runtime do `jlink`, seguindo a
   correção validada no `plics-sw`.
 
-- [x] **Credenciais iniciais externas**: o build lê
-  `GOBITECH_ADMIN_LOGIN`/`GOBITECH_ADMIN_PASSWORD` do ambiente ou `.env` local e as injeta no
-  launcher como propriedades `-D`; o `.env` não entra no pacote. Migration `V25`, decodificação
-  e inicializador cobertos por testes.
+- [x] **Credenciais iniciais externas**: `AdminRuntimeConfig` lê
+  `GOBITECH_ADMIN_LOGIN`/`GOBITECH_ADMIN_PASSWORD` do ambiente ou `.env` privado em runtime.
+  O launcher e o instalador não contêm credenciais. Migration `V25` e inicializador cobertos por testes.
 
 - [x] **Pré-visualização em desenvolvimento**: `Salvar e imprimir` gera o ticket A4 em PDF na
   Área de Trabalho quando `DEV_MODE=true`; produção continua enviando à impressora configurada.

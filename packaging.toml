@@ -18,18 +18,6 @@ version = "25.0.1"
 modules = ["javafx.controls", "java.sql", "jdk.zipfs", "java.logging", "java.xml", "jdk.charsets"]
 exclude_natives = ["jfxwebkit.dll"]
 
-[[runtime.environment_properties]]
-environment = "GOBITECH_ADMIN_LOGIN"
-property = "gobitech.adminLoginBase64"
-encoding = "base64"
-required = true
-
-[[runtime.environment_properties]]
-environment = "GOBITECH_ADMIN_PASSWORD"
-property = "gobitech.adminPasswordBase64"
-encoding = "base64"
-required = true
-
 [windows]
 upgrade_uuid = "e3a2b1c4-7d5f-4a8e-9c6b-2f1d0a3e7b8c"
 per_user = true

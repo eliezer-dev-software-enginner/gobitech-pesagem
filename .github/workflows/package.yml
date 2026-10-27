@@ -17,7 +17,3 @@ jobs:
       dependencies: 'pack-utilities jsonc-ui'
       release: true
       smoke-test: true
-
-    secrets:
-      GOBITECH_ADMIN_LOGIN: ${{ secrets.GOBITECH_ADMIN_LOGIN }}
-      GOBITECH_ADMIN_PASSWORD: ${{ secrets.GOBITECH_ADMIN_PASSWORD }}

@@ -1,3 +1,9 @@
+## 2026-10-26: Credenciais saem do launcher
+
+**Decisão atual:** o build e o workflow não recebem mais credenciais. `RuntimeEnvironment` lê o ambiente ou um `.env` privado do usuário em runtime; no checkout, aceita o `.env` local. As antigas propriedades `-D` continuam aceitas apenas para compatibilidade com launchers anteriores. O token de Telegram também deixa de ser constante no código e passa a vir do mesmo arquivo privado. A decisão histórica abaixo foi substituída.
+
+---
+
 # Decisões Arquiteturais
 
 ## 2026-09-29: Logomarca nula usa a imagem padrão do sistema
