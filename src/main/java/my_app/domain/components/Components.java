@@ -16,13 +16,13 @@ import megalodonte.components.Button;
 import megalodonte.components.DatePicker;
 import megalodonte.components.inputs.OnChangeResult;
 import megalodonte.components.inputs.TextAreaInput;
-import megalodonte.components.v2.Input;
+import megalodonte.components.inputs.Input;
 import megalodonte.components.layout_components.Column;
 import megalodonte.components.layout_components.Container;
 import megalodonte.components.layout_components.FlowRow;
 import megalodonte.components.layout_components.Row;
 import megalodonte.props.*;
-import megalodonte.props.v2.InputProps;
+import megalodonte.props.InputProps;
 import megalodonte.base.route.v2.ScreenContextInterface;
 import megalodonte.v2.ListState;
 import my_app.domain.Data;
@@ -301,7 +301,7 @@ public class Components {
     }
 
     public static Component InputColumnCep(String label, State<String> inputState) {
-        var inputProps = getInputPropsV2("00000-000").width(120);
+        var inputProps = getInputProps("00000-000").width(120);
 
         var input = new Input(inputState, inputProps)
                 .onInitialize(value -> {
@@ -326,7 +326,7 @@ public class Components {
     }
 
     public static Component InputColumnDecimal(String label, State<String> inputState, String placeholder) {
-        var inputProps = getInputPropsV2(placeholder).width(140);
+        var inputProps = getInputProps(placeholder).width(140);
 
         var input = new Input(inputState, inputProps)
                 .onInitialize(value -> {
@@ -369,7 +369,7 @@ public class Components {
      * da balança (não digitados), com a mesma borda vermelha dos campos não-editáveis.
      */
     public static Component InputColumnInteger(String label, State<String> inputState, String placeholder, boolean disableInput) {
-        var inputProps = getInputPropsV2(placeholder).width(140);
+        var inputProps = getInputProps(placeholder).width(140);
         if (disableInput) inputProps.disable();
         String corBorda = disableInput ? "#e74c3c" : ThemeManager.theme().colors().border();
 
@@ -454,7 +454,7 @@ public class Components {
      * tanto pessoa física quanto jurídica (Cliente, Empresa).
      */
     public static Component InputColumnCpfCnpj(String label, State<String> inputState) {
-        var inputProps = getInputPropsV2("CPF ou CNPJ").width(190);
+        var inputProps = getInputProps("CPF ou CNPJ").width(190);
 
         var input = new Input(inputState, inputProps)
                 .onInitialize(value -> {
@@ -484,7 +484,7 @@ public class Components {
      * state só os dígitos, sem os separadores — ver {@code FormatterPack.formatRgCpf}.
      */
     public static Component InputRgCpf(String label, State<String> inputState) {
-        var inputProps = getInputPropsV2("RG ou CPF").width(170);
+        var inputProps = getInputProps("RG ou CPF").width(170);
 
         var input = new Input(inputState, inputProps)
                 .onInitialize(value -> {
@@ -509,7 +509,7 @@ public class Components {
     }
 
     public static Component InputColumnPhone(String label, State<String> inputState) {
-        var inputProps = getInputPropsV2("(00) 00000-0000").width(160);
+        var inputProps = getInputProps("(00) 00000-0000").width(160);
 
         var input = new Input(inputState, inputProps)
                 .onInitialize(value -> {
@@ -535,7 +535,7 @@ public class Components {
     }
 
     public static Component InputColumnNumeric(String label, State<String> inputState, String placeholder) {
-        var inputProps = getInputPropsV2(placeholder).width(100);
+        var inputProps = getInputProps(placeholder).width(100);
 
         var input = new Input(inputState, inputProps)
                 .onChange(value -> {
@@ -552,17 +552,17 @@ public class Components {
                 .c_child(input);
     }
 
-    static InputProps getInputPropsV2(String placeholder) {
-        return getInputPropsV2(placeholder, 31);
+    static InputProps getInputProps(String placeholder) {
+        return getInputProps(placeholder, 31);
     }
 
-    static InputProps getInputPropsV2(String placeholder, int height) {
+    static InputProps getInputProps(String placeholder, int height) {
         return new InputProps().height(height)
                 .placeHolder(placeholder).fontSize(ThemeManager.theme().typography().small());
     }
 
     public static Component InputColumnAuth(String label, ReadableState<String> inputState, String placeholder) {
-        var props = getInputPropsV2(placeholder);
+        var props = getInputProps(placeholder);
         props.height(35);
         props.width(220);
 
@@ -579,7 +579,7 @@ public class Components {
     public static Component InputColumn(String label, ReadableState<String> inputState, String placeholder, boolean disableInput,
                                         int borderWidth, int borderRadius, String borderColor, String labelColor,
                                         Integer width, Integer height) {
-        var props = getInputPropsV2(placeholder);
+        var props = getInputProps(placeholder);
         if (disableInput) props.disable();
         props.width(width != null ? width : 220);
 
@@ -624,7 +624,7 @@ public class Components {
      */
     public static Component InputColumnUppercase(String label, ReadableState<String> inputState, String placeholder) {
         State<String> estado = (State<String>) inputState;
-        var props = getInputPropsV2(placeholder).width(220).height(35);
+        var props = getInputProps(placeholder).width(220).height(35);
 
         var input = new Input(estado, props)
                 .onInitialize(value -> {
@@ -649,7 +649,7 @@ public class Components {
      * ({@code ABC1D23}) é feita no serviço ao salvar a pesagem.
      */
     public static Component InputPlaca(String label, State<String> inputState, String placeholder) {
-        var props = getInputPropsV2(placeholder).width(220).height(35);
+        var props = getInputProps(placeholder).width(220).height(35);
 
         var input = new Input(inputState, props)
                 .onInitialize(value -> {
