@@ -1,5 +1,7 @@
 # Gobitech — Sistema de pesagem
 
+![Identidade visual de Gobitech — Sistema de pesagem](src/main/resources/assets/balancas-gobitech-logo-1500x500.png)
+
 Sistema desktop de pesagem de caminhões para a Balanças Gobitech, usado em uma estação
 única (PC da balança), desenvolvido com JavaFX + Megalodonte, banco SQLite local.
 
