@@ -54,9 +54,9 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     implementation("megalodonte:megalodonte-base-desktop:1.0.0-beta")
-    implementation("megalodonte:megalodonte-components:1.0.0-beta")
-    implementation("megalodonte:megalodonte-reactivity:1.0.0-beta")
-    implementation("megalodonte:megalodonte-router:1.0.0-beta")
+    implementation("megalodonte:megalodonte-components-desktop:1.0.0-beta")
+    implementation("megalodonte:megalodonte-reactivity-desktop:1.0.0-beta")
+    implementation("megalodonte:megalodonte-router-desktop:1.0.0-beta")
     implementation("megalodonte:megalodonte-theme:1.0.0-beta")
     implementation("com.google.code.gson:gson:2.11.0")
 
