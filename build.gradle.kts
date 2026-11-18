@@ -53,7 +53,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    implementation("megalodonte:megalodonte-base:1.0.0-beta")
+    implementation("megalodonte:megalodonte-base-desktop:1.0.0-beta")
     implementation("megalodonte:megalodonte-components:1.0.0-beta")
     implementation("megalodonte:megalodonte-reactivity:1.0.0-beta")
     implementation("megalodonte:megalodonte-router:1.0.0-beta")
