@@ -836,3 +836,5 @@ property: dataCriacao` ao abrir o app de verdade. Nova migration corrige qualque
       `my_app.updater.Main` inexistente) removidos em 2026-09-07 (A10).
 - [x] "Buscar atualização" removido da Home porque `my_app.infra.UpdaterService` não existe —
       se for reintroduzir, é trabalho de infraestrutura de release, não de tela.
+- [x] 2026-11-18: restaurar todas as telas como composições Java nativas a partir
+      de `c783344`, removendo a dependência, as views e os testes exclusivos de JSONC.

@@ -2364,3 +2364,15 @@ depender de hardware. A leitura real fica como TODO — ver `TODO.md` e o `READM
 antigo (`/home/eliezer/Desktop/dev/outros/balanca-gobitech/README.md`) pra formas de simular uma
 balança sem hardware físico, que continuam válidas conceitualmente pra testar a integração real
 quando ela for construída.
+
+## 2026-11-18: Gobitech volta a usar composição Megalodonte nativa
+
+**Contexto:** entre `cfd8654` e `516997c`, as telas foram progressivamente movidas
+para definições JSONC. A direção atual do produto voltou a priorizar a API nativa
+Java do Megalodonte.
+
+**Decisão:** recuperar as composições de tela do último snapshot integralmente
+nativo (`c783344`), sem resetar o projeto inteiro. Correções posteriores de domínio,
+configuração e infraestrutura permanecem. Novas telas e mudanças visuais devem usar
+`ScreenComponent` e componentes Megalodonte diretamente em Java; o aplicativo não
+depende mais de `megalodonte-jsonc-ui`.

@@ -514,3 +514,12 @@ Gerar licença", só aparece pra quem está logado como admin — `SessaoUsuario
 `LicensaService.gerarNova(expiraEm)`. Detalhe importante: admin sempre consegue logar, mesmo com
 a licença atual expirada/ausente — senão ele ficaria trancado pra fora sem conseguir gerar uma
 nova. Usuários não-admin são bloqueados se a licença mais recente estiver expirada.
+
+### 2026-11-18 — Interface retomada como Megalodonte nativo
+
+- O commit `c783344`, imediatamente anterior à migração iniciada por `cfd8654`, foi
+  usado como fonte das composições Java nativas.
+- Foram preservadas as evoluções posteriores que não dependem de JSONC: domínio,
+  persistência, runtime privado, empacotamento, FilePicker e componentes compartilhados.
+- `megalodonte-jsonc-ui`, `src/main/resources/views/` e os testes exclusivos das
+  definições declarativas deixaram de fazer parte do aplicativo.
