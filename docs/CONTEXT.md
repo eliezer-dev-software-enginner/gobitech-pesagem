@@ -525,3 +525,6 @@ nova. Usuários não-admin são bloqueados se a licença mais recente estiver ex
   definições declarativas deixaram de fazer parte do aplicativo.
 - O workflow compartilhado mantém somente `pack-utilities` como dependência extra;
   as bibliotecas Megalodonte desktop são preparadas pelo próprio workflow.
+- O projeto foi alinhado ao CLI atual: skills versionadas, `AGENTS.md`, live reload
+  documentado, fontes locais das seis bibliotecas desktop e execução Gradle sem
+  exigir um SDK JavaFX manual.

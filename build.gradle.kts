@@ -101,23 +101,7 @@ tasks.test {
 }
 
 tasks.named<JavaExec>("run") {
-    val os = System.getProperty("os.name").lowercase()
-
-    val javafxModulesHome = System.getenv("JAVAFX_MODULES_HOME")
-        ?: throw GradleException(
-            "Variável de ambiente JAVAFX_MODULES_HOME não definida. " +
-                    "Defina-a apontando para a pasta que contém linux-25.0.1/ e windows-25.0.1/."
-        )
-
-    val fxPath = if (os.contains("win")) {
-        "$javafxModulesHome/windows-25.0.1/lib"
-    } else {
-        "$javafxModulesHome/linux-25.0.1/lib"
-    }
-
     val jvmArgsList = mutableListOf(
-        "--module-path", fxPath,
-        "--add-modules", "javafx.controls,javafx.graphics",
         "--enable-native-access=ALL-UNNAMED",
         "-Dgobitech.appVersion=$fullVersion"
     )

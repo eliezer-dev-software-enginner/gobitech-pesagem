@@ -2376,3 +2376,13 @@ nativo (`c783344`), sem resetar o projeto inteiro. Correções posteriores de do
 configuração e infraestrutura permanecem. Novas telas e mudanças visuais devem usar
 `ScreenComponent` e componentes Megalodonte diretamente em Java; o aplicativo não
 depende mais de `megalodonte-jsonc-ui`.
+
+## 2026-11-18: Infraestrutura de desenvolvimento segue o CLI atual
+
+`gradlew run` deixa o plugin OpenJFX resolver os módulos da plataforma e não exige
+`JAVAFX_MODULES_HOME`; o SDK externo continua necessário apenas no empacotamento.
+Em desenvolvimento local, `settings.gradle.kts` inclui as seis bibliotecas desktop
+quando presentes no workspace e respeita `-PuseLocalSources=false` no CI. As skills
+distribuídas pelo CLI ficam versionadas no aplicativo. O native host com
+`WorkerMain` permanece experimental e opcional, portanto não faz parte do bootstrap
+padrão deste projeto.

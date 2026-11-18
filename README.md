@@ -58,8 +58,6 @@ JSONC intermediários.
 
 - JDK 25 disponível para o Gradle toolchain; os scripts de empacotamento usam
   `JAVA_HOME`.
-- Variável de ambiente **`JAVAFX_MODULES_HOME`** apontando para a pasta que contém
-  `windows-25.0.1/` e `linux-25.0.1/` — obrigatória para o `./gradlew run`.
 - Variáveis opcionais: `DEV_MODE=true` (liga `-Dprism.verbose` no run), `GITHUB_TOKEN`
   (workflow de release).
 - Credenciais iniciais do administrador em `.env` (a partir de `.env.example`) ou nas
@@ -73,12 +71,40 @@ JSONC intermediários.
 
 Antes de executar, copie `.env.example` para `.env` e substitua os valores de exemplo
 de `GOBITECH_ADMIN_LOGIN` e `GOBITECH_ADMIN_PASSWORD`. Alternativamente, defina essas
-duas variáveis no ambiente. Configure também `JAVAFX_MODULES_HOME` conforme os
-pré-requisitos.
+duas variáveis no ambiente.
 
 ```bash
 ./gradlew run
 ```
+
+O plugin OpenJFX resolve os módulos e os nativos da plataforma para `run`; não é
+necessário configurar `JAVAFX_MODULES_HOME`. Essa variável é usada somente para
+construir instaladores autocontidos com `jlink`/`jpackage`.
+
+## Live reload
+
+Com o Megalodonte CLI instalado, execute:
+
+```bash
+megalodonte dev --project .
+```
+
+Mudanças compatíveis recompilam e atualizam as janelas gerenciadas. Mudanças
+estruturais reiniciam o processo da aplicação e recuperam posição e tamanho das
+janelas; o estado exclusivamente em memória é perdido nesse fallback. Alterações
+em `.env` exigem reiniciar a sessão. Consulte o
+[diagrama do live reload](docs/images/live-reload.svg).
+
+## Skills para agentes
+
+O projeto mantém cópias versionadas de `megalodonte-native-ui` e `criterioso`.
+Sincronize-as após atualizar o CLI:
+
+```bash
+megalodonte skills sync --project .
+```
+
+As regras de uso ficam em [AGENTS.md](AGENTS.md).
 
 O banco fica em `%APPDATA%\gobitech\erp.db` (Windows) ou `~/.gobitech/erp.db` (Linux).
 Na primeira execução o Flyway cria o schema e o usuário admin padrão; antes de abrir a tela de
