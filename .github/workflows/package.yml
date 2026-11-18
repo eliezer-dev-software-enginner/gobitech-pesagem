@@ -14,6 +14,6 @@ jobs:
     with:
       project-directory: .
       artifact-name: gobitech
-      dependencies: 'pack-utilities jsonc-ui'
+      dependencies: 'pack-utilities'
       release: true
       smoke-test: true

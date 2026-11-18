@@ -523,3 +523,5 @@ nova. Usuários não-admin são bloqueados se a licença mais recente estiver ex
   persistência, runtime privado, empacotamento, FilePicker e componentes compartilhados.
 - `megalodonte-jsonc-ui`, `src/main/resources/views/` e os testes exclusivos das
   definições declarativas deixaram de fazer parte do aplicativo.
+- O workflow compartilhado mantém somente `pack-utilities` como dependência extra;
+  as bibliotecas Megalodonte desktop são preparadas pelo próprio workflow.
